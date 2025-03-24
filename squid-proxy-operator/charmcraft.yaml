@@ -1,0 +1,60 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+# This file configures Charmcraft.
+# See https://juju.is/docs/sdk/charmcraft-config for guidance.
+
+type: charm
+name: squid-proxy
+title: Squid Proxy
+summary: Squid is a forwarding HTTP web proxy.
+links:
+  documentation: https://discourse.charmhub.io
+  issues: https://github.com/canonical/http-proxy-operators/issues
+  source: https://github.com/canonical/http-proxy-operators
+  contact: https://launchpad.net/~canonical-is-devops
+
+description: >
+  Squid is a fully-featured HTTP/1.0 proxy which is almost a fully-featured
+  HTTP/1.1 proxy. Squid offers a rich access control, authorization and 
+  logging environment to develop web proxy and content serving applications.
+  Squid offers a rich set of traffic optimization options, most of which are
+  enabled by default for simpler installation and high performance.
+
+config:
+  options:
+    http-port:
+      description: >-
+        The socket port where Squid will listen for HTTP client requests.
+      default: 3128
+      type: int
+    hostname:
+      description: >-
+        The hostname of the Squid servers.
+      type: string
+
+provides:
+  http-proxy:
+    interface: http_proxy
+
+peers:
+  squid-peer:
+    interface: squid_peer
+
+base: ubuntu@24.04
+build-base: ubuntu@24.04
+platforms:
+  amd64:
+parts:
+  charm:
+    build-snaps:
+      - rustup
+    override-build: |
+      rustup default stable
+      craftctl default
+    build-packages:
+      - libffi-dev
+      - libssl-dev
+      - pkg-config
+
+assumes:
+  - juju >= 3.3

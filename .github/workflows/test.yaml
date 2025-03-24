@@ -10,3 +10,13 @@ jobs:
     with:
       self-hosted-runner: true
       self-hosted-runner-label: "edge"
+      working-directory: ./squid-proxy-operator
+  integration-tests:
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    secrets: inherit
+    with:
+      juju-channel: '3/stable'
+      channel: '1.32-strict/stable'
+      provider: lxd
+      working-directory: ./squid-proxy-operator
+      identifier: squid-proxy
