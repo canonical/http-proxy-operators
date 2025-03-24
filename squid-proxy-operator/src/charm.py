@@ -17,6 +17,9 @@ from squid import Squid
 
 logger = logging.getLogger(__name__)
 
+HTTP_PROXY_INTEGRATION_NAME = "http-proxy"
+PEER_INTEGRATION_NAME = "squid-peer"
+
 
 class SquidProxyCharm(ops.CharmBase):
     """Charm the service."""
@@ -30,13 +33,22 @@ class SquidProxyCharm(ops.CharmBase):
         super().__init__(*args)
         self._squid = Squid()
         self._proxy_provider = http_proxy.HttpProxyPolyProvider(
-            charm=self, integration_name="http-proxy"
+            charm=self, integration_name=HTTP_PROXY_INTEGRATION_NAME
         )
         self.framework.observe(self.on.install, self._install)
         self.framework.observe(self.on.upgrade_charm, self._install)
         self.framework.observe(self.on.config_changed, self._reconcile)
-        self.framework.observe(self.on["http-proxy"].relation_changed, self._reconcile)
-        self.framework.observe(self.on["squid-peer"].relation_changed, self._reconcile)
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self._reconcile
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_joined, self._reconcile
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_broken, self._reconcile
+        )
+        self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_changed, self._reconcile)
+        self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_joined, self._reconcile)
         self.framework.observe(self.on.update_status, self._reconcile)
 
     def _install(self, _: ops.EventBase) -> None:
