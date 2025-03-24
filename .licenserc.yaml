@@ -23,5 +23,5 @@ header:
     - 'trivy.yaml'
     - 'pyproject.toml'
     - 'zap_rules.tsv'
-    - 'lib/**'
+    - 'squid-proxy-operator/lib/**'
   comment: on-failure
