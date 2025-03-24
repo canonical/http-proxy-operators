@@ -23,7 +23,8 @@ def pytest_addoption(parser):
 def mock_squid_fixture():
     """Create a Squid object with necessary methods patched."""
     mock_config = ""
-    mock_passwd = ""
+    # this is not a real password
+    mock_passwd = ""  # nosec
 
     def read_config() -> str:
         """Read the Squid configuration file.
