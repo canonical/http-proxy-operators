@@ -9,12 +9,12 @@ jobs:
     secrets: inherit
     with:
       self-hosted-runner: false
-      working-directory: ./squid-proxy-operator
+      working-directory: ./squid-forward-proxy-operator
   integration-tests:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
       juju-channel: '3/stable'
       provider: lxd
-      working-directory: ./squid-proxy-operator
+      working-directory: ./squid-forward-proxy-operator
       identifier: squid-proxy
