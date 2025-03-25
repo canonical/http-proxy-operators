@@ -5,15 +5,15 @@
 
 """Charm the service."""
 
+import json
 import logging
 import secrets
 import typing
-import uuid
 
 import ops
 
 import http_proxy
-from squid import Squid
+import squid
 
 logger = logging.getLogger(__name__)
 
@@ -31,7 +31,6 @@ class SquidProxyCharm(ops.CharmBase):
             args: Arguments passed to the CharmBase parent constructor.
         """
         super().__init__(*args)
-        self._squid = Squid()
         self._proxy_provider = http_proxy.HttpProxyPolyProvider(
             charm=self, integration_name=HTTP_PROXY_INTEGRATION_NAME
         )
@@ -45,20 +44,35 @@ class SquidProxyCharm(ops.CharmBase):
             self.on[HTTP_PROXY_INTEGRATION_NAME].relation_joined, self._reconcile
         )
         self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_departed, self._reconcile
+        )
+        self.framework.observe(
             self.on[HTTP_PROXY_INTEGRATION_NAME].relation_broken, self._reconcile
         )
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_changed, self._reconcile)
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_joined, self._reconcile)
+        self.framework.observe(self.on.secret_changed, self._reconcile)
         self.framework.observe(self.on.update_status, self._reconcile)
 
     def _install(self, _: ops.EventBase) -> None:
         """Install Squid."""
-        self.unit.status = ops.ActiveStatus("installing squid")
-        self._squid.install()
+        self.unit.status = ops.MaintenanceStatus("installing squid")
+        squid.install()
         self.unit.status = ops.ActiveStatus()
 
     def _reconcile(self, _: ops.EventBase) -> None:
         """Run the main reconciliation loop."""
+        peer_integration = self.model.get_relation(relation_name=PEER_INTEGRATION_NAME)
+        if not peer_integration:
+            self.unit.status = ops.WaitingStatus("waiting for peer integration")
+            return
+        if self.unit.is_leader():
+            self._reconcile_leader()
+        else:
+            self._reconcile_non_leader()
+
+    def _reconcile_leader(self) -> None:
+        """Run the main reconciliation loop for leader unit."""
         temporary_integration_errors = 0
         integration_errors = 0
         invalid_requests = 0
@@ -78,7 +92,7 @@ class SquidProxyCharm(ops.CharmBase):
                     proxy_provider=self._proxy_provider,
                     integration=integration,
                 )
-            except http_proxy.BadIntegrationError:
+            except http_proxy.IntegrationDataError:
                 logger.warning(
                     "integration (id: %s, remote: %s) contains bad data",
                     integration.id,
@@ -90,7 +104,9 @@ class SquidProxyCharm(ops.CharmBase):
             proxy_requests.extend(reconciler.proxy_requests)
             proxy_users.update(reconciler.proxy_users)
             invalid_requests += reconciler.invalid_request_count
-        self._update_config_passwd(proxy_requests, proxy_users)
+        squid.update_config_and_passwd(
+            proxy_requests=proxy_requests, proxy_users=proxy_users, http_port=self._get_http_port()
+        )
         status: type[ops.ActiveStatus] | type[ops.BlockedStatus] = ops.ActiveStatus
         status_message = f"ready: {len(proxy_requests)}"
         if invalid_requests:
@@ -101,35 +117,77 @@ class SquidProxyCharm(ops.CharmBase):
             status = ops.BlockedStatus
             status_message += f", integration errors: {integration_errors}"
         self.unit.status = status(status_message)
+        self._set_peer_data(
+            proxy_requests=proxy_requests,
+            proxy_users=proxy_users,
+            status=status.name,
+            status_message=status_message,
+        )
 
-    def _update_config_passwd(
-        self, proxy_requests: list[http_proxy.HttpProxyRequest], proxy_users: dict[str, str]
+    def _set_peer_data(
+        self,
+        proxy_requests: list[http_proxy.HttpProxyRequest],
+        proxy_users: dict[str, str],
+        status: str,
+        status_message: str,
     ) -> None:
-        """Update Squid configuration and passwd file.
+        """Set replica consensus data in the peer integrations.
 
         Args:
-            proxy_requests: list of http proxy requests
-            proxy_users: required http proxy users
+            proxy_requests: http proxy requests.
+            proxy_users: http proxy users
+            status: unit status
+            status_message: unit status message
         """
-        old_config = self._squid.read_config()
-        old_passwd = self._squid.read_passwd()
-        new_config = self._squid.generate_config(
-            specs=proxy_requests,
-            http_port=self.config["http-port"],
+        integration = typing.cast(
+            ops.Relation, self.model.get_relation(relation_name=PEER_INTEGRATION_NAME)
         )
-        new_passwd = self._squid.generate_passwd(proxy_users)
-        if old_config != new_config or old_passwd != new_passwd:
-            logger.info("squid configuration changed, reloading")
-            if old_config != new_config:
-                self._squid.write_config(new_config)
-            if old_passwd != new_passwd:
-                self._squid.write_passwd(new_passwd)
-            self._squid.reload()
-            if self.unit.is_leader():
-                peer_integration = self.model.get_relation("squid-peer")
-                if peer_integration:
-                    # notify other non-leader units
-                    peer_integration.data[self.app]["refresh"] = str(uuid.uuid4())
+        integration_data = integration.data[self.app]
+        integration_data["proxy-requests"] = json.dumps(
+            [r.model_dump(mode="json") for r in proxy_requests]
+        )
+        secret_id = integration_data.get("proxy-users")
+        if secret_id:
+            secret = self.model.get_secret(id=secret_id)
+            content = secret.get_content(refresh=True)
+            if json.loads(content["data"]) != proxy_users:
+                secret.set_content({"data": json.dumps(proxy_users)})
+        else:
+            secret = self.app.add_secret(content={"data": json.dumps(proxy_users)})
+            integration_data["proxy-users"] = typing.cast(str, secret.id)
+        integration_data["status"] = status
+        integration_data["status-message"] = status_message
+
+    def _reconcile_non_leader(self) -> None:
+        """Run the main reconciliation loop for non-leader units."""
+        integration = typing.cast(
+            ops.Relation, self.model.get_relation(relation_name=PEER_INTEGRATION_NAME)
+        )
+        integration_data = integration.data[self.app]
+        proxy_requests_data = integration_data.get("proxy-requests")
+        if not proxy_requests_data:
+            self.unit.status = ops.WaitingStatus("waiting for leader")
+            return
+        proxy_requests = [
+            http_proxy.HttpProxyRequest(**data) for data in json.loads(proxy_requests_data)
+        ]
+        proxy_users = json.loads(
+            self.model.get_secret(id=integration_data["proxy-users"]).get_content(refresh=True)[
+                "data"
+            ]
+        )
+        status_name = integration_data["status"]
+        status_message = integration_data["status-message"]
+        squid.update_config_and_passwd(
+            proxy_requests=proxy_requests, proxy_users=proxy_users, http_port=self._get_http_port()
+        )
+        status_mapping = {
+            ops.BlockedStatus.name: ops.BlockedStatus,
+            ops.ActiveStatus.name: ops.ActiveStatus,
+            ops.MaintenanceStatus.name: ops.MaintenanceStatus,
+            ops.WaitingStatus.name: ops.WaitingStatus,
+        }
+        self.unit.status = status_mapping[status_name](status_message)
 
     def _get_proxy_url(self, integration: ops.Relation) -> str | None:
         """Get the proxy url for the proxy requirer.
@@ -141,10 +199,9 @@ class SquidProxyCharm(ops.CharmBase):
             The proxy url or None if the charm can't get the bind address for the integration at
             the moment.
         """
-        network_binding = self.model.get_binding(integration)
-
         hostname = self.config.get("hostname")
         if not hostname:
+            network_binding = self.model.get_binding(integration)
             if (
                 network_binding is not None
                 and (bind_address := network_binding.network.bind_address) is not None
@@ -158,7 +215,15 @@ class SquidProxyCharm(ops.CharmBase):
                     integration.app.name,
                 )
                 return None
-        return f"http://{hostname}:{self.config['http-port']}"
+        return f"http://{hostname}:{self._get_http_port()}"
+
+    def _get_http_port(self) -> int:
+        """Get http-port configuration.
+
+        Returns:
+            http-port configuration.
+        """
+        return typing.cast(int, self.config["http-port"])
 
 
 class IntegrationReconciler:  # pylint: disable=too-few-public-methods
@@ -198,10 +263,8 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         self.proxy_users.clear()
         self.proxy_requests.clear()
         self.invalid_request_count = 0
-        if self._charm.unit.is_leader():
-            self._reconcile_as_leader()
-        else:
-            self._reconcile_as_non_leader()
+        for requirer_id in self._requests.get_requirer_ids():
+            self._reconcile_request_as_leader(requirer_id)
 
     def _reconcile_request_as_leader(self, requirer_id: str) -> None:
         """Reconcile one single http proxy request on the leader unit.
@@ -234,7 +297,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
                 username = response.user.username
                 password = response.user.password.get_secret_value()
             else:
-                username = Squid.derive_proxy_username(request)
+                username = squid.derive_proxy_username(request)
                 password = self._generate_proxy_password()
             self.proxy_users[username] = password
         if response:
@@ -257,30 +320,6 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
             )
         self.proxy_requests.append(request)
 
-    def _reconcile_as_leader(self) -> None:
-        """Reconcile the integration on the leader unit."""
-        for requirer_id in self._requests.get_requirer_ids():
-            self._reconcile_request_as_leader(requirer_id)
-
-    def _reconcile_as_non_leader(self) -> None:
-        """Reconcile the integration on the non-leader unit."""
-        for requirer_id in self._responses.get_requirer_ids():
-            response = self._responses.get(requirer_id)
-            if not response.status == http_proxy.PROXY_STATUS_READY:
-                if response.status == http_proxy.PROXY_STATUS_INVALID:
-                    self.invalid_request_count += 1
-                continue
-            try:
-                request = self._requests.get(requirer_id)
-            except ValueError:
-                self.invalid_request_count += 1
-                continue
-            self.proxy_requests.append(request)
-            if response.user:
-                self.proxy_users[response.user.username] = (
-                    response.user.password.get_secret_value()
-                )
-
     @staticmethod
     def _generate_proxy_password() -> str:
         """Generate a password that can be used for proxy authentication.
@@ -288,7 +327,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         Returns:
             A password string.
         """
-        return secrets.token_urlsafe(128 // 8)
+        return secrets.token_urlsafe(128 // 8)  # 128 bits of entropy
 
 
 if __name__ == "__main__":  # pragma: nocover

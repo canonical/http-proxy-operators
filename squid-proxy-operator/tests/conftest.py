@@ -61,16 +61,16 @@ def mock_squid_fixture():
         mock_passwd = content
 
     with (
-        patch("squid.Squid.install"),
-        patch("squid.Squid.reload"),
-        patch("squid.Squid.write_config") as mock_write_config,
-        patch("squid.Squid.read_config") as mock_read_config,
-        patch("squid.Squid.write_passwd") as mock_write_passwd,
-        patch("squid.Squid.read_passwd") as mock_read_passwd,
+        patch("squid.install"),
+        patch("squid.reload"),
+        patch("squid.write_config") as mock_write_config,
+        patch("squid.read_config") as mock_read_config,
+        patch("squid.write_passwd") as mock_write_passwd,
+        patch("squid.read_passwd") as mock_read_passwd,
     ):
         mock_write_config.side_effect = write_config
         mock_read_config.side_effect = read_config
         mock_write_passwd.side_effect = write_passwd
         mock_read_passwd.side_effect = read_passwd
 
-        yield squid.Squid()
+        yield squid

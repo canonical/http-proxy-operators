@@ -173,7 +173,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
     act: provide an invalid integration with
     assert: the charm should raise an exception when it attempts to read the integration
     """
-    with pytest.raises(http_proxy.BadIntegrationError):
+    with pytest.raises(http_proxy.IntegrationDataError):
         PureHttpProxyRequestListReadWriter({"requests": json.dumps(requests)})
 
 
@@ -600,7 +600,7 @@ def test_http_proxy_response_list_reader_validate_input(requests):
     act: provide an invalid integration
     assert: the charm should raise an exception when it attempts to read the integration
     """
-    with pytest.raises(http_proxy.BadIntegrationError):
+    with pytest.raises(http_proxy.IntegrationDataError):
         PureHttpProxyResponseListReadWriter({"responses": json.dumps(requests)})
 
 

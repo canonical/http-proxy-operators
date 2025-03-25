@@ -4,9 +4,9 @@
 # See https://juju.is/docs/sdk/charmcraft-config for guidance.
 
 type: charm
-name: squid-proxy
-title: Squid Proxy
-summary: Squid is a forwarding HTTP web proxy.
+name: squid-forward-proxy
+title: Squid Forward Proxy
+summary: Squid as a forwarding HTTP web proxy.
 links:
   documentation: https://discourse.charmhub.io
   issues: https://github.com/canonical/http-proxy-operators/issues

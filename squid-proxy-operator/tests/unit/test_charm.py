@@ -41,7 +41,7 @@ def test_squid_charm_basic(mock_squid):
     )
     state_in = ops.testing.State(
         leader=True,
-        relations=[integration],
+        relations=[integration, ops.testing.PeerRelation(endpoint="squid-peer")],
     )
     state_out = ctx.run(ctx.on.config_changed(), state_in)
     assert mock_squid.read_config() == textwrap.dedent(
@@ -68,8 +68,12 @@ def test_squid_charm_basic(mock_squid):
         http_access deny all
         """  # noqa: E501 (line too long)
     )
-    assert len(list(state_out.secrets)) == 1
-    secret = list(state_out.secrets)[0]
+    assert len(list(state_out.secrets)) == 2
+    secret = [
+        secret
+        for secret in typing.cast(set, state_out.secrets)
+        if "username" in secret.tracked_content
+    ][0]
     assert json.loads(
         typing.cast(dict, state_out.get_relation(integration.id).local_app_data)["responses"]
     ) == [
@@ -126,13 +130,13 @@ def test_squid_charm_multiple_integrations(mock_squid):
     )
     state_in = ops.testing.State(
         leader=True,
-        relations=[integration1, integration2],
+        relations=[integration1, integration2, ops.testing.PeerRelation(endpoint="squid-peer")],
     )
     state_out = ctx.run(ctx.on.config_changed(), state_in)
     assert "00000000-0000-4000-8000-000000000000" in mock_squid.read_config()
     assert "00000000-0000-4000-9000-000000000000" in mock_squid.read_config()
     assert len(mock_squid.read_passwd().splitlines()) == 1
-    assert len(list(state_out.secrets)) == 1
+    assert len(list(state_out.secrets)) == 2
 
 
 def test_squid_charm_handle_bad_integration(mock_squid):
@@ -161,7 +165,7 @@ def test_squid_charm_handle_bad_integration(mock_squid):
     )
     state_in = ops.testing.State(
         leader=True,
-        relations=[integration, bad_integration],
+        relations=[integration, bad_integration, ops.testing.PeerRelation(endpoint="squid-peer")],
     )
     state_out = ctx.run(ctx.on.config_changed(), state_in)
     assert json.loads(
@@ -214,7 +218,7 @@ def test_squid_charm_handle_invalid_request(mock_squid):
     )
     state_in = ops.testing.State(
         leader=True,
-        relations=[integration],
+        relations=[integration, ops.testing.PeerRelation(endpoint="squid-peer")],
     )
     state_out = ctx.run(ctx.on.config_changed(), state_in)
     assert json.loads(
@@ -292,7 +296,11 @@ def test_squid_charm_update(mock_squid):
     )
     old_passwd = f"{username1}:{squid._crypt_hash(password1)}"
     mock_squid.write_passwd(old_passwd)
-    state_in = ops.testing.State(leader=True, relations=[integration], secrets=[user_secret_1])
+    state_in = ops.testing.State(
+        leader=True,
+        relations=[integration, ops.testing.PeerRelation(endpoint="squid-peer")],
+        secrets=[user_secret_1],
+    )
     ctx.run(ctx.on.config_changed(), state_in)
 
     assert "00000000-0000-4000-8000-000000000000" in mock_squid.read_config()
@@ -342,14 +350,18 @@ def test_squid_charm_update(mock_squid):
             )
         },
     )
-    state_in = ops.testing.State(leader=True, relations=[integration], secrets=[user_secret_1])
+    state_in = ops.testing.State(
+        leader=True,
+        relations=[integration, ops.testing.PeerRelation(endpoint="squid-peer")],
+        secrets=[user_secret_1],
+    )
     state_out = ctx.run(ctx.on.config_changed(), state_in)
 
     assert old_passwd in mock_squid.read_passwd()
     assert username2 in mock_squid.read_passwd()
     assert "00000000-0000-4000-8000-000000000000" in mock_squid.read_config()
     assert "00000000-0000-4000-9000-000000000000" in mock_squid.read_config()
-    assert len(list(state_out.secrets)) == 2
+    assert len(list(state_out.secrets)) == 3
     responses = json.loads(
         typing.cast(dict, state_out.get_relation(integration.id).local_app_data)["responses"]
     )

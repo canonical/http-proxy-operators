@@ -326,7 +326,7 @@ class HttpProxyResponse(BaseModel):
         return self
 
 
-class BadIntegrationError(Exception):
+class IntegrationDataError(Exception):
     """Integration contains ill-formed data."""
 
 
@@ -380,24 +380,24 @@ class HttpProxyRequestListReader:
         """Load data from integration.
 
         Raises:
-            BadIntegrationError: ill-formed integration data.
+            IntegrationDataError: ill-formed integration data.
         """
         data = self._integration_data.get("requests", "[]")
         try:
             requests = json.loads(data)
         except json.decoder.JSONDecodeError as exc:
-            raise BadIntegrationError("not json") from exc
+            raise IntegrationDataError("not json") from exc
         if not isinstance(requests, list):
-            raise BadIntegrationError("not a list")
+            raise IntegrationDataError("not a list")
         for request in requests:
             if not isinstance(request, dict):
-                raise BadIntegrationError("not a dict")
+                raise IntegrationDataError("not a dict")
             try:
                 requirer_id = request["requirer"]
             except KeyError as exc:
-                raise BadIntegrationError("missing requirer id") from exc
+                raise IntegrationDataError("missing requirer id") from exc
             if requirer_id in self._requests:
-                raise BadIntegrationError(f"duplicate requirer id: {requirer_id}")
+                raise IntegrationDataError(f"duplicate requirer id: {requirer_id}")
             self._requests[requirer_id] = request
 
     def get_requirer_ids(self) -> Iterable[str]:
@@ -549,24 +549,24 @@ class HttpProxyResponseListReader:
         """Load responses from the integration.
 
         Raises:
-            BadIntegrationError: ill-formed integration data.
+            IntegrationDataError: ill-formed integration data.
         """
         data = self._integration_data.get("responses", "[]")
         try:
             responses = json.loads(data)
         except json.decoder.JSONDecodeError as exc:
-            raise BadIntegrationError("not json") from exc
+            raise IntegrationDataError("not json") from exc
         if not isinstance(responses, list):
-            raise BadIntegrationError("not a list")
+            raise IntegrationDataError("not a list")
         for response in responses:
             if not isinstance(response, dict):
-                raise BadIntegrationError("not a dict")
+                raise IntegrationDataError("not a dict")
             try:
                 requirer_id = response["requirer"]
             except KeyError as exc:
-                raise BadIntegrationError("missing requirer id") from exc
+                raise IntegrationDataError("missing requirer id") from exc
             if requirer_id in self._responses:
-                raise BadIntegrationError(f"duplicate requirer id: {requirer_id}")
+                raise IntegrationDataError(f"duplicate requirer id: {requirer_id}")
             self._responses[requirer_id] = response
 
     def _parse_response(self, data: dict, fetch_user_secrets: bool = True) -> HttpProxyResponse:

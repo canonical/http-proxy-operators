@@ -23,7 +23,7 @@ async def squid_proxy_fixture(
     if not charm:
         charm = await ops_test.build_charm(".")
     assert ops_test.model
-    charm = await ops_test.model.deploy(os.path.abspath(charm))
+    charm = await ops_test.model.deploy(os.path.abspath(charm), num_units=3)
     await ops_test.model.wait_for_idle()
     return charm
 
