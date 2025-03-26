@@ -1,6 +1,2 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
-
-ignore_files:
-  # Ignore apt charm library as it uses non compliant terminology:
-  - squid-forward-proxy-operator/lib/charms/operator_libs_linux/v0/apt.py
