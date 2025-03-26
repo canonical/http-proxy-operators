@@ -8,10 +8,10 @@ import ipaddress
 import json
 import re
 import uuid
-from typing import TYPE_CHECKING, Dict, Iterable, List, Optional, Sequence, Tuple, cast
+from typing import Annotated, Dict, Iterable, List, Optional, Sequence, Tuple, cast
 
 import ops
-from pydantic import BaseModel, SecretStr, conint, field_validator, model_validator
+from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 
 AUTH_METHOD_SRCIP_USERPASS = "srcip+userpass"
 AUTH_METHOD_USERPASS = "userpass"
@@ -39,7 +39,6 @@ PROXY_STATUSES = [
 ]
 
 NO_CHANGE = object()
-UnsignedInt = conint(ge=0)
 
 
 def dedup(input_list: list[str]) -> list[str]:
@@ -72,10 +71,7 @@ class HttpProxySpec(BaseModel):
         src_ips: HTTP proxy source IPs.
     """
 
-    if TYPE_CHECKING:
-        group: int
-    else:
-        group: conint(ge=0)  # type: ignore[valid-type]
+    group: Annotated[int, Field(ge=0)]
     id: uuid.UUID
     domains: Tuple[str, ...]
     auth: Tuple[str, ...]
@@ -94,15 +90,18 @@ class HttpProxySpec(BaseModel):
         Raises:
             ValueError: If the domain string is invalid.
         """
+        host: str
+        port: int | str
         # ipv6 (the correct way), i.e. "[::1]:8080" or "[::1]"
         if domain.startswith("["):
-            search = re.findall(r"^\[([a-f0-9:A-F]+)](:[0-9]+)?$", domain)
-            if not search:
-                raise ValueError(f"invalid domain: {domain}")
-            host, port = search[0]
+            if "]:" in domain:
+                host, port = domain.rsplit("]:", maxsplit=1)
+                host = host.removeprefix("[")
+            else:
+                host = domain.removeprefix("[").removesuffix("]")
+                port = 0
             ipaddress.ip_network(host, strict=False)
             host = f"[{host}]"
-            port = port.removeprefix(":")
         # ipv6 (the "incorrect" way), i.e. "fe80::1", "::1"
         elif domain.count(":") >= 2:
             ipaddress.ip_network(domain, strict=False)
@@ -141,6 +140,8 @@ class HttpProxySpec(BaseModel):
         Returns:
             The canonical representation of the domains.
         """
+        if not domains:
+            raise ValueError("no domains specified")
         valid_domains = []
         invalid_domains = []
         for domain in domains:
@@ -157,8 +158,6 @@ class HttpProxySpec(BaseModel):
                 invalid_domains.append(domain)
         if invalid_domains:
             raise ValueError(f"invalid domains: {invalid_domains}")
-        if not valid_domains:
-            raise ValueError("no domains specified")
         return tuple(dedup(sorted(valid_domains, key=cls.parse_domain)))
 
     @field_validator("auth", mode="before")
@@ -172,12 +171,12 @@ class HttpProxySpec(BaseModel):
         Returns:
             The canonical representation of the auth.
         """
+        if not auth:
+            raise ValueError("no auth method specified")
         invalid_auth = [a for a in auth if a not in AUTH_METHODS]
         if invalid_auth:
             raise ValueError(f"invalid auth type: {invalid_auth}")
         sorted_auth = dedup(sorted(auth, key=AUTH_METHODS.index))
-        if not sorted_auth:
-            raise ValueError("no auth method specified")
         return tuple(sorted_auth)
 
     @field_validator("src_ips", mode="before")
@@ -246,6 +245,7 @@ class HttpProxyResponse(BaseModel):
     """HTTP proxy response model.
 
     Attributes:
+        model_config: pydantic model config.
         group: group id. Along with id, uniquely identifies the proxy request within a charm scope.
         id: id. Along with group, uniquely identifies the proxy request within a charm scope.
         status: HTTP proxy status.
@@ -255,25 +255,15 @@ class HttpProxyResponse(BaseModel):
         user: HTTP proxy user.
     """
 
-    if TYPE_CHECKING:
-        group: int
-    else:
-        group: conint(ge=0)  # type: ignore[valid-type]
+    model_config = ConfigDict(hide_input_in_errors=True)
+
+    group: Annotated[int, Field(ge=0)]
     id: uuid.UUID
     status: str
     auth: Optional[str] = None
     http_proxy: Optional[str] = None
     https_proxy: Optional[str] = None
     user: Optional[HttpProxyUser] = None
-
-    class Config:  # pylint: disable=too-few-public-methods
-        """Pydantic model configuration.
-
-        Attributes:
-            hide_input_in_errors: hide input in errors.
-        """
-
-        hide_input_in_errors = True
 
     @field_validator("status", mode="before")
     @classmethod
@@ -330,38 +320,30 @@ class IntegrationDataError(Exception):
     """Integration contains ill-formed data."""
 
 
-class HttpProxyRequestListReader:
+class _HttpProxyRequestListReader:
     """Integration helper: read request list."""
 
-    def __init__(self, charm: ops.CharmBase, integration: ops.Relation) -> None:
+    def __init__(
+        self,
+        charm: ops.CharmBase,
+        integration: ops.Relation,
+        integration_id: int,
+        integration_data: ops.RelationDataContent,
+    ) -> None:
         """Initialize the object.
 
         Args:
             charm: charm object.
             integration: integration object.
+            integration_id: integration id.
+            integration_data: integration data.
         """
         self._charm = charm
         self._integration = integration
+        self._integration_data = integration_data
+        self._integration_id = integration_id
         self._requests: Dict[str, dict] = {}
         self._load()
-
-    @property
-    def _integration_data(self) -> ops.RelationDataContent:
-        """Get integration data.
-
-        Returns:
-            Integration data.
-        """
-        return self._integration.data[self._integration.app]
-
-    @property
-    def _integration_id(self) -> int:
-        """Get integration id.
-
-        Returns:
-            Integration id.
-        """
-        return self._integration.id
 
     def _get_remote_unit_ips(self) -> List[str]:
         """Get IPs of the remote units.
@@ -432,17 +414,8 @@ class HttpProxyRequestListReader:
         return HttpProxyRequest(**request)
 
 
-class HttpProxyRequestListReadWriter(HttpProxyRequestListReader):
+class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
     """Integration helper: read and write request list."""
-
-    @property
-    def _integration_data(self) -> ops.RelationDataContent:
-        """Get integration data.
-
-        Returns:
-            integration data.
-        """
-        return self._integration.data[self._charm.app]
 
     def _dump(self) -> None:
         """Write HTTP requests in the buffer to the integration."""
@@ -501,38 +474,30 @@ class HttpProxyRequestListReadWriter(HttpProxyRequestListReader):
         self._dump()
 
 
-class HttpProxyResponseListReader:
+class _HttpProxyResponseListReader:
     """Integration helper: read response list."""
 
-    def __init__(self, charm: ops.CharmBase, integration: ops.Relation):
+    def __init__(
+        self,
+        charm: ops.CharmBase,
+        integration: ops.Relation,
+        integration_id: int,
+        integration_data: ops.RelationDataContent,
+    ):
         """Initialize the object.
 
         Args:
             charm: charm object.
             integration: integration object.
+            integration_id: integration id.
+            integration_data: integration data.
         """
         self._charm = charm
         self._integration = integration
+        self._integration_id = integration_id
+        self._integration_data = integration_data
         self._responses: Dict[str, dict] = {}
         self._load()
-
-    @property
-    def _integration_data(self) -> ops.RelationDataContent:
-        """Get integration data.
-
-        Returns:
-            integration data.
-        """
-        return self._integration.data[self._integration.app]
-
-    @property
-    def _integration_id(self) -> int:
-        """Get integration id.
-
-        Returns:
-            integration id.
-        """
-        return self._integration.id
 
     def _read_secret(self, secret_id: str) -> Dict[str, str]:
         """Read a juju secret.
@@ -611,17 +576,8 @@ class HttpProxyResponseListReader:
         return self._parse_response(response)
 
 
-class HttpProxyResponseListReadWriter(HttpProxyResponseListReader):
+class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
     """Integration helper: read and write response list."""
-
-    @property
-    def _integration_data(self) -> ops.RelationDataContent:
-        """Get integration data.
-
-        Returns:
-            integration data.
-        """
-        return self._integration.data[self._charm.app]
 
     def _create_secret(self, content: Dict[str, str]) -> str:
         """Create a juju secret.
@@ -791,7 +747,7 @@ class HttpProxyPolyProvider:
         self._charm = charm
         self._integration_name = integration_name
 
-    def open_request_list(self, integration_id: int) -> HttpProxyRequestListReader:
+    def open_request_list(self, integration_id: int) -> _HttpProxyRequestListReader:
         """Start reading the request list in the integration data.
 
         Args:
@@ -808,9 +764,18 @@ class HttpProxyPolyProvider:
         )
         if integration is None:
             raise ValueError("integration not found")
-        return HttpProxyRequestListReader(charm=self._charm, integration=integration)
+        if integration.app is None:
+            integration_data = {}
+        else:
+            integration_data = integration.data[integration.app]
+        return _HttpProxyRequestListReader(
+            charm=self._charm,
+            integration=integration,
+            integration_id=integration.id,
+            integration_data=integration_data,
+        )
 
-    def open_response_list(self, integration_id: int) -> HttpProxyResponseListReadWriter:
+    def open_response_list(self, integration_id: int) -> _HttpProxyResponseListReadWriter:
         """Start reading/writing the response list in the integration data.
 
         Args:
@@ -827,7 +792,12 @@ class HttpProxyPolyProvider:
         )
         if integration is None:
             raise ValueError("integration not found")
-        return HttpProxyResponseListReadWriter(charm=self._charm, integration=integration)
+        return _HttpProxyResponseListReadWriter(
+            charm=self._charm,
+            integration=integration,
+            integration_id=integration.id,
+            integration_data=integration.data[self._charm.app],
+        )
 
 
 class HttpProxyPolyRequirer:
@@ -843,7 +813,7 @@ class HttpProxyPolyRequirer:
         self._charm = charm
         self._integration_name = integration_name
 
-    def open_request_list(self, integration_id: int) -> HttpProxyRequestListReadWriter:
+    def open_request_list(self, integration_id: int) -> _HttpProxyRequestListReadWriter:
         """Start reading/writing the request list in the integration data.
 
         Args:
@@ -860,9 +830,14 @@ class HttpProxyPolyRequirer:
         )
         if integration is None:
             raise ValueError("integration not found")
-        return HttpProxyRequestListReadWriter(charm=self._charm, integration=integration)
+        return _HttpProxyRequestListReadWriter(
+            charm=self._charm,
+            integration=integration,
+            integration_id=integration.id,
+            integration_data=integration.data[self._charm.app],
+        )
 
-    def open_response_list(self, integration_id: int) -> HttpProxyResponseListReader:
+    def open_response_list(self, integration_id: int) -> _HttpProxyResponseListReader:
         """Start reading the response list in the integration data.
 
         Args:
@@ -879,4 +854,13 @@ class HttpProxyPolyRequirer:
         )
         if integration is None:
             raise ValueError("integration not found")
-        return HttpProxyResponseListReader(charm=self._charm, integration=integration)
+        if integration.app is None:
+            integration_data = {}
+        else:
+            integration_data = integration.data[integration.app]
+        return _HttpProxyResponseListReader(
+            charm=self._charm,
+            integration=integration,
+            integration_id=integration.id,
+            integration_data=integration_data,
+        )

@@ -14,7 +14,7 @@ import pytest
 import http_proxy
 
 
-class PureHttpProxyRequestListReader(http_proxy.HttpProxyRequestListReader):
+class PureHttpProxyRequestListReader(http_proxy._HttpProxyRequestListReader):
     """HttpProxyRequestListReader for unit tests."""
 
     # for test purpose only
@@ -26,27 +26,18 @@ class PureHttpProxyRequestListReader(http_proxy.HttpProxyRequestListReader):
             data: integration data.
             remote_unit_ips: list of remote unit ips.
         """
-        self._test_data = data or {}
+        self._integration_id = 123
+        self._integration_data = data or {}
         self._remote_unit_ips = remote_unit_ips or ["10.0.0.1"]
         self._requests: dict[str, dict] = {}
         self._load()
-
-    @property
-    def _integration_data(self) -> dict[str, str]:  # type: ignore[override]
-        """Get integration data."""
-        return self._test_data
-
-    @property
-    def _integration_id(self) -> int:
-        """Get integration id."""
-        return 123
 
     def _get_remote_unit_ips(self) -> list[str]:
         """Get remote unit ips."""
         return self._remote_unit_ips
 
 
-class PureHttpProxyRequestListReadWriter(http_proxy.HttpProxyRequestListReadWriter):
+class PureHttpProxyRequestListReadWriter(http_proxy._HttpProxyRequestListReadWriter):
     """HttpProxyRequestListReadWriter for unit tests."""
 
     # for test purpose only
@@ -58,27 +49,18 @@ class PureHttpProxyRequestListReadWriter(http_proxy.HttpProxyRequestListReadWrit
             data: integration data.
             remote_unit_ips: list of remote unit ips.
         """
-        self._test_data = data or {}
+        self._integration_id = 123
+        self._integration_data = data or {}
         self._remote_unit_ips = remote_unit_ips or ["10.0.0.1"]
         self._requests: dict[str, dict] = {}
         self._load()
-
-    @property
-    def _integration_data(self) -> dict[str, str]:  # type: ignore[override]
-        """Get integration data."""
-        return self._test_data
-
-    @property
-    def _integration_id(self) -> int:
-        """Get integration id."""
-        return 123
 
     def _get_remote_unit_ips(self) -> list[str]:
         """Get remote unit ips."""
         return self._remote_unit_ips
 
 
-class PureHttpProxyResponseListReader(http_proxy.HttpProxyResponseListReader):
+class PureHttpProxyResponseListReader(http_proxy._HttpProxyResponseListReader):
     """HttpProxyResponseListReader for unit tests."""
 
     # for test purpose only
@@ -90,27 +72,18 @@ class PureHttpProxyResponseListReader(http_proxy.HttpProxyResponseListReader):
             data: integration data
             secrets: juju secrets
         """
-        self._test_data = data or {}
+        self._integration_id = 123
+        self._integration_data = data or {}
         self._test_secrets = secrets or {}
         self._responses: dict[str, dict] = {}
         self._load()
-
-    @property
-    def _integration_data(self) -> dict[str, str]:  # type: ignore[override]
-        """Get integration data."""
-        return self._test_data
-
-    @property
-    def _integration_id(self) -> int:
-        """Get integration id."""
-        return 123
 
     def _read_secret(self, secret_id: str) -> dict[str, str]:
         """Read a juju secret."""
         return self._test_secrets[secret_id]
 
 
-class PureHttpProxyResponseListReadWriter(http_proxy.HttpProxyResponseListReadWriter):
+class PureHttpProxyResponseListReadWriter(http_proxy._HttpProxyResponseListReadWriter):
     """HttpProxyResponseListReadWriter for unit tests."""
 
     # for test purpose only
@@ -122,20 +95,11 @@ class PureHttpProxyResponseListReadWriter(http_proxy.HttpProxyResponseListReadWr
             data: integration data
             secrets: juju secrets
         """
-        self._test_data = data or {}
+        self._integration_id = 123
+        self._integration_data = data or {}
         self._test_secrets = secrets or {}
         self._responses: dict[str, dict] = {}
         self._load()
-
-    @property
-    def _integration_data(self) -> dict[str, str]:  # type: ignore[override]
-        """Get integration data."""
-        return self._test_data
-
-    @property
-    def _integration_id(self) -> int:
-        """Get integration id."""
-        return 123
 
     def _read_secret(self, secret_id: str) -> dict[str, str]:
         """Read a juju secret."""
@@ -531,7 +495,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
         src_ips=("10.0.0.1",),
         implicit_src_ips=True,
     )
-    assert json.loads(writer._test_data["requests"]) == [
+    assert json.loads(writer._integration_data["requests"]) == [
         {
             "auth": ["none"],
             "domains": ["example.com"],
@@ -553,7 +517,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
         src_ips=("172.16.0.1",),
         implicit_src_ips=False,
     )
-    assert json.loads(writer._test_data["requests"]) == [
+    assert json.loads(writer._integration_data["requests"]) == [
         {
             "auth": ["none"],
             "domains": ["example.com"],
@@ -569,7 +533,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
 
     writer.delete("00000000-0000-4000-8000-000000000000")
 
-    assert json.loads(writer._test_data["requests"]) == [
+    assert json.loads(writer._integration_data["requests"]) == [
         {
             "auth": ["none"],
             "domains": ["127.0.0.1:8080"],
@@ -580,7 +544,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
 
     writer.delete("00000000-0000-4000-9000-000000000000")
 
-    assert json.loads(writer._test_data["requests"]) == []
+    assert json.loads(writer._integration_data["requests"]) == []
 
 
 @pytest.mark.parametrize(
@@ -743,7 +707,7 @@ def test_http_proxy_response_list_reader_add_delete_response():
     writer.add(
         requirer_id="00000000-0000-4000-8000-000000000000", status=http_proxy.PROXY_STATUS_PENDING
     )
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {"requirer": "00000000-0000-4000-8000-000000000000", "status": "pending"}
     ]
 
@@ -758,7 +722,7 @@ def test_http_proxy_response_list_reader_add_delete_response():
     assert len(writer._test_secrets) == 1
     secret_id = list(writer._test_secrets)[0]
     assert writer._test_secrets[secret_id] == {"username": "foo", "password": "bar"}
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {"requirer": "00000000-0000-4000-8000-000000000000", "status": "pending"},
         {
             "auth": "userpass",
@@ -771,7 +735,7 @@ def test_http_proxy_response_list_reader_add_delete_response():
     ]
 
     writer.delete("00000000-0000-4000-8000-000000000000")
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "auth": "userpass",
             "requirer": "00000000-0000-4000-9000-000000000000",
@@ -784,7 +748,7 @@ def test_http_proxy_response_list_reader_add_delete_response():
     assert secret_id in writer._test_secrets
 
     writer.delete("00000000-0000-4000-9000-000000000000")
-    assert json.loads(writer._test_data["responses"]) == []
+    assert json.loads(writer._integration_data["responses"]) == []
     assert not writer._test_secrets
 
 
@@ -799,7 +763,7 @@ def test_http_proxy_response_list_reader_update():
     writer.add(
         requirer_id="00000000-0000-4000-8000-000000000000", status=http_proxy.PROXY_STATUS_PENDING
     )
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_PENDING,
@@ -809,7 +773,7 @@ def test_http_proxy_response_list_reader_update():
     writer.update(
         requirer_id="00000000-0000-4000-8000-000000000000", status=http_proxy.PROXY_STATUS_ACCEPTED
     )
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_ACCEPTED,
@@ -823,7 +787,7 @@ def test_http_proxy_response_list_reader_update():
         http_proxy="http://squid.internal:3128",
         https_proxy="http://squid.internal:3128",
     )
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_READY,
@@ -837,7 +801,7 @@ def test_http_proxy_response_list_reader_update():
         requirer_id="00000000-0000-4000-8000-000000000000",
         https_proxy="https://squid.internal:3128",
     )
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_READY,
@@ -855,7 +819,7 @@ def test_http_proxy_response_list_reader_update():
     assert len(writer._test_secrets) == 1
     secret_id = list(writer._test_secrets)[0]
     assert writer._test_secrets[secret_id] == {"username": "foo", "password": "bar"}
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_READY,
@@ -871,7 +835,7 @@ def test_http_proxy_response_list_reader_update():
         user={"username": "foobar", "password": "foobar"},
     )
     assert writer._test_secrets[secret_id] == {"username": "foobar", "password": "foobar"}
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_READY,
@@ -890,7 +854,7 @@ def test_http_proxy_response_list_reader_update():
         https_proxy=None,
         user=None,
     )
-    assert json.loads(writer._test_data["responses"]) == [
+    assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": http_proxy.PROXY_STATUS_PENDING,
