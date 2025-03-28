@@ -25,14 +25,14 @@ AUTH_METHODS = [
 ]
 PROXY_STATUS_PENDING = "pending"
 PROXY_STATUS_ACCEPTED = "accepted"
-PROXY_STATUS_DENIED = "denied"
+PROXY_STATUS_REJECTED = "rejected"
 PROXY_STATUS_INVALID = "invalid"
 PROXY_STATUS_ERROR = "error"
 PROXY_STATUS_READY = "ready"
 PROXY_STATUSES = [
     PROXY_STATUS_PENDING,
     PROXY_STATUS_ACCEPTED,
-    PROXY_STATUS_DENIED,
+    PROXY_STATUS_REJECTED,
     PROXY_STATUS_INVALID,
     PROXY_STATUS_ERROR,
     PROXY_STATUS_READY,
@@ -508,7 +508,10 @@ class _HttpProxyResponseListReader:
         Returns:
             Juju secret content.
         """
-        return self._charm.model.get_secret(id=secret_id).get_content(refresh=True)
+        try:
+            return self._charm.model.get_secret(id=secret_id).get_content(refresh=True)
+        except (ops.SecretNotFoundError, ops.ModelError) as e:
+            raise KeyError(f"secret {secret_id} not found or not readable") from e
 
     def _load(self) -> None:
         """Load responses from the integration.
@@ -732,6 +735,19 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
             self._delete_secret(secret_id)
         del self._responses[requirer_id]
         self._dump()
+
+    def get_juju_secrets(self) -> List[str]:
+        """Get all juju secret ids stored in the response list.
+
+        Returns:
+            A list of juju secret ids.
+        """
+        result = []
+        for response in self._responses.values():
+            secret_id = response.get("user")
+            if secret_id:
+                result.append(secret_id)
+        return result
 
 
 class HttpProxyPolyProvider:

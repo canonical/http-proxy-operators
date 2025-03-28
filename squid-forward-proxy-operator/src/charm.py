@@ -78,6 +78,7 @@ class SquidProxyCharm(ops.CharmBase):
         invalid_requests = 0
         proxy_requests: list[http_proxy.HttpProxyRequest] = []
         proxy_users: dict[str, str] = {}
+        secret_ids = []
         for integration in self.model.relations["http-proxy"]:
             if integration.app is None:
                 continue
@@ -103,6 +104,7 @@ class SquidProxyCharm(ops.CharmBase):
             reconciler.reconcile()
             proxy_requests.extend(reconciler.proxy_requests)
             proxy_users.update(reconciler.proxy_users)
+            secret_ids.extend(reconciler.responses.get_juju_secrets())
             invalid_requests += reconciler.invalid_request_count
         squid.update_config_and_passwd(
             proxy_requests=proxy_requests, proxy_users=proxy_users, http_port=self._get_http_port()
@@ -119,7 +121,7 @@ class SquidProxyCharm(ops.CharmBase):
         self.unit.status = status(status_message)
         self._set_peer_data(
             proxy_requests=proxy_requests,
-            proxy_users=proxy_users,
+            secret_ids=secret_ids,
             status=status.name,
             status_message=status_message,
         )
@@ -127,7 +129,7 @@ class SquidProxyCharm(ops.CharmBase):
     def _set_peer_data(
         self,
         proxy_requests: list[http_proxy.HttpProxyRequest],
-        proxy_users: dict[str, str],
+        secret_ids: list[str],
         status: str,
         status_message: str,
     ) -> None:
@@ -135,7 +137,7 @@ class SquidProxyCharm(ops.CharmBase):
 
         Args:
             proxy_requests: http proxy requests.
-            proxy_users: http proxy users
+            secret_ids: juju secret ids
             status: unit status
             status_message: unit status message
         """
@@ -146,15 +148,7 @@ class SquidProxyCharm(ops.CharmBase):
         integration_data["proxy-requests"] = json.dumps(
             [r.model_dump(mode="json") for r in proxy_requests]
         )
-        secret_id = integration_data.get("proxy-users")
-        if secret_id:
-            secret = self.model.get_secret(id=secret_id)
-            content = secret.get_content(refresh=True)
-            if json.loads(content["data"]) != proxy_users:
-                secret.set_content({"data": json.dumps(proxy_users)})
-        else:
-            secret = self.app.add_secret(content={"data": json.dumps(proxy_users)})
-            integration_data["proxy-users"] = typing.cast(str, secret.id)
+        integration_data["secret-ids"] = json.dumps(secret_ids)
         integration_data["status"] = status
         integration_data["status-message"] = status_message
 
@@ -171,11 +165,14 @@ class SquidProxyCharm(ops.CharmBase):
         proxy_requests = [
             http_proxy.HttpProxyRequest(**data) for data in json.loads(proxy_requests_data)
         ]
-        proxy_users = json.loads(
-            self.model.get_secret(id=integration_data["proxy-users"]).get_content(refresh=True)[
-                "data"
-            ]
-        )
+        secret_ids = json.loads(integration_data["secret-ids"])
+        proxy_users = {}
+        for secret_id in secret_ids:
+            try:
+                proxy_user = self.model.get_secret(id=secret_id).get_content(refresh=True)
+                proxy_users[proxy_user["username"]] = proxy_user["password"]
+            except ops.SecretNotFoundError:
+                pass
         status_name = integration_data["status"]
         status_message = integration_data["status-message"]
         squid.update_config_and_passwd(
@@ -233,6 +230,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         proxy_users: proxy authentication users needed
         proxy_requests: proxy requests collected
         invalid_request_count: number of invalid requests
+        responses: integration response list
     """
 
     def __init__(
@@ -253,7 +251,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         self._charm = charm
         self._proxy_url = proxy_url
         self._requests = proxy_provider.open_request_list(integration.id)
-        self._responses = proxy_provider.open_response_list(integration.id)
+        self.responses = proxy_provider.open_response_list(integration.id)
         self.proxy_users: dict[str, str] = {}
         self.proxy_requests: list[http_proxy.HttpProxyRequest] = []
         self.invalid_request_count = 0
@@ -272,12 +270,12 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         Args:
             requirer_id: http proxy request requirer id
         """
-        response = self._responses.get(requirer_id)
+        response = self.responses.get(requirer_id)
         try:
             request = self._requests.get(requirer_id)
         except ValueError:
             if response:
-                self._responses.update(
+                self.responses.update(
                     requirer_id,
                     status=http_proxy.PROXY_STATUS_INVALID,
                     http_proxy=None,
@@ -286,7 +284,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
                     user=None,
                 )
             else:
-                self._responses.add(requirer_id, status=http_proxy.PROXY_STATUS_INVALID)
+                self.responses.add(requirer_id, status=http_proxy.PROXY_STATUS_INVALID)
             self.invalid_request_count += 1
             return
         auth = request.auth[0]
@@ -301,7 +299,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
                 password = self._generate_proxy_password()
             self.proxy_users[username] = password
         if response:
-            self._responses.update(
+            self.responses.update(
                 requirer_id,
                 status=http_proxy.PROXY_STATUS_READY,
                 auth=auth,
@@ -310,7 +308,7 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
                 user={"username": username, "password": password} if username else None,
             )
         else:
-            self._responses.add(
+            self.responses.add(
                 requirer_id,
                 status=http_proxy.PROXY_STATUS_READY,
                 auth=auth,

@@ -68,7 +68,7 @@ def test_squid_charm_basic(mock_squid):
         http_access deny all
         """  # noqa: E501 (line too long)
     )
-    assert len(list(state_out.secrets)) == 2
+    assert len(list(state_out.secrets)) == 1
     secret = [
         secret
         for secret in typing.cast(set, state_out.secrets)
@@ -136,7 +136,7 @@ def test_squid_charm_multiple_integrations(mock_squid):
     assert "00000000-0000-4000-8000-000000000000" in mock_squid.read_config()
     assert "00000000-0000-4000-9000-000000000000" in mock_squid.read_config()
     assert len(mock_squid.read_passwd().splitlines()) == 1
-    assert len(list(state_out.secrets)) == 2
+    assert len(list(state_out.secrets)) == 1
 
 
 def test_squid_charm_handle_bad_integration(mock_squid):
@@ -361,7 +361,7 @@ def test_squid_charm_update(mock_squid):
     assert username2 in mock_squid.read_passwd()
     assert "00000000-0000-4000-8000-000000000000" in mock_squid.read_config()
     assert "00000000-0000-4000-9000-000000000000" in mock_squid.read_config()
-    assert len(list(state_out.secrets)) == 3
+    assert len(list(state_out.secrets)) == 2
     responses = json.loads(
         typing.cast(dict, state_out.get_relation(integration.id).local_app_data)["responses"]
     )

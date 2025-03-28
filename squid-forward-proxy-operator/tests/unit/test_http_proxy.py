@@ -148,7 +148,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "test",
                 "domains": ["example.com"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid id",
         ),
@@ -161,7 +161,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
         pytest.param(
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="missing domains",
         ),
@@ -169,7 +169,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": [],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="empty domains",
         ),
@@ -177,7 +177,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": "example.com",
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="domains type",
         ),
@@ -185,7 +185,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com:99999"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="domains port",
         ),
@@ -193,7 +193,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["user:password@example.com"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="domains format",
         ),
@@ -201,7 +201,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["10.0.0.0.1"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid ipv4",
         ),
@@ -209,7 +209,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": [":::1"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid ipv6",
         ),
@@ -217,7 +217,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["[:::1]"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid ipv6 (2)",
         ),
@@ -240,7 +240,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com"],
-                "auth": "none",
+                "auth": http_proxy.AUTH_METHOD_NONE,
             },
             id="auth type",
         ),
@@ -256,7 +256,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": "example.com",
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
                 "src_ips": "10.0.0.1",
             },
             id="src_ips type",
@@ -265,7 +265,7 @@ def test_http_proxy_request_list_reader_validate_input(requests):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": "example.com",
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
                 "src_ips": ["10.0.0.1.1"],
             },
             id="src_ips value",
@@ -291,13 +291,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("example.com:80", "example.com:443"),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -307,13 +307,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["1.example.com:80", "0.example.com:80"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("0.example.com:80", "1.example.com:80"),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -323,13 +323,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["1.example.com:80", "0.example.com:100", "0.example.com:80"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("0.example.com:80", "0.example.com:100", "1.example.com:80"),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -339,13 +339,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["127.0.0.1"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("127.0.0.1:80", "127.0.0.1:443"),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -355,13 +355,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["::1"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("[::1]:80", "[::1]:443"),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -371,13 +371,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["[::1]:8080"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("[::1]:8080",),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -387,13 +387,13 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com"],
-                "auth": ["none", "userpass"],
+                "auth": [http_proxy.AUTH_METHOD_NONE, "userpass"],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("example.com:80", "example.com:443"),
-                auth=("userpass", "none"),
+                auth=("userpass", http_proxy.AUTH_METHOD_NONE),
                 src_ips=("10.0.0.1",),
                 implicit_src_ips=True,
             ),
@@ -403,14 +403,14 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
                 "src_ips": ["172.16.0.0/24"],
             },
             http_proxy.HttpProxyRequest(
                 group=123,
                 id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
                 domains=("example.com:80", "example.com:443"),
-                auth=("none",),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
                 src_ips=("172.16.0.0/24",),
                 implicit_src_ips=False,
             ),
@@ -435,7 +435,7 @@ def test_http_proxy_request_list_reader_get_request(proxy_request, parsed_reques
             {
                 "requirer_id": "00000000-0000-4000-8000-000000000000",
                 "domains": [],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="missing domains",
         ),
@@ -443,7 +443,7 @@ def test_http_proxy_request_list_reader_get_request(proxy_request, parsed_reques
             {
                 "requirer_id": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com:123456"],
-                "auth": ["none"],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid domains",
         ),
@@ -485,19 +485,21 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
     writer = PureHttpProxyRequestListReadWriter()
 
     writer.add(
-        requirer_id="00000000-0000-4000-8000-000000000000", domains=["example.com"], auth=["none"]
+        requirer_id="00000000-0000-4000-8000-000000000000",
+        domains=["example.com"],
+        auth=[http_proxy.AUTH_METHOD_NONE],
     )
     assert writer.get("00000000-0000-4000-8000-000000000000") == http_proxy.HttpProxyRequest(
         group=123,
         id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
         domains=("example.com:80", "example.com:443"),
-        auth=("none",),
+        auth=(http_proxy.AUTH_METHOD_NONE,),
         src_ips=("10.0.0.1",),
         implicit_src_ips=True,
     )
     assert json.loads(writer._integration_data["requests"]) == [
         {
-            "auth": ["none"],
+            "auth": [http_proxy.AUTH_METHOD_NONE],
             "domains": ["example.com"],
             "requirer": "00000000-0000-4000-8000-000000000000",
         }
@@ -506,25 +508,25 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
     writer.add(
         requirer_id="00000000-0000-4000-9000-000000000000",
         domains=["127.0.0.1:8080"],
-        auth=["none"],
+        auth=[http_proxy.AUTH_METHOD_NONE],
         src_ips=["172.16.0.1"],
     )
     assert writer.get("00000000-0000-4000-9000-000000000000") == http_proxy.HttpProxyRequest(
         group=123,
         id=uuid.UUID("00000000-0000-4000-9000-000000000000"),
         domains=("127.0.0.1:8080",),
-        auth=("none",),
+        auth=(http_proxy.AUTH_METHOD_NONE,),
         src_ips=("172.16.0.1",),
         implicit_src_ips=False,
     )
     assert json.loads(writer._integration_data["requests"]) == [
         {
-            "auth": ["none"],
+            "auth": [http_proxy.AUTH_METHOD_NONE],
             "domains": ["example.com"],
             "requirer": "00000000-0000-4000-8000-000000000000",
         },
         {
-            "auth": ["none"],
+            "auth": [http_proxy.AUTH_METHOD_NONE],
             "domains": ["127.0.0.1:8080"],
             "requirer": "00000000-0000-4000-9000-000000000000",
             "src_ips": ["172.16.0.1"],
@@ -535,7 +537,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
 
     assert json.loads(writer._integration_data["requests"]) == [
         {
-            "auth": ["none"],
+            "auth": [http_proxy.AUTH_METHOD_NONE],
             "domains": ["127.0.0.1:8080"],
             "requirer": "00000000-0000-4000-9000-000000000000",
             "src_ips": ["172.16.0.1"],

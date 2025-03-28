@@ -104,6 +104,8 @@ def derive_proxy_username(spec: HttpProxySpec) -> str:
     Returns:
         HTTP proxy authentication username.
     """
+    # the http_proxy charm library only guarantees that the group and ID combination is unique
+    # use base36 to reduce the final username length
     # case-insensitive, less or equal to 32 characters for maximum compatibility
     return f"u{_base36(spec.group)}-{_base36(spec.id.int)}"
 
@@ -161,6 +163,7 @@ def _generate_http_access_snippet(spec: HttpProxySpec, comment: str | None = Non
         HTTP access snippet.
     """
     buffer = [f"# {comment}"] if comment else []
+    # using a list here since the Pydantic model ensures that the host+port combination is unique
     host_ports = defaultdict(list)
     for domain in spec.domains:
         host, port = spec.parse_domain(domain)
