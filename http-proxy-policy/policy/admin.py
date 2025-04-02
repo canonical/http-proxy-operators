@@ -3,13 +3,13 @@
 
 from django import forms
 from django.contrib import admin, messages
+from django.db import transaction
 from django.shortcuts import redirect
 from django.urls import path
 
 import policy.engine as engine
 import policy.models as models
 from policy.models import Verdict
-from policy.transaction import serializable_isolation_transaction
 
 
 class RuleAdminForm(forms.ModelForm):
@@ -117,11 +117,11 @@ class RuleAdmin(admin.ModelAdmin):
     get_src_ips.short_description = "Src IP networks"
 
     def save_model(self, request, obj, form, change):
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             super().delete_model(request, obj)
 
 
@@ -195,7 +195,7 @@ class RequestAdmin(admin.ModelAdmin):
         except models.Request.DoesNotExist:
             self.message_user(request, f"request {pk} does not exist", level=messages.ERROR)
             return redirect(request.META.get("HTTP_REFERER", "/"))
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
             engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
         self.message_user(request, f"accept request {pk}!", messages.SUCCESS)
@@ -207,7 +207,7 @@ class RequestAdmin(admin.ModelAdmin):
         except models.Request.DoesNotExist:
             self.message_user(request, f"request {pk} does not exist", level=messages.ERROR)
             return redirect(request.META.get("HTTP_REFERER", "/"))
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
             engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
         self.message_user(request, f"reject request {pk}!", messages.SUCCESS)

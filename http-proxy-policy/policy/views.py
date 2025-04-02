@@ -2,13 +2,13 @@
 # See LICENSE file for licensing details.
 
 import json
+from django.db import transaction
 from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponse
 from rest_framework import permissions
 from rest_framework.views import APIView
 
 import policy.models as models
 import policy.engine as engine
-from policy.transaction import serializable_isolation_transaction
 
 
 class RefreshRequestsView(APIView):
@@ -49,7 +49,7 @@ class RefreshRequestsView(APIView):
                 implicit_src_ips=validated_request.implicit_src_ips,
             )
 
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             rules = list(models.Rule.objects.all())
             for model_request in new_requests.values():
                 engine.apply_rules(rules=rules, request=model_request)
@@ -67,7 +67,7 @@ class AcceptRequestsView(APIView):
             proxy_request = models.Request.objects.get(pk=pk)
         except models.Request.DoesNotExist:
             return HttpResponseNotFound()
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
             engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
         return HttpResponse()
@@ -81,7 +81,7 @@ class RejectRequestsView(APIView):
             proxy_request = models.Request.objects.get(pk=pk)
         except models.Request.DoesNotExist:
             return HttpResponseNotFound()
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
             engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
         return HttpResponse()
@@ -130,7 +130,7 @@ class ListCreateRulesView(APIView):
             validated = models.RuleInput(**data)
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             rule = models.Rule.objects.create(
                 requirer=validated.requirer,
                 domains=validated.domains,
@@ -175,7 +175,7 @@ class RuleApiView(APIView):
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
 
-        with serializable_isolation_transaction():
+        with transaction.atomic():
             try:
                 rule = models.Rule.objects.get(pk=pk)
             except models.Rule.DoesNotExist:
