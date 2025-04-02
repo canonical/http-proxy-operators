@@ -1,0 +1,7 @@
+#!/bin/sh
+
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+set -xe
+exec "$SNAP/usr/bin/setpriv" --clear-groups --reuid snap_daemon --regid snap_daemon -- "$SNAP/usr/sbin/nginx" "-c" "$SNAP/nginx/nginx.conf" "-s" "reload"

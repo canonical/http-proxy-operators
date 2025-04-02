@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+set -xe
+
+# Create some directories
+mkdir -p "$SNAP_COMMON/app"
+
+# set default configuration values
+snapctl set log-level='INFO'
