@@ -17,6 +17,8 @@ import json
 import os
 from pathlib import Path
 
+import psycopg2.extensions
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -82,7 +84,10 @@ DATABASES = {
         "PORT": os.getenv("DJANGO_DATABASE_PORT", 5432),
         "USER": os.getenv("DJANGO_DATABASE_USER", "postgres"),
         "NAME": os.getenv("DJANGO_DATABASE_NAME", "postgres"),
-    }
+    },
+    "OPTIONS": {
+        "isolation_level": psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
+    },
 }
 
 
@@ -121,7 +126,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
-STATIC_ROOT = Path(BASE_DIR, 'static/')
+STATIC_ROOT = Path(BASE_DIR, "static/")
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

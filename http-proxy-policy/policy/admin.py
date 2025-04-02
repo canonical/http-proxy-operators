@@ -9,7 +9,6 @@ from django.urls import path
 import policy.engine as engine
 import policy.models as models
 from policy.models import Verdict
-from policy.transaction import serializable_isolation_transaction
 
 
 class RuleAdminForm(forms.ModelForm):
@@ -117,12 +116,10 @@ class RuleAdmin(admin.ModelAdmin):
     get_src_ips.short_description = "Src IP networks"
 
     def save_model(self, request, obj, form, change):
-        with serializable_isolation_transaction():
-            super().save_model(request, obj, form, change)
+        super().save_model(request, obj, form, change)
 
     def delete_model(self, request, obj):
-        with serializable_isolation_transaction():
-            super().delete_model(request, obj)
+        super().delete_model(request, obj)
 
 
 @admin.register(models.Request)
@@ -195,9 +192,8 @@ class RequestAdmin(admin.ModelAdmin):
         except models.Request.DoesNotExist:
             self.message_user(request, f"request {pk} does not exist", level=messages.ERROR)
             return redirect(request.META.get("HTTP_REFERER", "/"))
-        with serializable_isolation_transaction():
-            models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
+        models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
+        engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
         self.message_user(request, f"accept request {pk}!", messages.SUCCESS)
         return redirect(request.META.get("HTTP_REFERER", "/"))
 
@@ -207,8 +203,7 @@ class RequestAdmin(admin.ModelAdmin):
         except models.Request.DoesNotExist:
             self.message_user(request, f"request {pk} does not exist", level=messages.ERROR)
             return redirect(request.META.get("HTTP_REFERER", "/"))
-        with serializable_isolation_transaction():
-            models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
+        models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
+        engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
         self.message_user(request, f"reject request {pk}!", messages.SUCCESS)
         return redirect(request.META.get("HTTP_REFERER", "/"))
