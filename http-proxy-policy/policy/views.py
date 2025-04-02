@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 
 import policy.models as models
 import policy.engine as engine
+from policy.transaction import serializable_isolation_transaction
 
 
 class RefreshRequestsView(APIView):
@@ -48,11 +49,12 @@ class RefreshRequestsView(APIView):
                 implicit_src_ips=validated_request.implicit_src_ips,
             )
 
-        rules = list(models.Rule.objects.all())
-        for model_request in new_requests.values():
-            engine.apply_rules(rules=rules, request=model_request)
-            model_request.save()
-        models.Request.objects.exclude(requirer__in=new_requests.keys()).delete()
+        with serializable_isolation_transaction():
+            rules = list(models.Rule.objects.all())
+            for model_request in new_requests.values():
+                engine.apply_rules(rules=rules, request=model_request)
+                model_request.save()
+            models.Request.objects.exclude(requirer__in=new_requests.keys()).delete()
 
         return JsonResponse([r.to_jsonable() for r in new_requests.values()], safe=False)
 
@@ -65,8 +67,9 @@ class AcceptRequestsView(APIView):
             proxy_request = models.Request.objects.get(pk=pk)
         except models.Request.DoesNotExist:
             return HttpResponseNotFound()
-        models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-        engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
+        with serializable_isolation_transaction():
+            models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
+            engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
         return HttpResponse()
 
 
@@ -78,8 +81,9 @@ class RejectRequestsView(APIView):
             proxy_request = models.Request.objects.get(pk=pk)
         except models.Request.DoesNotExist:
             return HttpResponseNotFound()
-        models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-        engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
+        with serializable_isolation_transaction():
+            models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
+            engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
         return HttpResponse()
 
 
@@ -126,15 +130,16 @@ class ListCreateRulesView(APIView):
             validated = models.RuleInput(**data)
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
-        rule = models.Rule.objects.create(
-            requirer=validated.requirer,
-            domains=validated.domains,
-            auth=validated.auth,
-            src_ips=validated.src_ips,
-            verdict=validated.verdict,
-            comment=validated.comment,
-        )
-        rule = models.Rule.objects.get(pk=rule.pk)
+        with serializable_isolation_transaction():
+            rule = models.Rule.objects.create(
+                requirer=validated.requirer,
+                domains=validated.domains,
+                auth=validated.auth,
+                src_ips=validated.src_ips,
+                verdict=validated.verdict,
+                comment=validated.comment,
+            )
+            rule = models.Rule.objects.get(pk=rule.pk)
         return JsonResponse(rule.to_jsonable())
 
 
@@ -170,14 +175,15 @@ class RuleApiView(APIView):
         except ValueError as e:
             return HttpResponseBadRequest(str(e))
 
-        try:
-            rule = models.Rule.objects.get(pk=pk)
-        except models.Rule.DoesNotExist:
-            return HttpResponseNotFound()
-        rule.requirer = validated.requirer
-        rule.domains = validated.domains
-        rule.auth = validated.auth
-        rule.src_ips = validated.src_ips
-        rule.verdict = validated.verdict
-        rule.comment = validated.comment
-        rule.save()
+        with serializable_isolation_transaction():
+            try:
+                rule = models.Rule.objects.get(pk=pk)
+            except models.Rule.DoesNotExist:
+                return HttpResponseNotFound()
+            rule.requirer = validated.requirer
+            rule.domains = validated.domains
+            rule.auth = validated.auth
+            rule.src_ips = validated.src_ips
+            rule.verdict = validated.verdict
+            rule.comment = validated.comment
+            rule.save()
