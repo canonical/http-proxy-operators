@@ -84,9 +84,9 @@ DATABASES = {
         "PORT": os.getenv("DJANGO_DATABASE_PORT", 5432),
         "USER": os.getenv("DJANGO_DATABASE_USER", "postgres"),
         "NAME": os.getenv("DJANGO_DATABASE_NAME", "postgres"),
-    },
-    "OPTIONS": {
-        "isolation_level": psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
+        "OPTIONS": {
+            "isolation_level": psycopg2.extensions.ISOLATION_LEVEL_SERIALIZABLE,
+        },
     },
 }
 
