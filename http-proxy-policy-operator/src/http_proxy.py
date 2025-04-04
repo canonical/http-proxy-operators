@@ -240,6 +240,13 @@ class HttpProxyUser(BaseModel):
     username: str
     password: SecretStr
 
+    def dump(self) -> Dict[str, str]:
+        """Dump the model with secret revealed.
+
+        Returns:
+            Dictionary representation of the model with secret revealed.
+        """
+        return {"username": self.username, "password": self.password.get_secret_value()}
 
 class HttpProxyResponse(BaseModel):
     """HTTP proxy response model.

@@ -111,6 +111,7 @@ class HttpProxyPolicyCharm(ops.CharmBase):
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_changed, self._reconcile)
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_joined, self._reconcile)
         self.framework.observe(self.on.secret_changed, self._reconcile)
+        self.framework.observe(self.on.create_superuser_action, self._create_superuser)
 
     def _install(self, _: ops.EventBase) -> None:
         """Install charmed-http-proxy-policy snap and refresh timer."""
@@ -277,7 +278,7 @@ class HttpProxyPolicyCharm(ops.CharmBase):
                     auth=backend_response.auth,
                     http_proxy=backend_response.http_proxy,
                     https_proxy=backend_response.https_proxy,
-                    user=backend_response.user.model_dump(mode="json"),
+                    user=backend_response.user.dump(),
                 )
                 return
         proxy_responses.add_or_replace(
@@ -399,7 +400,7 @@ class HttpProxyPolicyCharm(ops.CharmBase):
         password = secrets.token_urlsafe(16)
         try:
             subprocess.run(
-                ["charmed-http-proxy-policy.manage", "shell"],
+                ["charmed-http-proxy-policy.manage", "createsuperuser", "--noinput"],
                 check=True,
                 encoding="utf-8",
                 stdout=subprocess.PIPE,

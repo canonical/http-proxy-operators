@@ -182,7 +182,7 @@ async def requirer_charm_abcd_fixture(ops_test: OpsTest) -> list[RequirerCharm]:
 async def requirer_charm_a(requirer_charm_abcd, http_proxy_policy) -> RequirerCharm:
     """Set up the requirer-charm-a in the testing model."""
     requirer_charm = requirer_charm_abcd[0]
-    await requirer_charm.integrate(http_proxy_policy.name)
+    await requirer_charm.integrate(f"{http_proxy_policy.name}:http-proxy")
     return requirer_charm
 
 
@@ -190,7 +190,7 @@ async def requirer_charm_a(requirer_charm_abcd, http_proxy_policy) -> RequirerCh
 async def requirer_charm_b(requirer_charm_abcd, http_proxy_policy) -> RequirerCharm:
     """Set up the requirer-charm-b in the testing model."""
     requirer_charm = requirer_charm_abcd[1]
-    await requirer_charm.integrate(http_proxy_policy.name)
+    await requirer_charm.integrate(f"{http_proxy_policy.name}:http-proxy")
     return requirer_charm
 
 
@@ -198,7 +198,7 @@ async def requirer_charm_b(requirer_charm_abcd, http_proxy_policy) -> RequirerCh
 async def requirer_charm_c(requirer_charm_abcd, http_proxy_policy) -> RequirerCharm:
     """Set up the requirer-charm-c in the testing model."""
     requirer_charm = requirer_charm_abcd[2]
-    await requirer_charm.integrate(http_proxy_policy.name)
+    await requirer_charm.integrate(f"{http_proxy_policy.name}:http-proxy")
     return requirer_charm
 
 
@@ -207,7 +207,7 @@ async def policy_client(ops_test, http_proxy_policy):
     """Create the policy service client"""
     _, status, _ = await ops_test.juju("status", "--format", "json")
     status = json.loads(status)
-    units = status["applications"][http_proxy_policy.name]["units"]
+    units = status["applications"]["proxy-provider"]["units"]
     ip_list = []
     for key in sorted(units.keys(), key=lambda n: int(n.split("/")[-1])):
         ip_list.append(units[key]["public-address"])
