@@ -158,6 +158,7 @@ class RuleApiView(APIView):
             models.Rule.objects.filter(pk=pk).delete()
         except models.Rule.DoesNotExist:
             pass
+        return HttpResponse()
 
     def patch(self, request, pk):
         try:
@@ -187,3 +188,5 @@ class RuleApiView(APIView):
             rule.verdict = validated.verdict
             rule.comment = validated.comment
             rule.save()
+
+        return HttpResponse()
