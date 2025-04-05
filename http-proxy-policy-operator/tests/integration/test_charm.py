@@ -57,3 +57,5 @@ async def test_proxy_requests(
         "http": "http://test:test@proxy.test",
         "https": "https://test:test@proxy.test",
     }
+    assert await requirer_charm_b.get_proxies() is None
+    assert await requirer_charm_c.get_proxies() is None
