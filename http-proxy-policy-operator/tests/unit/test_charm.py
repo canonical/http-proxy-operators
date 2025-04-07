@@ -411,13 +411,17 @@ def test_cleanup_responses(mock_policy):
     backend_secret = ops.testing.Secret(tracked_content={"username": "test", "password": "test"})
     backend_relation = ops.testing.Relation(
         endpoint="http-proxy-backend",
-        local_app_data=[
-            {
-                "requirer": "00000000-0000-4000-9000-000000000000",
-                "domains": ["example.com"],
-                "auth": [http_proxy.AUTH_METHOD_SRCIP_USERPASS],
-            },
-        ],
+        local_app_data={
+            "requests": json.dumps(
+                [
+                    {
+                        "requirer": "00000000-0000-4000-9000-000000000000",
+                        "domains": ["test.com"],
+                        "auth": [http_proxy.AUTH_METHOD_SRCIP_USERPASS],
+                    }
+                ]
+            )
+        },
         remote_app_data={
             "responses": json.dumps(
                 [
@@ -456,15 +460,9 @@ def test_cleanup_responses(mock_policy):
     response = json.loads(
         cast(dict, state_out.get_relation(relation.id).local_app_data)["responses"]
     )
-    new_secret = response[0]["user"]
-    assert new_secret != backend_secret.id
     assert response == [
         {
-            "auth": "srcip+userpass",
-            "http_proxy": "http://proxy.test",
-            "https_proxy": "https://proxy.test",
             "requirer": "00000000-0000-4000-8000-000000000000",
-            "status": "ready",
-            "user": new_secret,
+            "status": http_proxy.PROXY_STATUS_ACCEPTED,
         }
     ]

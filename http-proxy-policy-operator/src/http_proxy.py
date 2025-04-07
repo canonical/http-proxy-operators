@@ -396,7 +396,7 @@ class _HttpProxyRequestListReader:
         Returns:
             All requirer ids.
         """
-        return self._requests.keys()
+        return list(self._requests.keys())
 
     def get(self, requirer_id: Union[str, uuid.UUID]) -> Optional[HttpProxyRequest]:
         """Get a specific HTTP proxy request.
