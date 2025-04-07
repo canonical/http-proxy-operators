@@ -13,6 +13,11 @@ logger = logging.getLogger(__name__)
 
 
 async def test_http_proxy_policy_server(policy_client):
+    """
+    arrange: deploy the http-proxy-policy charm.
+    act: connect to the http-proxy-policy on the charm machine.
+    assert: the server should respond correctly.
+    """
     for rule in policy_client.list_rules():
         policy_client.delete_rule(rule["id"])
     policy_client.create_rule(domains=["example.com"], verdict="accept")
@@ -23,6 +28,11 @@ async def test_http_proxy_policy_server(policy_client):
 async def test_proxy_requests(
     ops_test, policy_client, requirer_charm_a, requirer_charm_b, requirer_charm_c
 ):
+    """
+    arrange: deploy the http-proxy-policy charm with some proxy requirer charms.
+    act: add some rules to the http-proxy-policy and integrate the requirer charms.
+    assert: the requirer charm should receive the http proxy response according to the rules.
+    """
     for rule in policy_client.list_rules():
         policy_client.delete_rule(rule["id"])
     policy_client.create_rule(domains=["example.com"], verdict="accept")

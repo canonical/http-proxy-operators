@@ -248,6 +248,7 @@ class HttpProxyUser(BaseModel):
         """
         return {"username": self.username, "password": self.password.get_secret_value()}
 
+
 class HttpProxyResponse(BaseModel):
     """HTTP proxy response model.
 

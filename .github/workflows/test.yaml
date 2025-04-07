@@ -5,16 +5,19 @@ on:
 
 jobs:
   unit-tests:
+    strategy:
+      matrix:
+        charm: [squid-forward-proxy, http-proxy-policy]
     uses: canonical/operator-workflows/.github/workflows/test.yaml@fix-inclusive-naming
     secrets: inherit
     with:
       self-hosted-runner: false
-      working-directory: ./squid-forward-proxy-operator
+      working-directory: ./${{ matrix.charm }}-operator
   integration-tests:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
       juju-channel: '3/stable'
       provider: lxd
-      working-directory: ./squid-forward-proxy-operator
-      identifier: squid-proxy
+      working-directory: ./${{ matrix.charm }}-operator
+      identifier: ${{ matrix.charm }}

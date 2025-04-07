@@ -4,7 +4,7 @@
 """HTTP proxy policy library."""
 
 import pathlib
-import subprocess
+import subprocess  # nosec
 import textwrap
 import uuid
 from typing import Optional
@@ -104,7 +104,7 @@ def create_or_update_user(username: str, password: str) -> None:
         """
     )
     try:
-        subprocess.run(
+        subprocess.run(  # nosec
             ["charmed-http-proxy-policy.manage", "shell"],
             check=True,
             input=script,

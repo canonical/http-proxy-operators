@@ -29,10 +29,10 @@ class AnyCharm(AnyCharmBase):  # pylint: disable=too-few-public-methods
         if not self.unit.is_leader():
             return
         relation = self.model.get_relation("provide-http-proxy")
-        requests = self._proxy_provider.open_request_list(relation.id)
+        proxy_requests = self._proxy_provider.open_request_list(relation.id)
         responses = self._proxy_provider.open_response_list(relation.id)
-        for requirer in requests.get_requirer_ids():
-            request = requests.get(requirer)
+        for requirer in proxy_requests.get_requirer_ids():
+            request = proxy_requests.get(requirer)
             auth = request.auth[0]
             if http_proxy.AUTH_METHOD_USERPASS in auth:
                 user = {"username": "test", "password": "test"}

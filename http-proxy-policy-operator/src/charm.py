@@ -9,7 +9,7 @@ import dataclasses
 import logging
 import os
 import secrets
-import subprocess
+import subprocess  # nosec
 import time
 from typing import Any, cast
 
@@ -399,7 +399,7 @@ class HttpProxyPolicyCharm(ops.CharmBase):
         """
         password = secrets.token_urlsafe(16)
         try:
-            subprocess.run(
+            subprocess.run(  # nosec
                 ["charmed-http-proxy-policy.manage", "createsuperuser", "--noinput"],
                 check=True,
                 encoding="utf-8",
