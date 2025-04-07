@@ -17,4 +17,4 @@ jobs:
       juju-channel: '3/stable'
       provider: lxd
       working-directory: ./squid-forward-proxy-operator
-      identifier: squid-proxy
+      identifier: squid-forward-proxy
