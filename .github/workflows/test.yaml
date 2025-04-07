@@ -5,11 +5,19 @@ on:
 
 jobs:
   unit-tests:
-    uses: canonical/operator-workflows/.github/workflows/test.yaml@main
+    uses: canonical/operator-workflows/.github/workflows/test.yaml@fix-inclusive-naming
     secrets: inherit
     with:
-      self-hosted-runner: true
-      self-hosted-runner-label: "edge"
+      self-hosted-runner: false
+      working-directory: ./squid-forward-proxy-operator
+  integration-tests:
+    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    secrets: inherit
+    with:
+      juju-channel: '3/stable'
+      provider: lxd
+      working-directory: ./squid-forward-proxy-operator
+      identifier: squid-forward-proxy
   http-proxy-policy:
     runs-on: ubuntu-latest
     steps:
