@@ -8,7 +8,7 @@ import ipaddress
 import json
 import re
 import uuid
-from typing import Annotated, Dict, Iterable, List, Optional, Sequence, Tuple, cast
+from typing import Annotated, Dict, Iterable, List, Optional, Sequence, Tuple, Union, cast
 
 import ops
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
@@ -240,6 +240,14 @@ class HttpProxyUser(BaseModel):
     username: str
     password: SecretStr
 
+    def dump(self) -> Dict[str, str]:
+        """Dump the model with secret revealed.
+
+        Returns:
+            Dictionary representation of the model with secret revealed.
+        """
+        return {"username": self.username, "password": self.password.get_secret_value()}
+
 
 class HttpProxyResponse(BaseModel):
     """HTTP proxy response model.
@@ -388,9 +396,9 @@ class _HttpProxyRequestListReader:
         Returns:
             All requirer ids.
         """
-        return self._requests.keys()
+        return list(self._requests.keys())
 
-    def get(self, requirer_id: str) -> Optional[HttpProxyRequest]:
+    def get(self, requirer_id: Union[str, uuid.UUID]) -> Optional[HttpProxyRequest]:
         """Get a specific HTTP proxy request.
 
         Args:
@@ -399,6 +407,7 @@ class _HttpProxyRequestListReader:
         Returns:
             the proxy request.
         """
+        requirer_id = str(requirer_id)
         if requirer_id not in self._requests:
             return None
         request = copy.deepcopy(self._requests[requirer_id])
@@ -424,18 +433,19 @@ class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
             requests, sort_keys=True, ensure_ascii=True
         )
 
-    def delete(self, requirer_id: str) -> None:
+    def delete(self, requirer_id: Union[str, uuid.UUID]) -> None:
         """Delete a HTTP proxy request.
 
         Args:
             requirer_id: requirer id of the proxy request.
         """
+        requirer_id = str(requirer_id)
         self._requests.pop(requirer_id, None)
         self._dump()
 
     def add(
         self,
-        requirer_id: str,
+        requirer_id: Union[str, uuid.UUID],
         domains: list[str],
         auth: list[str],
         src_ips: list[str] | None = None,
@@ -451,6 +461,7 @@ class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
         Raises:
             KeyError: request already exists.
         """
+        requirer_id = str(requirer_id)
         if requirer_id in self._requests:
             raise KeyError(
                 f"http proxy request with requirer id {repr(requirer_id)} already exists"
@@ -471,6 +482,36 @@ class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
         if src_ips:
             request["src_ips"] = src_ips
         self._requests[requirer_id] = request
+        self._dump()
+
+    def add_or_replace(
+        self,
+        requirer_id: Union[str, uuid.UUID],
+        domains: list[str],
+        auth: list[str],
+        src_ips: list[str] | None = None,
+    ) -> None:
+        """Add a new HTTP proxy request or replace an existing one.
+
+        Args:
+            requirer_id: requirer id of the proxy request.
+            domains: proxy request domains.
+            auth: proxy request auth.
+            src_ips: proxy request src_ips.
+        """
+        requirer_id = str(requirer_id)
+        if requirer_id in self._requests:
+            self.delete(requirer_id=requirer_id)
+        self.add(
+            requirer_id=requirer_id,
+            domains=domains,
+            auth=auth,
+            src_ips=src_ips,
+        )
+
+    def clear(self) -> None:
+        """Delete all HTTP proxy requests."""
+        self._requests.clear()
         self._dump()
 
 
@@ -564,7 +605,7 @@ class _HttpProxyResponseListReader:
         """
         return self._responses.keys()
 
-    def get(self, requirer_id: str) -> Optional[HttpProxyResponse]:
+    def get(self, requirer_id: Union[str, uuid.UUID]) -> Optional[HttpProxyResponse]:
         """Get a specific HTTP proxy response.
 
         Args:
@@ -573,6 +614,7 @@ class _HttpProxyResponseListReader:
         Returns:
             HTTP proxy response if exists.
         """
+        requirer_id = str(requirer_id)
         if requirer_id not in self._responses:
             return None
         response = self._responses[requirer_id]
@@ -624,7 +666,7 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
 
     def add(  # pylint: disable=too-many-arguments
         self,
-        requirer_id: str,
+        requirer_id: Union[str, uuid.UUID],
         *,
         status: str,
         auth: str | None = None,
@@ -645,6 +687,7 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         Raises:
             KeyError: if response already exists.
         """
+        requirer_id = str(requirer_id)
         if requirer_id in self._responses:
             raise KeyError(
                 f"http proxy response with requirer id {repr(requirer_id)} already exists"
@@ -676,7 +719,7 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
 
     def update(  # pylint: disable=too-many-arguments
         self,
-        requirer_id: str,
+        requirer_id: Union[str, uuid.UUID],
         *,
         status: str | object = NO_CHANGE,
         auth: str | None | object = NO_CHANGE,
@@ -694,6 +737,7 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
             https_proxy: HTTPS proxy url.
             user: HTTP proxy user.
         """
+        requirer_id = str(requirer_id)
         response = copy.deepcopy(self._responses[requirer_id])
         if status is not NO_CHANGE:
             response["status"] = status
@@ -721,6 +765,46 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         self._responses[requirer_id] = {k: v for k, v in response.items() if v is not None}
         self._dump()
 
+    def add_or_replace(  # pylint: disable=too-many-arguments
+        self,
+        requirer_id: Union[str, uuid.UUID],
+        *,
+        status: str,
+        auth: str | None = None,
+        http_proxy: Optional[str] = None,
+        https_proxy: Optional[str] = None,
+        user: Dict[str, str] | None = None,
+    ) -> None:
+        """Add a new HTTP proxy response or replace an existing one.
+
+        Args:
+            requirer_id: response requirer id.
+            status: HTTP proxy status.
+            auth: HTTP proxy auth.
+            http_proxy: HTTP proxy url.
+            https_proxy: HTTPS proxy url.
+            user: HTTP proxy user.
+        """
+        requirer_id = str(requirer_id)
+        if requirer_id in self._responses:
+            self.update(
+                requirer_id=requirer_id,
+                status=status,
+                auth=auth,
+                http_proxy=http_proxy,
+                https_proxy=https_proxy,
+                user=user,
+            )
+        else:
+            self.add(
+                requirer_id=requirer_id,
+                status=status,
+                auth=auth,
+                http_proxy=http_proxy,
+                https_proxy=https_proxy,
+                user=user,
+            )
+
     def delete(self, requirer_id: str) -> None:
         """Delete a HTTP proxy response.
 
@@ -734,6 +818,11 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         if secret_id:
             self._delete_secret(secret_id)
         del self._responses[requirer_id]
+        self._dump()
+
+    def clear(self) -> None:
+        """Delete all HTTP proxy responses."""
+        self._responses.clear()
         self._dump()
 
     def get_juju_secrets(self) -> List[str]:
