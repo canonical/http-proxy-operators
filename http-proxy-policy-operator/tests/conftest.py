@@ -16,7 +16,7 @@ def pytest_addoption(parser):
     Args:
         parser: Pytest parser.
     """
-    parser.addoption("--charm-file", action="store")
+    parser.addoption("--charm-file", action="append")
 
 
 @pytest.fixture(name="mock_policy")

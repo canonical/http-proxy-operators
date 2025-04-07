@@ -21,9 +21,11 @@ async def http_proxy_policy_fixture(
     ops_test: OpsTest, pytestconfig: pytest.Config
 ) -> juju.application.Application:
     """Build and deploy the charm in the testing model."""
-    charm = pytestconfig.getoption("--charm-file")
-    if not charm:
+    charms = pytestconfig.getoption("--charm-file")
+    if not charms:
         charm = await ops_test.build_charm(".")
+    else:
+        charm = [c for c in charms if c.endswith("http-proxy-policy_ubuntu@22.04-amd64.charm")][0]
     assert ops_test.model
     charm = await ops_test.model.deploy(os.path.abspath(charm), num_units=0)
     base_charm = await ops_test.model.deploy(
