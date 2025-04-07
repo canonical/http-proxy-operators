@@ -24,4 +24,5 @@ header:
     - 'pyproject.toml'
     - 'zap_rules.tsv'
     - 'http-proxy-policy-operator/lib/**'
+    - 'squid-forward-proxy-operator/lib/**'
   comment: on-failure
