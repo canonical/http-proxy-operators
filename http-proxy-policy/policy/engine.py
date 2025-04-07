@@ -14,6 +14,7 @@ class _EvaluationResult(typing.NamedTuple):
 
 
 def make_rule(request: models.Request, verdict: models.Verdict) -> models.Rule:
+    """Create a rule based on a request and the verdict."""
     if verdict == models.Verdict.REJECT:
         return models.Rule(
             requirer=request.requirer,
@@ -41,6 +42,7 @@ def make_rule(request: models.Request, verdict: models.Verdict) -> models.Rule:
 
 
 def apply_rules(rules: list[models.Rule], request: models.Request) -> models.Request:
+    """Apply rules to the request."""
     result = _evaluate_rules(rules, request)
     if not result:
         request.status = models.PROXY_STATUS_PENDING

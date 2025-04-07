@@ -12,6 +12,7 @@ import policy.engine as engine
 
 
 class RefreshRequestsView(APIView):
+    """View for refreshing proxy requests."""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -60,6 +61,7 @@ class RefreshRequestsView(APIView):
 
 
 class AcceptRequestsView(APIView):
+    """View for accepting proxy requests."""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
@@ -74,6 +76,7 @@ class AcceptRequestsView(APIView):
 
 
 class RejectRequestsView(APIView):
+    """View for rejecting proxy requests."""
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
@@ -88,6 +91,7 @@ class RejectRequestsView(APIView):
 
 
 class GetRequestsView(APIView):
+    """View for getting proxy requests."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
@@ -99,6 +103,7 @@ class GetRequestsView(APIView):
 
 
 class ListRequestsView(APIView):
+    """View for listing proxy requests."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
@@ -111,13 +116,16 @@ class ListRequestsView(APIView):
 
 
 class ListCreateRulesView(APIView):
+    """View for operations on the collection of rules."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
+        """List all rules."""
         rules = models.Rule.objects.all()
         return JsonResponse([r.to_jsonable() for r in rules], safe=False)
 
     def put(self, request):
+        """Create a rule."""
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:
@@ -144,9 +152,11 @@ class ListCreateRulesView(APIView):
 
 
 class RuleApiView(APIView):
+    """View for operations on a single rules."""
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
+        """Get a rule."""
         try:
             rule = models.Rule.objects.get(pk=pk)
         except models.Rule.DoesNotExist:
@@ -154,6 +164,7 @@ class RuleApiView(APIView):
         return JsonResponse(rule.to_jsonable())
 
     def delete(self, request, pk):
+        """Delete a rule."""
         try:
             models.Rule.objects.filter(pk=pk).delete()
         except models.Rule.DoesNotExist:
@@ -161,6 +172,7 @@ class RuleApiView(APIView):
         return HttpResponse()
 
     def patch(self, request, pk):
+        """Update a rule."""
         try:
             data = json.loads(request.body)
         except json.JSONDecodeError:

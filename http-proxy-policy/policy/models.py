@@ -44,6 +44,10 @@ class Verdict(enum.StrEnum):
 
 
 class RangeSet:
+    """A set of integers represented by integer ranges.
+
+    Integer ranges are represented by tuples (a, b), which denote integers i such that a <= i < b.
+    """
     def __init__(self, ranges: list[tuple[int, int]]):
         self._ranges = self._merge(ranges)
 
@@ -68,7 +72,7 @@ class RangeSet:
         )
 
     def is_superset_of(self, other: "RangeSet") -> bool:
-        """Check if this range set is a superset of the other range set."""
+        """Check if this range set is a superset of or equal to the other range set."""
         if not self._ranges:
             return not other._ranges
         for right in other._ranges:
