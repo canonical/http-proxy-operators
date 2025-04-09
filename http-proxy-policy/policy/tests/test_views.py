@@ -44,9 +44,41 @@ class ModelsTestCase(APITestCase):
 
     def test_requests_refresh_empty(self):
         self.login()
-        response = self.client.post(reverse("api-refresh-requests"), data=[], format="json")
+        response = self.client.post(
+            reverse("api-refresh-requests"), data=[], format="json"
+        )
         self.assertEqual(response.status_code, 200)
         self.assertSequenceEqual(response.json(), [])
+
+    def create_rule(
+        self,
+        verdict: models.Verdict,
+        domains: list[str] | None = None,
+        auth: list[str] | None = None,
+        src_ips: list[str] | None = None,
+    ):
+        payload = {"verdict": verdict}
+        if domains is not None:
+            payload["domains"] = domains
+        if auth is not None:
+            payload["auth"] = auth
+        if src_ips is not None:
+            payload["src_ips"] = src_ips
+        response = self.client.put(
+            reverse("api-rules"),
+            data=payload,
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+
+    def refresh_requests(self, requests):
+        response = self.client.post(
+            reverse("api-refresh-requests"),
+            data=requests,
+            format="json",
+        )
+        self.assertEqual(response.status_code, 200)
+        return response.json()
 
     def test_request_refresh(self):
         self.login()
@@ -100,12 +132,7 @@ class ModelsTestCase(APITestCase):
     def test_request_refresh_with_rule(self):
         self.login()
 
-        response = self.client.put(
-            reverse("api-rules"),
-            data={"domains": ["ubuntu.com"], "verdict": models.Verdict.ACCEPT},
-            format="json",
-        )
-        self.assertEqual(response.status_code, 200)
+        self.create_rule(verdict=models.Verdict.ACCEPT, domains=["ubuntu.com"])
 
         response = self.client.post(
             reverse("api-refresh-requests"),
@@ -169,38 +196,21 @@ class ModelsTestCase(APITestCase):
 
     def test_create_list_rules(self):
         self.login()
-        response = self.client.put(
-            reverse("api-rules"),
-            data={"domains": ["github.com"], "verdict": models.Verdict.ACCEPT},
-            format="json",
+        self.create_rule(verdict=models.Verdict.ACCEPT, domains=["github.com"])
+        self.create_rule(
+            verdict=models.Verdict.ACCEPT,
+            domains=["ubuntu.com", "ubuntu.com:22"],
+            auth=[models.AUTH_METHOD_USERPASS],
         )
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.put(
-            reverse("api-rules"),
-            data={
-                "domains": ["ubuntu.com", "ubuntu.com:22"],
-                "auth": [models.AUTH_METHOD_USERPASS],
-                "verdict": models.Verdict.ACCEPT,
-            },
-            format="json",
+        self.create_rule(
+            verdict=models.Verdict.ACCEPT,
+            domains=["example.com"],
+            auth=[models.AUTH_METHOD_USERPASS],
+            src_ips=["172.16.0.1", "172.16.0.2"],
         )
-        self.assertEqual(response.status_code, 200)
-
-        response = self.client.put(
-            reverse("api-rules"),
-            data={
-                "domains": ["example.com"],
-                "auth": [models.AUTH_METHOD_USERPASS],
-                "src_ips": ["172.16.0.1", "172.16.0.2"],
-                "verdict": models.Verdict.ACCEPT,
-            },
-            format="json",
-        )
-        self.assertEqual(response.status_code, 200)
 
         response = self.client.get(reverse("api-rules"))
-        self.assertEqual(
+        self.assertSequenceEqual(
             response.json(),
             [
                 {
@@ -208,7 +218,7 @@ class ModelsTestCase(APITestCase):
                     "comment": "",
                     "domains": ["github.com:80", "github.com:443"],
                     "id": 1,
-                    "requirer": "None",
+                    "requirer": None,
                     "src_ips": [],
                     "verdict": "accept",
                 },
@@ -217,7 +227,7 @@ class ModelsTestCase(APITestCase):
                     "comment": "",
                     "domains": ["ubuntu.com:22", "ubuntu.com:80", "ubuntu.com:443"],
                     "id": 2,
-                    "requirer": "None",
+                    "requirer": None,
                     "src_ips": [],
                     "verdict": "accept",
                 },
@@ -226,9 +236,120 @@ class ModelsTestCase(APITestCase):
                     "comment": "",
                     "domains": ["example.com:80", "example.com:443"],
                     "id": 3,
-                    "requirer": "None",
+                    "requirer": None,
                     "src_ips": ["172.16.0.1", "172.16.0.2"],
                     "verdict": "accept",
                 },
             ],
         )
+
+    def test_rule_match_subdomain(self):
+        self.login()
+        self.create_rule(verdict=models.Verdict.ACCEPT, domains=["api.github.com"])
+
+        result = self.refresh_requests(
+            [
+                {
+                    "requirer": "00000000-0000-4000-8000-000000000000",
+                    "domains": ["test.api.github.com"],
+                    "auth": [models.AUTH_METHOD_NONE],
+                    "src_ips": ["10.0.0.1"],
+                    "implicit_src_ips": False,
+                },
+            ]
+        )
+        self.assertSequenceEqual(
+            result,
+            [
+                {
+                    "requirer": "00000000-0000-4000-8000-000000000000",
+                    "domains": ["test.api.github.com:80", "test.api.github.com:443"],
+                    "auth": [models.AUTH_METHOD_NONE],
+                    "src_ips": ["10.0.0.1"],
+                    "implicit_src_ips": False,
+                    "status": models.PROXY_STATUS_ACCEPTED,
+                    "accepted_auth": models.AUTH_METHOD_NONE,
+                }
+            ],
+        )
+
+        result = self.refresh_requests(
+            [
+                {
+                    "requirer": "00000000-0000-4000-8000-000000000000",
+                    "domains": ["github.com"],
+                    "auth": [models.AUTH_METHOD_NONE],
+                    "src_ips": ["10.0.0.1"],
+                    "implicit_src_ips": False,
+                },
+            ]
+        )
+        self.assertSequenceEqual(
+            result,
+            [
+                {
+                    "requirer": "00000000-0000-4000-8000-000000000000",
+                    "domains": ["github.com:80", "github.com:443"],
+                    "auth": [models.AUTH_METHOD_NONE],
+                    "src_ips": ["10.0.0.1"],
+                    "implicit_src_ips": False,
+                    "status": models.PROXY_STATUS_PENDING,
+                    "accepted_auth": None,
+                }
+            ],
+        )
+
+    def test_multiple_rules_accept_request(self):
+        self.login()
+        self.create_rule(
+            verdict=models.Verdict.ACCEPT,
+            domains=["github.com"],
+            src_ips=["10.0.0.0/8"],
+        )
+        requests = [
+            {
+                "requirer": "00000000-0000-4000-8000-000000000000",
+                "domains": ["github.com", "example.com"],
+                "auth": [models.AUTH_METHOD_NONE],
+                "src_ips": ["10.0.0.1", "192.168.1.1"],
+                "implicit_src_ips": False,
+            },
+        ]
+        result = self.refresh_requests(requests=requests)
+        self.assertEqual(result[0]["status"], models.PROXY_STATUS_PENDING)
+
+        self.create_rule(
+            verdict=models.Verdict.ACCEPT,
+            domains=["github.com"],
+            src_ips=["192.168.0.0/16"],
+        )
+
+        result = self.refresh_requests(requests=requests)
+        self.assertEqual(result[0]["status"], models.PROXY_STATUS_PENDING)
+
+        self.create_rule(
+            verdict=models.Verdict.ACCEPT,
+            domains=["example.com"],
+            src_ips=["10.0.0.0/8", "192.168.0.0/16"],
+        )
+
+        result = self.refresh_requests(requests=requests)
+        self.assertEqual(result[0]["status"], models.PROXY_STATUS_ACCEPTED)
+
+    def test_partial_match_reject(self):
+        self.login()
+        self.create_rule(
+            verdict=models.Verdict.REJECT,
+            domains=["github.com"],
+            src_ips=["10.0.0.0/8"],
+        )
+        result = self.refresh_requests([
+            {
+                "requirer": "00000000-0000-4000-8000-000000000000",
+                "domains": ["github.com", "example.com"],
+                "auth": [models.AUTH_METHOD_NONE],
+                "src_ips": ["10.0.0.1", "192.168.1.1"],
+                "implicit_src_ips": False,
+            },
+        ])
+        self.assertEqual(result[0]["status"], models.PROXY_STATUS_REJECTED)

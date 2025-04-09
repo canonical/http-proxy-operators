@@ -11,8 +11,9 @@ import policy.engine as engine
 @dispatch.receiver(signals.post_delete, sender=models.Rule)
 def on_rule_change(sender, instance, **kwargs):
     rules = list(models.Rule.objects.all())
-    request_ids = []
     for request in models.Request.objects.all():
+        before = request.status, request.accepted_auth
         engine.apply_rules(rules=rules, request=request)
-        request_ids.append(request.requirer)
-        request.save()
+        after = request.status, request.accepted_auth
+        if before != after:
+            request.save()

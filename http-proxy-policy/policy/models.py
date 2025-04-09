@@ -358,7 +358,7 @@ class Rule(models.Model):
     def to_jsonable(self) -> dict:
         return {
             "id": self.id,
-            "requirer": str(self.requirer),
+            "requirer": str(self.requirer) if self.requirer else None,
             "domains": self.domains,
             "auth": self.auth,
             "src_ips": self.src_ips.source,

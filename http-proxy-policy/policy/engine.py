@@ -23,26 +23,34 @@ def make_rule(request: models.Request, verdict: models.Verdict) -> models.Rule:
             src_ips=[],
             verdict=verdict,
         )
-    elif request.implicit_src_ips:
-        return models.Rule(
-            requirer=request.requirer,
-            domains=request.domains,
-            auth=[request.auth[0]],
-            src_ips=[],
-            verdict=verdict,
-        )
     else:
         return models.Rule(
             requirer=request.requirer,
             domains=request.domains,
-            auth=[request.auth[0]],
+            auth=[] if request.implicit_src_ips else [request.auth[0]],
             src_ips=request.src_ips,
             verdict=verdict,
         )
 
 
 def apply_rules(rules: list[models.Rule], request: models.Request) -> models.Request:
-    """Apply rules to the request."""
+    """Apply rules to the request.
+
+    The general rules:
+        For a proxy request to be accepted:
+            For any authentication method the requester supports, if every possible combination of
+            the domain and source IP declared by the request is accepted by at least one of the
+            accept rules, and none of the combinations is rejected by any rule, the request is
+            accepted and this authentication method is selected.
+
+        For a proxy request to be rejected:
+            If, for an authentication method, any combination of the domain and source IP declared
+            by the request is rejected by at least any of the reject rules, the authentication
+            method is rejected. If every authentication method the requester supports is rejected,
+            the request is rejected.
+
+        If the request is neither accepted nor rejected, the request is in a pending state.
+    """
     result = _evaluate_rules(rules, request)
     if not result:
         request.status = models.PROXY_STATUS_PENDING
@@ -127,4 +135,4 @@ def _match_accept_rules(
 
 
 def _domain_match(domain: str, rule_domain: str) -> bool:
-    return domain == rule_domain or rule_domain.endswith("." + domain)
+    return domain == rule_domain or domain.endswith("." + rule_domain)

@@ -3,7 +3,12 @@
 
 import json
 from django.db import transaction
-from django.http import JsonResponse, HttpResponseBadRequest, HttpResponseNotFound, HttpResponse
+from django.http import (
+    JsonResponse,
+    HttpResponseBadRequest,
+    HttpResponseNotFound,
+    HttpResponse,
+)
 from rest_framework import permissions
 from rest_framework.views import APIView
 
@@ -13,6 +18,7 @@ import policy.engine as engine
 
 class RefreshRequestsView(APIView):
     """View for refreshing proxy requests."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -32,7 +38,9 @@ class RefreshRequestsView(APIView):
 
             requirer = proxy_request.get("requirer")
             if requirer is None:
-                return HttpResponseBadRequest(f"missing requirer field: {proxy_request}")
+                return HttpResponseBadRequest(
+                    f"missing requirer field: {proxy_request}"
+                )
 
             if requirer in new_requests:
                 return HttpResponseBadRequest(f"duplicate requirer: {requirer}")
@@ -62,6 +70,7 @@ class RefreshRequestsView(APIView):
 
 class AcceptRequestsView(APIView):
     """View for accepting proxy requests."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
@@ -71,12 +80,15 @@ class AcceptRequestsView(APIView):
             return HttpResponseNotFound()
         with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
+            engine.make_rule(
+                request=proxy_request, verdict=models.Verdict.ACCEPT
+            ).save()
         return HttpResponse()
 
 
 class RejectRequestsView(APIView):
     """View for rejecting proxy requests."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):
@@ -86,12 +98,15 @@ class RejectRequestsView(APIView):
             return HttpResponseNotFound()
         with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
+            engine.make_rule(
+                request=proxy_request, verdict=models.Verdict.REJECT
+            ).save()
         return HttpResponse()
 
 
 class GetRequestsView(APIView):
     """View for getting proxy requests."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):
@@ -104,6 +119,7 @@ class GetRequestsView(APIView):
 
 class ListRequestsView(APIView):
     """View for listing proxy requests."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
@@ -117,6 +133,7 @@ class ListRequestsView(APIView):
 
 class ListCreateRulesView(APIView):
     """View for operations on the collection of rules."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
@@ -153,6 +170,7 @@ class ListCreateRulesView(APIView):
 
 class RuleApiView(APIView):
     """View for operations on a single rules."""
+
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request, pk):

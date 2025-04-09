@@ -48,7 +48,7 @@ class RuleAdminForm(forms.ModelForm):
                 else ""
             )
             self.initial["src_ips"] = (
-                ", ".join(models.compact_domains(self.instance.src_ips.source))
+                ", ".join(self.instance.src_ips.source)
                 if self.instance.src_ips.source
                 else ""
             )
@@ -189,7 +189,7 @@ class RequestAdmin(admin.ModelAdmin):
         ]
         return custom_urls + urls
 
-    def accept_proxy_request(self, request, pk):
+    def process_proxy_request(self, request, pk, verdict):
         try:
             proxy_request = models.Request.objects.get(pk=pk)
         except models.Request.DoesNotExist:
@@ -197,18 +197,12 @@ class RequestAdmin(admin.ModelAdmin):
             return redirect(request.META.get("HTTP_REFERER", "/"))
         with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(request=proxy_request, verdict=models.Verdict.ACCEPT).save()
-        self.message_user(request, f"accept request {pk}!", messages.SUCCESS)
+            engine.make_rule(request=proxy_request, verdict=verdict).save()
+        self.message_user(request, f"{verdict} request {pk}!", messages.SUCCESS)
         return redirect(request.META.get("HTTP_REFERER", "/"))
 
+    def accept_proxy_request(self, request, pk):
+        self.process_proxy_request(request, pk, models.Verdict.ACCEPT)
+
     def reject_proxy_request(self, request, pk):
-        try:
-            proxy_request = models.Request.objects.get(pk=pk)
-        except models.Request.DoesNotExist:
-            self.message_user(request, f"request {pk} does not exist", level=messages.ERROR)
-            return redirect(request.META.get("HTTP_REFERER", "/"))
-        with transaction.atomic():
-            models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(request=proxy_request, verdict=models.Verdict.REJECT).save()
-        self.message_user(request, f"reject request {pk}!", messages.SUCCESS)
-        return redirect(request.META.get("HTTP_REFERER", "/"))
+        self.process_proxy_request(request, pk, models.Verdict.REJECT)
