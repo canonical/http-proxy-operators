@@ -1,0 +1,10 @@
+{% extends "admin/change_form.html" %}
+
+{% block submit_buttons_bottom %}
+    <a class="button" style="margin-right: 10px" href="{% url 'admin:accept-proxy-request' original.pk %}">
+        Accept Proxy Request
+    </a>
+    <a class="button" href="{% url 'admin:reject-proxy-request' original.pk %}">
+        Reject Proxy Request
+    </a>
+{% endblock %}

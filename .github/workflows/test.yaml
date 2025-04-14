@@ -18,3 +18,14 @@ jobs:
       provider: lxd
       working-directory: ./squid-forward-proxy-operator
       identifier: squid-forward-proxy
+  http-proxy-policy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - working-directory: ./http-proxy-policy
+        run: |
+          pip install -r requirements.txt
+          python3 ./manage.py test --settings=http_proxy_policy.test_settings
