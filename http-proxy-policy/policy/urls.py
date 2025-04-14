@@ -1,9 +1,23 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-from django.urls import path
+from django.urls import path, register_converter
 
 import policy.views as views
+import policy.models as models
+
+
+class RequestActionConverter:
+    regex = "|".join(models.Verdict)
+
+    def to_python(self, value):
+        return models.Verdict[value.upper()]
+
+    def to_url(self, value):
+        return str(value)
+
+
+register_converter(RequestActionConverter, "action")
 
 urlpatterns = [
     path(
@@ -12,14 +26,9 @@ urlpatterns = [
         name="api-refresh-requests",
     ),
     path(
-        "api/v1/requests/<uuid:pk>/accept",
-        views.AcceptRequestsView.as_view(),
-        name="api-accept-request",
-    ),
-    path(
-        "api/v1/requests/<uuid:pk>/reject",
-        views.RejectRequestsView.as_view(),
-        name="api-reject-request",
+        "api/v1/requests/<uuid:pk>/<action:action>",
+        views.RequestActionView.as_view(),
+        name="api-request-action",
     ),
     path(
         "api/v1/requests/<uuid:pk>",
@@ -36,9 +45,5 @@ urlpatterns = [
         views.ListCreateRulesView.as_view(),
         name="api-rules",
     ),
-    path(
-        "api/v1/rules/<int:pk>",
-        views.RuleApiView.as_view(),
-        name="api-rule"
-    ),
+    path("api/v1/rules/<int:pk>", views.RuleApiView.as_view(), name="api-rule"),
 ]

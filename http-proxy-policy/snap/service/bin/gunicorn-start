@@ -15,9 +15,6 @@ export DJANGO_DATABASE_USER="$(snapctl get database-user)"
 export DJANGO_DATABASE_NAME="$(snapctl get database-name)"
 
 LOG_LEVEL="info"
-if [ "$DJANGO_DEBUG" = "true" ]; then
-  LOG_LEVEL="debug"
-fi
 
 export PYTHONPATH=$SNAP/usr/lib/python3/dist-packages:$(realpath $SNAP/app/venv/lib/python*/site-packages)
 

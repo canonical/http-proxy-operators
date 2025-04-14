@@ -23,18 +23,12 @@ case "$DJANGO_LOG_LEVEL" in
     ;;
 esac
 
-DJANGO_ALLOWED_HOSTS="$(snapctl get allowed-hosts)"
-export DJANGO_ALLOWED_HOSTS
-DJANGO_DATABASE_PASSWORD="$(snapctl get database-password)"
-export DJANGO_DATABASE_PASSWORD
-DJANGO_DATABASE_HOST="$(snapctl get database-host)"
-export DJANGO_DATABASE_HOST
-DJANGO_DATABASE_PORT="$(snapctl get database-port)"
-export DJANGO_DATABASE_PORT
-DJANGO_DATABASE_USER="$(snapctl get database-user)"
-export DJANGO_DATABASE_USER
-DJANGO_DATABASE_NAME="$(snapctl get database-name)"
-export DJANGO_DATABASE_NAME
+export DJANGO_ALLOWED_HOSTS="$(snapctl get allowed-hosts)"
+export DJANGO_DATABASE_PASSWORD="$(snapctl get database-password)"
+export DJANGO_DATABASE_HOST="$(snapctl get database-host)"
+export DJANGO_DATABASE_PORT="$(snapctl get database-port)"
+export DJANGO_DATABASE_USER="$(snapctl get database-user)"
+export DJANGO_DATABASE_NAME="$(snapctl get database-name)"
 
 snapctl stop "$SNAP_INSTANCE_NAME"
 snapctl start "$SNAP_INSTANCE_NAME"

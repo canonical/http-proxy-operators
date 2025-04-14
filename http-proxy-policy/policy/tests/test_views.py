@@ -169,7 +169,7 @@ class ModelsTestCase(APITestCase):
 
         uuid = "00000000-0000-4000-8000-000000000000"
 
-        response = self.client.post(reverse("api-accept-request", args=(uuid,)))
+        response = self.client.post(reverse("api-request-action", args=(uuid, "accept")))
         self.assertEqual(response.status_code, 200)
 
         response = self.client.get(reverse("api-get-request", args=(uuid,)))
@@ -187,7 +187,7 @@ class ModelsTestCase(APITestCase):
             },
         )
 
-        response = self.client.post(reverse("api-reject-request", args=(uuid,)))
+        response = self.client.post(reverse("api-request-action", args=(uuid, models.Verdict.REJECT)))
         self.assertEqual(response.status_code, 200)
 
         response = self.client.get(reverse("api-get-request", args=(uuid,)))

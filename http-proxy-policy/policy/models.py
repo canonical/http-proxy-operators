@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 import collections
+import copy
 import enum
 import ipaddress
 import itertools
@@ -52,6 +53,10 @@ class RangeSet:
         self._ranges = self._merge(ranges)
 
     def _merge(self, ranges: list[tuple[int, int]]) -> list[tuple[int, int]]:
+        """Merge all overlapping intervals.
+
+        Return an array of the non-overlapping intervals that cover all the intervals in the input.
+        """
         ranges = sorted(r for r in ranges if r[0] < r[1])
         merged = []
         for segment in ranges:
@@ -97,9 +102,13 @@ class RangeSet:
 
 class IpSet:
     def __init__(self, ips: list[str]):
-        self.source = ips
+        self._source = ips
         self._ipv6 = None
         self._ipv4 = None
+
+    @property
+    def source(self) -> list[str]:
+        return copy.copy(self._source)
 
     @property
     def ipv6(self) -> RangeSet:
@@ -133,7 +142,7 @@ class IpSet:
     def __add__(self, other: "IpSet") -> "IpSet":
         """Add combine two IP sets to a new IP set."""
         ipset = IpSet([])
-        ipset.source = self.source + other.source
+        ipset._source = self._source + other._source
         ipset._ipv4 = self.ipv4 + other.ipv4
         ipset._ipv6 = self.ipv6 + other.ipv6
         return ipset

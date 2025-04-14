@@ -68,30 +68,13 @@ class RefreshRequestsView(APIView):
         return JsonResponse([r.to_jsonable() for r in new_requests.values()], safe=False)
 
 
-class AcceptRequestsView(APIView):
-    """View for accepting proxy requests."""
 
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request, pk):
-        try:
-            proxy_request = models.Request.objects.get(pk=pk)
-        except models.Request.DoesNotExist:
-            return HttpResponseNotFound()
-        with transaction.atomic():
-            models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
-            engine.make_rule(
-                request=proxy_request, verdict=models.Verdict.ACCEPT
-            ).save()
-        return HttpResponse()
-
-
-class RejectRequestsView(APIView):
+class RequestActionView(APIView):
     """View for rejecting proxy requests."""
 
     permission_classes = [permissions.IsAuthenticated]
 
-    def post(self, request, pk):
+    def post(self, request, pk, action):
         try:
             proxy_request = models.Request.objects.get(pk=pk)
         except models.Request.DoesNotExist:
@@ -99,7 +82,7 @@ class RejectRequestsView(APIView):
         with transaction.atomic():
             models.Rule.objects.filter(requirer=proxy_request.requirer).delete()
             engine.make_rule(
-                request=proxy_request, verdict=models.Verdict.REJECT
+                request=proxy_request, verdict=action
             ).save()
         return HttpResponse()
 
