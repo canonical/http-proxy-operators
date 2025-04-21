@@ -10,6 +10,7 @@ jobs:
     with:
       self-hosted-runner: false
       working-directory: ./squid-forward-proxy-operator
+
   integration-tests:
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
@@ -18,6 +19,7 @@ jobs:
       provider: lxd
       working-directory: ./squid-forward-proxy-operator
       identifier: squid-forward-proxy
+
   http-proxy-policy:
     runs-on: ubuntu-latest
     steps:
@@ -29,3 +31,9 @@ jobs:
         run: |
           pip install -r requirements.txt
           python3 ./manage.py test --settings=http_proxy_policy.test_settings
+
+  build-snap:
+    name: Build snap
+    uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v31.0.1
+    with:
+      path-to-snap-project-directory: ./http-proxy-policy
