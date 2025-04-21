@@ -9,9 +9,9 @@ summary: HTTP proxy policy app
 description: |
   This snap bundles the HTTP proxy policy django application to be included in the http-proxy-policy-operator.
 confinement: strict
-
-architectures:
-  - build-on: [ amd64 ]
+platforms:
+  amd64:
+    build-on: [ amd64 ]
     build-for: [ amd64 ]
 
 system-usernames:

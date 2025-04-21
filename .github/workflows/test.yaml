@@ -33,7 +33,11 @@ jobs:
           python3 ./manage.py test --settings=http_proxy_policy.test_settings
 
   build-snap:
-    name: Build snap
-    uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v31.0.1
-    with:
-      path-to-snap-project-directory: ./http-proxy-policy
+    name: Build Snap
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Build Snap
+        id: snapcraft-build
+        uses: snapcore/action-build@v1

@@ -7,29 +7,27 @@ on:
       - main
 
 jobs:
-  publish-to-edge:
+  publish-charm:
     uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
     secrets: inherit
     with:
       channel: latest/edge
       identifier: squid-forward-proxy
 
-  build-snap:
-    name: Build snap
-    uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v31.0.1
-    with:
-      path-to-snap-project-directory: ./http-proxy-policy
+  publish-snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
 
-  release-snap:
-    name: Release snap
-    needs:
-      - build
-    uses: canonical/data-platform-workflows/.github/workflows/release_snap.yaml@v31.0.1
-    with:
-      path-to-snap-project-directory: ./http-proxy-policy
-      channel: latest/edge
-      artifact-prefix: ${{ needs.build-snap.outputs.artifact-prefix }}
-    secrets:
-      snap-store-token: ${{ secrets.SNAP_STORE_TOKEN }}
-    permissions:
-      contents: write  # Needed to create git tags
+      - name: Build Snap
+        id: snapcraft-build
+        uses: snapcore/action-build@v1
+
+      - name: Publish Snap
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          for snap in *.snap
+          do
+            snapcraft upload $snap --release edge
+          done
