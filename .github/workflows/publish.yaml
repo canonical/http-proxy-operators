@@ -1,0 +1,35 @@
+name: Publish to edge
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-to-edge:
+    uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
+    secrets: inherit
+    with:
+      channel: latest/edge
+      identifier: squid-forward-proxy
+
+  build-snap:
+    name: Build snap
+    uses: canonical/data-platform-workflows/.github/workflows/build_snap.yaml@v31.0.1
+    with:
+      path-to-snap-project-directory: ./http-proxy-policy
+
+  release-snap:
+    name: Release snap
+    needs:
+      - build
+    uses: canonical/data-platform-workflows/.github/workflows/release_snap.yaml@v31.0.1
+    with:
+      path-to-snap-project-directory: ./http-proxy-policy
+      channel: latest/edge
+      artifact-prefix: ${{ needs.build-snap.outputs.artifact-prefix }}
+    secrets:
+      snap-store-token: ${{ secrets.SNAP_STORE_TOKEN }}
+    permissions:
+      contents: write  # Needed to create git tags
