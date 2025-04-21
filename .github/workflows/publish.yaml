@@ -19,6 +19,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - name: Change directory
+        run: |
+          TEMP_DIR=$(mktemp -d)
+          cp -rp ./http-proxy-policy/. $TEMP_DIR
+          rm -rf .* * || :
+          cp -rp $TEMP_DIR/. .
+          rm -rf $TEMP_DIR
+          ls -lah
+
       - name: Build Snap
         id: snapcraft-build
         uses: snapcore/action-build@v1
