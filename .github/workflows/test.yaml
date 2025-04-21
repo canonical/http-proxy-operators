@@ -5,6 +5,7 @@ on:
 
 jobs:
   unit-tests:
+    name: Charm Unit Tests
     uses: canonical/operator-workflows/.github/workflows/test.yaml@fix-inclusive-naming
     secrets: inherit
     with:
@@ -12,6 +13,7 @@ jobs:
       working-directory: ./squid-forward-proxy-operator
 
   integration-tests:
+    name: Charm Integration Tests
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
@@ -21,6 +23,7 @@ jobs:
       identifier: squid-forward-proxy
 
   http-proxy-policy:
+    name: HTTP Proxy Policy Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4.2.2
