@@ -4,4 +4,4 @@
 # See LICENSE file for licensing details.
 
 set -xe
-exec "$SNAP/usr/bin/setpriv" --clear-groups --reuid snap_daemon --regid snap_daemon -- "$SNAP/usr/sbin/nginx" "-c" "$SNAP/nginx/nginx.conf" "-s" "reload"
+exec "$SNAP/usr/bin/setpriv" --clear-groups --reuid _daemon_ --regid _daemon_ -- "$SNAP/usr/sbin/nginx" "-c" "$SNAP/nginx/nginx.conf" "-s" "reload"

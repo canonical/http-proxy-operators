@@ -14,4 +14,4 @@ export DJANGO_DATABASE_PORT="$(snapctl get database-port)"
 export DJANGO_DATABASE_USER="$(snapctl get database-user)"
 export DJANGO_DATABASE_NAME="$(snapctl get database-name)"
 
-exec "$SNAP/usr/bin/setpriv" --clear-groups --reuid snap_daemon --regid snap_daemon -- $SNAP/app/venv/bin/python3 $SNAP/app/manage.py "$@"
+exec "$SNAP/usr/bin/setpriv" --clear-groups --reuid _daemon_ --regid _daemon_ -- $SNAP/app/venv/bin/python3 $SNAP/app/manage.py "$@"
