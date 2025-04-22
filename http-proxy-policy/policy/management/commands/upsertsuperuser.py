@@ -1,3 +1,6 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
 import os
 
 from django.core.management.base import BaseCommand, CommandError
