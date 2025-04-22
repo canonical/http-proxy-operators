@@ -13,6 +13,7 @@ jobs:
     with:
       channel: latest/edge
       identifier: squid-forward-proxy
+      working-directory: ./squid-forward-proxy-operator
 
   publish-snap:
     runs-on: ubuntu-latest
