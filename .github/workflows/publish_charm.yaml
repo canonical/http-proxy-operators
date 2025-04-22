@@ -16,3 +16,4 @@ jobs:
     with:
       channel: latest/edge
       identifier: ${{ matrix.charm }}
+      working-directory: './${{ matrix.charm }}-operator'

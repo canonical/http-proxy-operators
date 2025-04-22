@@ -3,9 +3,9 @@
 
 """HTTP proxy policy library."""
 
+import os
 import pathlib
 import subprocess  # nosec
-import textwrap
 import uuid
 from typing import Optional
 
@@ -86,34 +86,21 @@ def create_or_update_user(username: str, password: str) -> None:
     Raises:
         RuntimeError: If the action failed.
     """
-    script = textwrap.dedent(
-        f"""\
-        from django.contrib.auth import get_user_model
-        User = get_user_model()
-        username, password = {repr(username)}, {repr(password)}
-        user, created = User.objects.get_or_create(username=username)
-        if created:
-            user.set_password(password)
-            user.save()
-        elif not user.check_password(password):
-            user.set_password(password)
-            user.save()
-        user.is_staff = True
-        user.is_superuser = True
-        user.save()
-        """
-    )
     try:
         subprocess.run(  # nosec
-            ["charmed-http-proxy-policy.manage", "shell"],
+            ["charmed-http-proxy-policy.manage", "upsertsuperuser"],
+            env={
+                **os.environ,
+                "DJANGO_SUPERUSER_PASSWORD": password,
+                "DJANGO_SUPERUSER_USERNAME": username,
+            },
             check=True,
-            input=script,
             encoding="utf-8",
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
     except subprocess.CalledProcessError as e:
-        raise RuntimeError(f"failed to update Django user: {e.stdout}") from e
+        raise RuntimeError(f"failed to create/update Django user: {e.stdout}") from e
 
 
 class EvaluatedHttpProxyRequest(http_proxy.HttpProxyRequest):
@@ -126,6 +113,33 @@ class EvaluatedHttpProxyRequest(http_proxy.HttpProxyRequest):
 
     status: str
     accepted_auth: Optional[str]
+
+
+class HttpProxyPolicyAPIError(Exception):
+    """HTTP proxy policy API error.
+
+    Attributes:
+        status: HTTP status code
+        message: error message
+    """
+
+    def __init__(self, status: int, message: str) -> None:
+        """Initialize HttpProxyPolicyAPIError.
+
+        Args:
+            status: HTTP status code
+            message: error message
+        """
+        self.status = status
+        self.message = message
+
+    def __repr__(self) -> str:
+        """Convert the object into string representation.
+
+        Returns:
+            string representation of the object.
+        """
+        return f"HttpProxyPolicyAPIError(status={self.status}, message={repr(self.message)})"
 
 
 class HttpProxyPolicyClient:
@@ -172,7 +186,7 @@ class HttpProxyPolicyClient:
             auth=self._auth,
             timeout=10,
         )
-        response.raise_for_status()
+        self._raise_for_error(response)
         result = []
         for request in response.json():
             request["group"] = input_requests[request["requirer"]].group
@@ -221,7 +235,7 @@ class HttpProxyPolicyClient:
             json=rule,
             timeout=10,
         )
-        response.raise_for_status()
+        self._raise_for_error(response)
 
     def get_rule(self, rule_id: int) -> dict | None:
         """Get a HTTP proxy policy rule.
@@ -239,7 +253,7 @@ class HttpProxyPolicyClient:
         )
         if response.status_code == 404:
             return None
-        response.raise_for_status()
+        self._raise_for_error(response)
         return response.json()
 
     def list_rules(self) -> list[dict]:
@@ -253,7 +267,7 @@ class HttpProxyPolicyClient:
             auth=self._auth,
             timeout=10,
         )
-        response.raise_for_status()
+        self._raise_for_error(response)
         return response.json()
 
     def delete_rule(self, rule_id: int) -> None:
@@ -267,4 +281,20 @@ class HttpProxyPolicyClient:
             auth=self._auth,
             timeout=10,
         )
-        response.raise_for_status()
+        self._raise_for_error(response)
+
+    def _raise_for_error(self, response: requests.Response) -> None:
+        """Raise for API error.
+
+        Args:
+            response: API response.
+
+        Raises:
+            HttpProxyPolicyAPIError: if an API error occurs.
+        """
+        try:
+            response.raise_for_status()
+        except requests.exceptions.HTTPError as e:
+            raise HttpProxyPolicyAPIError(
+                status=response.status_code, message=response.text
+            ) from e

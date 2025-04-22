@@ -23,11 +23,13 @@ async def http_proxy_policy_fixture(
     """Build and deploy the charm in the testing model."""
     charms = pytestconfig.getoption("--charm-file")
     if not charms:
-        charm = await ops_test.build_charm(".")
+        charm_path = await ops_test.build_charm(".")
     else:
-        charm = [c for c in charms if c.endswith("http-proxy-policy_ubuntu@22.04-amd64.charm")][0]
+        charm_path = [
+            c for c in charms if c.endswith("http-proxy-policy_ubuntu@22.04-amd64.charm")
+        ][0]
     assert ops_test.model
-    charm = await ops_test.model.deploy(os.path.abspath(charm), num_units=0)
+    charm = await ops_test.model.deploy(os.path.abspath(charm_path), num_units=0)
     base_charm = await ops_test.model.deploy(
         "any-charm",
         application_name="proxy-provider",

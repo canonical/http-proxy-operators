@@ -4,7 +4,7 @@
 
 ## Overview
 
-This document explains the processes and practices recommended for contributing enhancements to the <charm-name> charm.
+This document explains the processes and practices recommended for contributing enhancements to the http-proxy-policy charm.
 
 - Generally, before developing enhancements to this charm, you should consider [opening an issue
   ](link to issues page) explaining your use case.
@@ -28,12 +28,13 @@ To make contributions to this charm, you'll need a working [development setup](h
 The code for this charm can be downloaded as follows:
 
 ```
-git clone https://github.com/canonical/<charm-name>
+git clone https://github.com/canonical/http-proxy-operators
 ```
 
 You can use the environments created by `tox` for development:
 
 ```shell
+cd http-proxy-policy-operator
 tox --notest -e unit
 source .tox/unit/bin/activate
 ```
@@ -102,9 +103,9 @@ juju add-model charm-dev
 # Enable DEBUG logging
 juju model-config logging-config="<root>=INFO;unit=DEBUG"
 # Deploy the charm (assuming you're on amd64)
-juju deploy ./<charm-name>.charm 
+juju deploy ./http-proxy-policy_amd64.charm 
 ```
 
 ## Canonical Contributor Agreement
 
-Canonical welcomes contributions to the <charm-name> charm. Please check out our [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
+Canonical welcomes contributions to the http-proxy-policy charm. Please check out our [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
