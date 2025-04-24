@@ -53,3 +53,8 @@ jobs:
       - name: Build Snap
         id: snapcraft-build
         uses: snapcore/action-build@v1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charmed-http-proxy-policy-snap
+          path: "*.snap"
