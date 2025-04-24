@@ -17,6 +17,7 @@ jobs:
       channel: latest/edge
       identifier: ${{ matrix.charm }}
       working-directory: './${{ matrix.charm }}-operator'
+      integration-test-workflow-file: test.yaml
 
   publish-snap:
     runs-on: ubuntu-latest

@@ -4,7 +4,6 @@
 """HTTP proxy policy library."""
 
 import os
-import pathlib
 import subprocess  # nosec
 import uuid
 from typing import Optional
@@ -16,14 +15,15 @@ import http_proxy
 import timer
 
 
-def install_snap() -> None:
-    """Install the charmed-http-proxy-policy charm."""
-    snap.install_local(
-        filename=str(
-            pathlib.Path(__file__).resolve().parent / "charmed-http-proxy-policy_0.1_amd64.snap"
-        ),
-        dangerous=True,
-    )
+def install_snap(channel: str = "latest/stable") -> None:
+    """Install the charmed-http-proxy-policy charm.
+
+    Args:
+        channel: The snap channel.
+    """
+    snap_cache = snap.SnapCache()
+    snap_package = snap_cache["charmed-http-proxy-policy"]
+    snap_package.ensure(snap.SnapState.Latest, channel=channel)
 
 
 def uninstall_snap() -> None:
