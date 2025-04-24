@@ -23,6 +23,7 @@ header:
     - 'trivy.yaml'
     - 'pyproject.toml'
     - 'zap_rules.tsv'
+    - 'http-proxy-policy-operator/lib/**'
     - 'squid-forward-proxy-operator/lib/**'
     - 'http-proxy-policy/policy/migrations/**'
     - 'http-proxy-policy/templates/**'

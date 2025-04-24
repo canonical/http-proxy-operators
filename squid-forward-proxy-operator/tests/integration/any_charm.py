@@ -74,6 +74,19 @@ class AnyCharm(AnyCharmBase):
         except requests.exceptions.ProxyError as e:
             return int(re.findall("Tunnel connection failed: (\\d+)", str(e))[0])
 
+    def get_proxy_status(self) -> str | None:
+        """Get HTTP proxy status returned from the HTTP proxy provider.
+
+        Returns:
+            HTTP proxy status returned from the HTTP proxy provider.
+        """
+        integration = self.model.get_relation("require-http-proxy")
+        responses = self._proxy_requirer.open_response_list(integration.id)
+        response = responses.get(self._requirer_id)
+        if not response:
+            return None
+        return response.status
+
     def get_proxies(self) -> dict | None:
         """Get HTTP proxy returned from the HTTP proxy provider.
 
