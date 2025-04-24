@@ -53,6 +53,7 @@ class SquidProxyCharm(ops.CharmBase):
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_joined, self._reconcile)
         self.framework.observe(self.on.secret_changed, self._reconcile)
         self.framework.observe(self.on.update_status, self._reconcile)
+        self.unit.open_port("tcp", 3128)
 
     def _install(self, _: ops.EventBase) -> None:
         """Install Squid."""

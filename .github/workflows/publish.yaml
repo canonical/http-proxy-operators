@@ -1,0 +1,48 @@
+name: Publish to edge
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish-charm:
+    uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
+    secrets: inherit
+    with:
+      channel: latest/edge
+      identifier: squid-forward-proxy
+      working-directory: ./squid-forward-proxy-operator
+
+  publish-snap:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Change directory
+        run: |
+          TEMP_DIR=$(mktemp -d)
+          cp -rp ./http-proxy-policy/. $TEMP_DIR
+          rm -rf .* * || :
+          cp -rp $TEMP_DIR/. .
+          rm -rf $TEMP_DIR
+          ls -lah
+
+      - name: Build Snap
+        id: snapcraft-build
+        uses: snapcore/action-build@v1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charmed-http-proxy-policy-snap
+          path: "*.snap"
+
+      - name: Publish Snap
+        env:
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+        run: |
+          for snap in *.snap
+          do
+            snapcraft upload $snap --release edge
+          done

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+set -xe
+
+mkdir -p /tmp/nginx/body /tmp/nginx/proxy /tmp/nginx/fastcgi /tmp/nginx/uwsgi /tmp/nginx/scgi
+chown _daemon_:_daemon_ /tmp/nginx/body /tmp/nginx/proxy /tmp/nginx/fastcgi /tmp/nginx/uwsgi /tmp/nginx/scgi
+cd $SNAP
+exec "$SNAP/usr/bin/setpriv" --clear-groups --reuid _daemon_ --regid _daemon_ -- "$SNAP/usr/sbin/nginx" "-c" "$SNAP/nginx/nginx.conf"
