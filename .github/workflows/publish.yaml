@@ -7,13 +7,16 @@ on:
       - main
 
 jobs:
-  publish-charm:
+  publish-charms:
+    strategy:
+      matrix:
+        charm: [ squid-forward-proxy, http-proxy-policy ]
     uses: canonical/operator-workflows/.github/workflows/publish_charm.yaml@main
     secrets: inherit
     with:
       channel: latest/edge
-      identifier: squid-forward-proxy
-      working-directory: ./squid-forward-proxy-operator
+      identifier: ${{ matrix.charm }}
+      working-directory: './${{ matrix.charm }}-operator'
 
   publish-snap:
     runs-on: ubuntu-latest
