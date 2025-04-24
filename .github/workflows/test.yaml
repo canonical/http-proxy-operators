@@ -5,6 +5,7 @@ on:
 
 jobs:
   unit-tests:
+    name: Charm Unit Tests
     strategy:
       matrix:
         charm: [squid-forward-proxy, http-proxy-policy]
@@ -14,6 +15,7 @@ jobs:
       self-hosted-runner: false
       working-directory: ./${{ matrix.charm }}-operator
   integration-tests:
+    name: Charm Integration Tests
     strategy:
       matrix:
         charm: [ squid-forward-proxy, http-proxy-policy ]
@@ -24,3 +26,40 @@ jobs:
       provider: lxd
       working-directory: ./${{ matrix.charm }}-operator
       identifier: ${{ matrix.charm }}
+
+  http-proxy-policy:
+    name: HTTP Proxy Policy Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4.2.2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - working-directory: ./http-proxy-policy
+        run: |
+          pip install -r requirements.txt
+          python3 ./manage.py test --settings=http_proxy_policy.test_settings
+
+  build-snap:
+    name: Build Snap
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Change directory
+        run: |
+          TEMP_DIR=$(mktemp -d)
+          cp -rp ./http-proxy-policy/. $TEMP_DIR
+          rm -rf .* * || :
+          cp -rp $TEMP_DIR/. .
+          rm -rf $TEMP_DIR
+          ls -lah
+
+      - name: Build Snap
+        id: snapcraft-build
+        uses: snapcore/action-build@v1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: charmed-http-proxy-policy-snap
+          path: "*.snap"
