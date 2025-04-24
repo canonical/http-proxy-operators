@@ -1,6 +1,3 @@
-# Copyright 2025 Canonical Ltd.
-# See LICENSE file for licensing details.
-
 import os
 
 from django.core.management.base import BaseCommand, CommandError
@@ -23,9 +20,7 @@ class Command(BaseCommand):
             raise CommandError("environment variable DJANGO_SUPERUSER_PASSWORD not set")
         email = os.environ.get("DJANGO_SUPERUSER_EMAIL", "")
         user, created = User.objects.get_or_create(username=username)
-        if created:
-            user.set_password(password)
-        elif not user.check_password(password):
+        if created or not user.check_password(password):
             user.set_password(password)
         user.is_staff = True
         user.is_superuser = True
