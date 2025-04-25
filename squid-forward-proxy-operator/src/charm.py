@@ -53,7 +53,6 @@ class SquidProxyCharm(ops.CharmBase):
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_joined, self._reconcile)
         self.framework.observe(self.on.secret_changed, self._reconcile)
         self.framework.observe(self.on.update_status, self._reconcile)
-        self.unit.open_port("tcp", 3128)
 
     def _install(self, _: ops.EventBase) -> None:
         """Install Squid."""
@@ -63,6 +62,7 @@ class SquidProxyCharm(ops.CharmBase):
 
     def _reconcile(self, _: ops.EventBase) -> None:
         """Run the main reconciliation loop."""
+        self.unit.set_ports(ops.Port(protocol="tcp", port=self._get_http_port()))
         peer_integration = self.model.get_relation(relation_name=PEER_INTEGRATION_NAME)
         if not peer_integration:
             self.unit.status = ops.WaitingStatus("waiting for peer integration")

@@ -202,7 +202,7 @@ class RequestAdmin(admin.ModelAdmin):
         return redirect(request.META.get("HTTP_REFERER", "/"))
 
     def accept_proxy_request(self, request, pk):
-        self.process_proxy_request(request, pk, models.Verdict.ACCEPT)
+        return self.process_proxy_request(request, pk, models.Verdict.ACCEPT)
 
     def reject_proxy_request(self, request, pk):
-        self.process_proxy_request(request, pk, models.Verdict.REJECT)
+        return self.process_proxy_request(request, pk, models.Verdict.REJECT)
