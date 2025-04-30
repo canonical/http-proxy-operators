@@ -11,6 +11,7 @@ import secrets
 import typing
 
 import ops
+from charms.grafana_agent.v0 import cos_agent
 
 import http_proxy
 import squid
@@ -33,6 +34,13 @@ class SquidProxyCharm(ops.CharmBase):
         super().__init__(*args)
         self._proxy_provider = http_proxy.HttpProxyPolyProvider(
             charm=self, integration_name=HTTP_PROXY_INTEGRATION_NAME
+        )
+        self._grafana_agent = cos_agent.COSAgentProvider(
+            self,
+            metrics_endpoints=[
+                {"path": "/metrics", "port": 9301},
+            ],
+            dashboard_dirs=["./src/grafana_dashboards"],
         )
         self.framework.observe(self.on.install, self._install)
         self.framework.observe(self.on.upgrade_charm, self._install)

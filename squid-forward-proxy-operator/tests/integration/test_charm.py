@@ -133,3 +133,16 @@ async def test_proxy_auth(ops_test, any_charm_a, any_charm_b, any_charm_c, any_c
     assert await any_charm_b.test_proxy("https://example.org") != 200
     assert await any_charm_c.test_proxy("https://example.org") != 200
     assert await any_charm_d.test_proxy("https://example.org") == 200
+
+
+async def test_prometheus_exporter(ops_test, squid_proxy):
+    """
+    arrange: deploy the Squid proxy charm
+    act: get prometheus-squid-exporter metrics endpoint
+    assert: metrics endpoint returns squid metrics
+    """
+    for unit in squid_proxy.units:
+        _, stdout, _ = await ops_test.juju(
+            "ssh", unit.name, "curl", "-m", "10", "http://localhost:9301/metrics"
+        )
+        assert "squid_server_http_requests_total" in stdout

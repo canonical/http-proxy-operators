@@ -35,6 +35,8 @@ config:
 provides:
   http-proxy:
     interface: http_proxy
+  cos-agent:
+    interface: cos_agent
 
 peers:
   squid-peer:
