@@ -1,53 +1,103 @@
-<!--
-Avoid using this README file for information that is maintained or published elsewhere, e.g.:
+# HTTP proxy policy charm 
 
-* metadata.yaml > published on Charmhub
-* documentation > published on (or linked to from) Charmhub
-* detailed contribution guide > documentation or CONTRIBUTING.md
+[![CharmHub Badge](https://charmhub.io/http-proxy-policy/badge.svg)](https://charmhub.io/http-proxy-policy)
+[![Publish to edge](https://github.com/canonical/http-proxy-operators/actions/workflows/publish.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/publish.yaml/badge.svg)
+[![Promote charm](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml)
+[![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-Use links instead.
--->
+The HTTP proxy policy is a charm in the family of policy charms, used to filter
+relations that request resources. In the case of the HTTP proxy policy charm, 
+it receives `http-proxy` relations, filters them based on rules set by the 
+administrator, combines the requests, and forwards them to the backend. The 
+charm provides a web interface built using the Django framework, which system
+administrators can use to approve or reject HTTP proxy requests and modify the
+filtering rules as mentioned before.
 
-# is-charms-template
-<!-- Use this space for badges -->
+Like any Juju charm, this charm supports one-line deployment, configuration, 
+integration, scaling, and more. For the Charmed HTTP proxy policy, this 
+includes:
 
-Describe your charm in 1-2 sentences. Include the software that the charm deploys (if applicable), and the substrate (VM/K8s).
+* Automatically deploying and setting up the HTTP proxy policy server
+* Initial user management for the HTTP proxy policy web portal
 
-Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed {Name}, this includes:
-* list or summary of app-specific features
-
-For information about how to deploy, integrate, and manage this charm, see the Official [is-charms-template Documentation](external link).
+For information on how to deploy, integrate, and manage this charm, see 
+the official [HTTP proxy policy charm documentation](https://charmhub.io/http-proxy-policy).
 
 ## Get started
-<!--Briefly summarize what the user will achieve in this guide.-->
 
-<!--Indicate software and hardware prerequisites-->
+In this section, we will deploy the HTTP proxy policy charm and explore its web
+interface.
 
-### (Optional) Set up
-<!--Steps for setting up the environment (e.g. via Multipass).-->
+You’ll need a workstation, such as a laptop, with sufficient resources to launch
+a virtual machine with 4 CPUs, 8 GB RAM, and 50 GB of disk space.
 
-### (Optional) Deploy
-<!--Steps for deploying the charm.-->
+### Set up
+
+You can follow the tutorial [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up)
+to set up a test environment for Juju with LXD.
+
+### Deploy
+
+As the HTTP proxy policy charm is a subordinate charm, we will start by 
+deploying the Squid forward proxy charm inside the virtual machine using the
+`juju deploy` command. This serves as the base for the HTTP proxy policy charm.
+
+```
+juju deploy squid-forward-proxy --channel latest/edge
+```
+
+Then deploy the HTTP proxy policy charm on top of the Squid forward proxy charm.
+This is a two-step process: first, deploy the HTTP proxy policy charm using the
+`juju deploy` command, then use the `juju integrate` command to create a 
+subordinate-to-primary relation.
+
+```
+juju deploy http-proxy-policy --channel latest/edge
+juju integrate http-proxy-policy:juju-info squid-forward-proxy
+juju integrate http-proxy-policy:http-proxy-backend squid-forward-proxy
+```
+
+Next, deploy the PostgreSQL charm and integrate it with the HTTP proxy policy
+charm.
+
+```
+juju deploy postgresql
+juju integrate http-proxy-policy postgresql
+```
 
 ### Basic operations
-<!--Brief walkthrough of performing standard configurations or operations-->
 
-<!--(Optional) Link to the `charmcraft.yaml` file-->
+Run the `create-superuser` action on the leader unit of the HTTP proxy policy
+charm to create a superuser in the system.
 
-## (Optional) Integrations
-<!-- Information about particularly relevant interfaces, endpoints or libraries related to the charm. For example, peer relation endpoints required by other charms for integration.--> 
+```
+juju run http-proxy-policy/leader create-superuser username=testing email=testing@example.com
+```
+
+Then you can log in to the HTTP proxy policy web interface using the credentials
+created in the previous step at `http://<http-proxy-policy-unit-ip>:8080`.
+
+## Integrations
+
+The main functional relations of the HTTP proxy policy charm are the 
+`http-proxy` relation and the `http-proxy-backend` relation.
+
+The `http-proxy` relation is used to collect HTTP proxy requests from all proxy
+requirer applications. You can safely expose this relation via a public Juju 
+offer, as the HTTP proxy requests received by the HTTP proxy policy charm will
+not be fulfilled until they are approved, either manually or automatically.
+
+The `http-proxy-backend` relation is used by the HTTP proxy policy charm to 
+send approved HTTP proxy requests to a charm that actually runs the HTTP 
+proxy server, for example, the Squid forward proxy charm, to actually fulfill
+the requests.
 
 ## Learn more
-* [Read more]() <!--Link to the charm's official documentation-->
-* [Developer documentation]() <!--Link to any developer documentation-->
-* [Official webpage]() <!--(Optional) Link to official webpage/blog/marketing content--> 
-* [Troubleshooting]() <!--(Optional) Link to a page or section about troubleshooting/FAQ-->
+* [Read more](https://charmhub.io/http-proxy-policy)
+* [Developer documentation]()
+* [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 
 ## Project and community
-* [Issues]() <!--Link to GitHub issues (if applicable)-->
-* [Contributing]() <!--Link to any contribution guides--> 
-* [Matrix]() <!--Link to contact info (if applicable), e.g. Matrix channel-->
-* [Launchpad]() <!--Link to Launchpad (if applicable)-->
-
-## (Optional) Licensing and trademark
-
+* [Issues](https://github.com/canonical/http-proxy-operators/issues)
+* [Contributing](./CONTRIBUTING.md)
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
