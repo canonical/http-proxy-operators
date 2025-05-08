@@ -5,7 +5,7 @@
 [![Promote charm](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml)
 [![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-The HTTP proxy policy is a charm in the family of policy charms, used to filter
+The HTTP proxy policy is a charm in the family of policy charms used to filter
 relations that request resources. In the case of the HTTP proxy policy charm, 
 it receives `http-proxy` relations, filters them based on rules set by the 
 administrator, combines the requests, and forwards them to the backend. The 
@@ -33,7 +33,7 @@ a virtual machine with 4 CPUs, 8 GB RAM, and 50 GB of disk space.
 
 ### Set up
 
-You can follow the tutorial [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up)
+You can follow the how-to guide [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up)
 to set up a test environment for Juju with LXD.
 
 ### Deploy
