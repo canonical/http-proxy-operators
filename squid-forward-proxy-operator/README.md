@@ -41,7 +41,7 @@ juju deploy squid-forward-proxy --channel latest/edge
 ### Basic operations
 
 When the Squid forward proxy charm has finished deploying and installing, it 
-should show the message `ready: 0`.
+should show the message `ready: 0` in the output of `juju status`.
 
 Now we can use the Squid forward proxy charm as an HTTP proxy server. As we 
 haven't obtained access to the HTTP proxy via a Juju relation, the proxy request
