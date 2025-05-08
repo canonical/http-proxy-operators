@@ -6,7 +6,7 @@ charm.
 ## Get started
 
 ### Install the snap
-The snap can be installed directly from the snap store.  
+The snap can be installed directly from the Snap Store.  
 [![Get it from the snap store](https://snapcraft.io/static/images/badges/en/snap-store-black.svg)](https://snapcraft.io/charmed-http-proxy-policy)
 
 
