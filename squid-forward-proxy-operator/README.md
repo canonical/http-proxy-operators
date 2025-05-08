@@ -5,13 +5,13 @@
 [![Promote charm](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml)
 [![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-Squid forward proxy charm is a charm running Squid proxy for its forward HTTP 
+Squid forward proxy charm is a charm running Squid proxy for its HTTP forward 
 proxy functionality.
 
 Like any Juju charm, this charm supports one-line deployment, configuration, 
 integration, scaling, and more. For Charmed Squid forward proxy, this includes:
 
-* Automatically installing and setting up Squid as a forward HTTP proxy
+* Automatically installing and setting up Squid as a HTTP forward proxy
 * HTTP proxy access control via Juju relations
 
 For information about how to deploy, integrate, and manage this charm, see the
