@@ -1,53 +1,71 @@
-<!--
-Avoid using this README file for information that is maintained or published elsewhere, e.g.:
+# Squid forward proxy charm
 
-* metadata.yaml > published on Charmhub
-* documentation > published on (or linked to from) Charmhub
-* detailed contribution guide > documentation or CONTRIBUTING.md
+[![CharmHub Badge](https://charmhub.io/squid-forward-policy/badge.svg)](https://charmhub.io/squid-forward-policy)
+[![Publish to edge](https://github.com/canonical/http-proxy-operators/actions/workflows/publish.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/publish.yaml/badge.svg)
+[![Promote charm](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml)
+[![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
 
-Use links instead.
--->
+Squid forward proxy charm is a charm running Squid proxy for its HTTP forward 
+proxy functionality.
 
-# is-charms-template
-<!-- Use this space for badges -->
+Like any Juju charm, this charm supports one-line deployment, configuration, 
+integration, scaling, and more. For Charmed Squid forward proxy, this includes:
 
-Describe your charm in 1-2 sentences. Include the software that the charm deploys (if applicable), and the substrate (VM/K8s).
+* Automatically installing and setting up Squid as a HTTP forward proxy
+* HTTP proxy access control via Juju relations
 
-Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed {Name}, this includes:
-* list or summary of app-specific features
-
-For information about how to deploy, integrate, and manage this charm, see the Official [is-charms-template Documentation](external link).
+For information about how to deploy, integrate, and manage this charm, see the
+official [Squid forward proxy charm documentation](https://charmhub.io/squid-forward-proxy).
 
 ## Get started
-<!--Briefly summarize what the user will achieve in this guide.-->
 
-<!--Indicate software and hardware prerequisites-->
+In this section, we will deploy the Squid forward proxy charm and use it as an
+HTTP proxy server.
 
-### (Optional) Set up
-<!--Steps for setting up the environment (e.g. via Multipass).-->
+You’ll need a workstation, such as a laptop, with sufficient resources to launch
+a virtual machine with 4 CPUs, 8 GB RAM, and 50 GB of disk space.
 
-### (Optional) Deploy
-<!--Steps for deploying the charm.-->
+### Set up
+
+You can follow the how-to guide [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up) to set up a test environment for Juju with LXD.
+
+### Deploy
+
+From inside the virtual machine, deploy the Squid forward proxy charm using the
+`juju deploy` command.
+
+```
+juju deploy squid-forward-proxy --channel latest/edge
+```
 
 ### Basic operations
-<!--Brief walkthrough of performing standard configurations or operations-->
 
-<!--(Optional) Link to the `charmcraft.yaml` file-->
+When the Squid forward proxy charm has finished deploying and installing, it 
+should show the message `ready: 0` in the output of `juju status`.
 
-## (Optional) Integrations
-<!-- Information about particularly relevant interfaces, endpoints or libraries related to the charm. For example, peer relation endpoints required by other charms for integration.--> 
+Now we can use the Squid forward proxy charm as an HTTP proxy server. As we 
+haven't obtained access to the HTTP proxy via a Juju relation, the proxy request
+will fail. This is expected.
+
+```
+curl -x http://<squid-forward-proxy-unit-ip>:3128 https://example.com
+```
+
+## Integrations
+
+The Squid forward proxy charm provides the `http-proxy` interface, which 
+HTTP proxy-requiring applications can use to obtain access to the HTTP proxy 
+service provided by the Squid proxy policy charm.
+
+If you want to protect and manage who can use the `http-proxy` relation, 
+consider using it in conjunction with the [HTTP proxy policy charm](https://charmhub.io/http-proxy-policy).
 
 ## Learn more
-* [Read more]() <!--Link to the charm's official documentation-->
-* [Developer documentation]() <!--Link to any developer documentation-->
-* [Official webpage]() <!--(Optional) Link to official webpage/blog/marketing content--> 
-* [Troubleshooting]() <!--(Optional) Link to a page or section about troubleshooting/FAQ-->
+* [Read more](https://charmhub.io/http-proxy-policy)
+* [Official webpage](https://www.squid-cache.org/)
+* [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
 
 ## Project and community
-* [Issues]() <!--Link to GitHub issues (if applicable)-->
-* [Contributing]() <!--Link to any contribution guides--> 
-* [Matrix]() <!--Link to contact info (if applicable), e.g. Matrix channel-->
-* [Launchpad]() <!--Link to Launchpad (if applicable)-->
-
-## (Optional) Licensing and trademark
-
+* [Issues](https://github.com/canonical/http-proxy-operators/issues)
+* [Contributing](./CONTRIBUTING.md)
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
