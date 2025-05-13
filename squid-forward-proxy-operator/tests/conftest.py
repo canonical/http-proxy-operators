@@ -23,6 +23,7 @@ def pytest_addoption(parser):
 def mock_squid_fixture():
     """Create a Squid object with necessary methods patched."""
     mock_config = ""
+    mock_exporter_config = ""
     # this is not a real password
     mock_passwd = ""  # nosec
 
@@ -42,6 +43,23 @@ def mock_squid_fixture():
         """
         nonlocal mock_config
         mock_config = content
+
+    def read_exporter_config() -> str:
+        """Read the exporter configuration file.
+
+        Returns:
+            exporter configuration file.
+        """
+        return mock_exporter_config
+
+    def write_exporter_config(content: str) -> None:
+        """Write the exporter configuration file.
+
+        Args:
+            content: content to write.
+        """
+        nonlocal mock_exporter_config
+        mock_exporter_config = content
 
     def read_passwd():
         """Read the Squid passwd file.
@@ -67,10 +85,14 @@ def mock_squid_fixture():
         patch("squid.read_config") as mock_read_config,
         patch("squid.write_passwd") as mock_write_passwd,
         patch("squid.read_passwd") as mock_read_passwd,
+        patch("squid.restart_exporter"),
+        patch("squid.write_exporter_config") as mock_write_exporter_config,
+        patch("squid.read_exporter_config") as mock_read_exporter_config,
     ):
         mock_write_config.side_effect = write_config
         mock_read_config.side_effect = read_config
         mock_write_passwd.side_effect = write_passwd
         mock_read_passwd.side_effect = read_passwd
-
+        mock_write_exporter_config.side_effect = write_exporter_config
+        mock_read_exporter_config.side_effect = read_exporter_config
         yield squid

@@ -92,7 +92,9 @@ def _crypt_verify(hashed: str, password: str) -> bool:
 
 
 _CONFIG_PATH = pathlib.Path("/etc/squid/squid.conf")
+_EXPORTER_CONFIG_PATH = pathlib.Path("/etc/default/prometheus-squid-exporter")
 _HTPASSWD_PATH = pathlib.Path("/etc/squid/passwd")
+_SQUID_LOGROTATE_CONFIG_PATH = pathlib.Path("/etc/logrotate.d/squid")
 
 
 def derive_proxy_username(spec: HttpProxySpec) -> str:
@@ -124,6 +126,7 @@ def generate_config(specs: list[HttpProxySpec], http_port: int = 3128) -> str:
         textwrap.dedent(
             f"""\
             http_port {http_port}
+            logfile_rotate 10000
 
             auth_param basic program /usr/lib/squid/basic_ncsa_auth {_HTPASSWD_PATH}
             auth_param basic credentialsttl 60 seconds
@@ -141,6 +144,10 @@ def generate_config(specs: list[HttpProxySpec], http_port: int = 3128) -> str:
         ),
         textwrap.dedent(
             """\
+            access_log /var/log/squid/access.log squid
+
+            http_access allow localhost manager
+            http_access deny manager
             http_access deny all
             """
         ),
@@ -227,7 +234,27 @@ def generate_passwd(user_passwords: dict[str, str]) -> str:
 
 def install() -> None:  # pragma: nocover
     """Install Squid and charm dependencies."""
-    apt.add_package(["squid", "libcrypt1"], update_cache=True)
+    apt.add_package(
+        ["squid", "libcrypt1", "prometheus-squid-exporter", "logrotate"], update_cache=True
+    )
+    logrotate_config = textwrap.dedent(
+        """
+        /var/log/squid/*.log {
+            daily
+            rotate 180
+            missingok
+            nocreate
+            sharedscripts
+            prerotate
+                test ! -x /usr/sbin/sarg-reports || /usr/sbin/sarg-reports daily
+            endscript
+            postrotate
+                test ! -e /run/squid.pid || test ! -x /usr/sbin/squid || /usr/sbin/squid -k rotate
+            endscript
+        }
+        """
+    )
+    _SQUID_LOGROTATE_CONFIG_PATH.write_text(logrotate_config, encoding="utf-8")
 
 
 def reload() -> None:  # pragma: nocover
@@ -237,6 +264,11 @@ def reload() -> None:  # pragma: nocover
         systemd.service_reload(service)
     else:
         systemd.service_start(service)
+
+
+def restart_exporter() -> None:
+    """Restart prometheus-squid-exporter."""
+    systemd.service_start("prometheus-squid-exporter")
 
 
 def read_passwd() -> str:  # pragma: nocover
@@ -279,6 +311,24 @@ def write_config(content: str) -> None:  # pragma: nocover
     _CONFIG_PATH.write_text(content, encoding="utf-8")
 
 
+def read_exporter_config() -> str:
+    """Read the Squid exporter configuration file.
+
+    Returns:
+        prometheus-squid-exporter configuration file.
+    """
+    return _EXPORTER_CONFIG_PATH.read_text(encoding="utf-8")
+
+
+def write_exporter_config(content: str) -> None:
+    """Write the prometheus-squid-exporter configuration file.
+
+    Args:
+        content: content to write.
+    """
+    _EXPORTER_CONFIG_PATH.write_text(content, encoding="utf-8")
+
+
 def update_config_and_passwd(
     proxy_requests: list[HttpProxySpec],
     proxy_users: dict[str, str],
@@ -305,3 +355,11 @@ def update_config_and_passwd(
         if old_passwd != new_passwd:
             write_passwd(new_passwd)
         reload()
+    exporter_config = textwrap.dedent(
+        f"""
+        ARGS="-squid-port {http_port} -listen 127.0.0.1:9301"
+        """
+    )
+    if exporter_config != read_exporter_config():
+        write_exporter_config(exporter_config)
+        restart_exporter()
