@@ -47,6 +47,7 @@ def test_squid_charm_basic(mock_squid):
     assert mock_squid.read_config() == textwrap.dedent(
         """\
         http_port 3128
+        logfile_rotate 10000
 
         auth_param basic program /usr/lib/squid/basic_ncsa_auth /etc/squid/passwd
         auth_param basic credentialsttl 60 seconds
@@ -65,6 +66,10 @@ def test_squid_charm_basic(mock_squid):
         acl rel1_00000000-0000-4000-8000-000000000000_1_user proxy_auth u1-1d7tmz9j2abdrls0
         http_access allow rel1_00000000-0000-4000-8000-000000000000_1_domain rel1_00000000-0000-4000-8000-000000000000_1_port rel1_00000000-0000-4000-8000-000000000000_1_src rel1_00000000-0000-4000-8000-000000000000_1_user
 
+        access_log /var/log/squid/access.log squid
+
+        http_access allow localhost manager
+        http_access deny manager
         http_access deny all
         """  # noqa: E501 (line too long)
     )
