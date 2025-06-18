@@ -184,7 +184,7 @@ async def any_charm_abcd_fixture(ops_test: OpsTest) -> list[AnyCharm]:
 async def any_charm_a(any_charm_abcd, squid_proxy) -> AnyCharm:
     """Set up the any-charm-a in the testing model."""
     any_charm = any_charm_abcd[0]
-    await any_charm.integrate(squid_proxy.name)
+    await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
 
 
@@ -192,7 +192,7 @@ async def any_charm_a(any_charm_abcd, squid_proxy) -> AnyCharm:
 async def any_charm_b(any_charm_abcd, squid_proxy) -> AnyCharm:
     """Set up the any-charm-b in the testing model."""
     any_charm = any_charm_abcd[1]
-    await any_charm.integrate(squid_proxy.name)
+    await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
 
 
@@ -200,7 +200,7 @@ async def any_charm_b(any_charm_abcd, squid_proxy) -> AnyCharm:
 async def any_charm_c(any_charm_abcd, squid_proxy) -> AnyCharm:
     """Set up the any-charm-c in the testing model."""
     any_charm = any_charm_abcd[2]
-    await any_charm.integrate(squid_proxy.name)
+    await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
 
 
@@ -208,5 +208,5 @@ async def any_charm_c(any_charm_abcd, squid_proxy) -> AnyCharm:
 async def any_charm_d(any_charm_abcd, squid_proxy) -> AnyCharm:
     """Set up the any-charm-d in the testing model."""
     any_charm = any_charm_abcd[3]
-    await any_charm.integrate(squid_proxy.name)
+    await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
