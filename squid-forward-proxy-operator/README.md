@@ -23,7 +23,7 @@ In this section, we will deploy the Squid forward proxy charm and use it as an
 HTTP proxy server.
 
 You’ll need a workstation, such as a laptop, with sufficient resources to launch
-a virtual machine with 4 CPUs, 8 GB RAM, and 50 GB of disk space.
+a virtual machine with 4 CPU, 8 GB RAM, and 50 GB of disk space.
 
 ### Set up
 

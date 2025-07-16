@@ -17,9 +17,9 @@ This document explains the processes and practices recommended for contributing 
   - code quality
   - test coverage
   - user experience for Juju operators of this charm.
-- Please help us out in ensuring easy to review branches by rebasing your pull request branch onto the `main` branch. This 
+- Please help us out in ensuring easy to review branches by rebase your pull request branch onto the `main` branch. This 
   also avoids merge commits and creates a linear Git commit history.
-- Please generate src documentation for every commit. See the section below for more details.
+- Please generate source documentation for every commit. See the section below for more details.
 
 ## Developing
 
@@ -60,7 +60,7 @@ that can be used for linting and formatting code when you're preparing contribut
 * `tox -e unit`: Runs the unit tests.
 * `tox -e integration`: Runs the integration tests.
 
-### Generating src docs for every commit
+### Generating source documentation for every commit
 
 Run the following command:
 
@@ -106,6 +106,6 @@ juju model-config logging-config="<root>=INFO;unit=DEBUG"
 juju deploy ./http-proxy-policy_amd64.charm 
 ```
 
-## Canonical Contributor Agreement
+## Canonical contributor agreement
 
 Canonical welcomes contributions to the http-proxy-policy charm. Please check out our [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
