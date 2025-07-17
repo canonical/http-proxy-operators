@@ -17,9 +17,8 @@ This document explains the processes and practices recommended for contributing 
   - code quality
   - test coverage
   - user experience for Juju operators of this charm.
-- Please help us out in ensuring easy to review branches by rebase your pull request branch onto the `main` branch. This 
-  also avoids merge commits and creates a linear Git commit history.
-- Please generate source documentation for every commit. See the section below for more details.
+- Once your pull request is approved, we squash and merge your pull request branch onto the 
+  `main` branch. This creates a linear Git commit history.
 
 ## Developing
 
@@ -59,15 +58,6 @@ that can be used for linting and formatting code when you're preparing contribut
 * `tox -e static`: Runs other checks such as `bandit` for security issues.
 * `tox -e unit`: Runs the unit tests.
 * `tox -e integration`: Runs the integration tests.
-
-### Generating source documentation for every commit
-
-Run the following command:
-
-```bash
-echo -e "tox -e src-docs\ngit add src-docs\n" >> .git/hooks/pre-commit
-chmod +x .git/hooks/pre-commit
-```
 
 ### Building the charm
 
