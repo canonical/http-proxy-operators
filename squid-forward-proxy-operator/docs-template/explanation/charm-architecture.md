@@ -38,18 +38,6 @@ They are published to [Charmhub](https://charmhub.io/), the official repository 
 
 > See more: [How to publish your charm on Charmhub](https://juju.is/docs/sdk/publishing)
 
-## (Optional) containers
-
-Configuration files for the containers can be found in the respective directories that define the rocks.
-
-<!--
-### Container example
-
-Description of container.
-
-The workload that this container is running is defined in the [<container-name> rock](link to rock).
--->
-
 ## Metrics
 <! --
 Add a description of the metrics:
