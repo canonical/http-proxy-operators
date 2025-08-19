@@ -31,7 +31,7 @@ jobs:
     name: HTTP Proxy Policy Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.2.2
+      - uses: actions/checkout@v5.0.0
       - uses: actions/setup-python@v5
         with:
           python-version: '3.x'
@@ -44,7 +44,7 @@ jobs:
     name: Build Snap
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Change directory
         run: |
