@@ -62,7 +62,8 @@ class AnyCharm(AnyCharmBase):
         Raises:
             RuntimeError: if the HTTP proxy provider doesn't return a HTTP proxy.
         """
-        proxies = self.get_proxies()
+        integration = self.model.get_relation("require-http-proxy")
+        proxies = self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
         if not proxies:
             raise RuntimeError("proxy not ready")
         if override_user_pass:
@@ -86,40 +87,3 @@ class AnyCharm(AnyCharmBase):
         if not response:
             return None
         return response.status
-
-    def get_proxies(self) -> dict | None:
-        """Get HTTP proxy returned from the HTTP proxy provider.
-
-        Returns:
-            HTTP proxy returned from the HTTP proxy provider.
-        """
-        integration = self.model.get_relation("require-http-proxy")
-        responses = self._proxy_requirer.open_response_list(integration.id)
-        response = responses.get(self._requirer_id)
-        if not response or response.status != http_proxy.PROXY_STATUS_READY:
-            return None
-        http_proxy_url = response.http_proxy
-        https_proxy_url = response.https_proxy
-        username = response.user.username if response.user else None
-        password = response.user.password.get_secret_value() if response.user else None
-        if username and password:
-            http_proxy_url = self._set_user(http_proxy_url, username, password)
-            https_proxy_url = self._set_user(https_proxy_url, username, password)
-        return {
-            "http": http_proxy_url,
-            "https": https_proxy_url,
-        }
-
-    def _set_user(self, url: str, username: str, password: str) -> str:
-        """Update the username and password in a proxy url.
-
-        Args:
-            url: HTTP proxy url.
-            username: HTTP proxy username.
-            password: HTTP proxy password.
-
-        Returns:
-            HTTP proxy URL with username and password updated.
-        """
-        parsed = urllib.parse.urlparse(url)
-        return f"{parsed.scheme}://{username}:{password}@{parsed.netloc}"
