@@ -39,7 +39,7 @@ class FooCharm:
     def __init__(self, *args):
         super().__init__(*args, **kwargs)
         ...
-        # This will simply initialize the requirer class and it won't perfom any action.
+        # This will simply initialize the requirer class and it won't perform any action.
         self.http_proxy_requirer = HttpProxyPolyRequirer(self)
         self._requirer_id = uuid.UUID("00000000-0000-0000-0000-000000000000") # replace me
         self.framework.observe(
@@ -105,8 +105,10 @@ class FooCharm:
         super().__init__(*args, **kwargs)
         ...
         self._http_proxy_provider = HttpProxyPolyProvider(self)
-        # This will simply initialize the requirer class and it won't perfom any action.
-        self.framework.observe(self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.provide_proxy)
+        # This will simply initialize the requirer class and it won't perform any action.
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.provide_proxy
+        )
         ...
 
     def provide_proxy(self, event: ops.EventBase) -> None:
