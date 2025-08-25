@@ -90,6 +90,6 @@ class AnyCharm(AnyCharmBase):
         try:
             integration = self.model.get_relation("require-http-proxy")
             proxies = self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
-            return {"http": proxies.http_proxy, "https": proxies.https_proxy}
+            return {"http": proxies["HTTP_PROXY"], "https": proxies["HTTPS_PROXY"]}
         except http_proxy.HTTPProxyNotAvailableError:
             return None
