@@ -50,7 +50,7 @@ async def test_proxy_src_ips(ops_test, any_charm_a, any_charm_b):
     await ops_test.model.wait_for_idle()
 
     proxies = await any_charm_a.get_proxies()
-    assert "@" not in proxies["HTTP_PROXY"]
+    assert "@" not in proxies["http"]
 
     assert await any_charm_a.test_proxy("https://example.com") == 200
     assert await any_charm_b.test_proxy("https://example.com") != 200
@@ -77,7 +77,7 @@ async def test_proxy_userpass(ops_test, any_charm_a, any_charm_b):
     await ops_test.model.wait_for_idle()
 
     proxies = await any_charm_a.get_proxies()
-    assert "@" in proxies["HTTP_PROXY"]
+    assert "@" in proxies["http"]
     requests.get("https://example.com", proxies=proxies, timeout=5).raise_for_status()
     with pytest.raises(requests.exceptions.ProxyError):
         requests.get("https://example.net", proxies=proxies, timeout=5)

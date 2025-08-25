@@ -63,7 +63,7 @@ class AnyCharm(AnyCharmBase):
         if not proxies:
             raise RuntimeError("proxy not ready")
         try:
-            logger.info("accessing %s via %s", url, proxies.get(self._requirer_id))
+            logger.info("accessing %s via %s", url, proxies)
             return requests.get(url, proxies=proxies, timeout=5).status_code
         except requests.exceptions.ProxyError as e:
             return int(re.findall("Tunnel connection failed: (\\d+)", str(e))[0])
@@ -89,6 +89,7 @@ class AnyCharm(AnyCharmBase):
         """
         try:
             integration = self.model.get_relation("require-http-proxy")
-            return self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
+            proxies = self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
+            return {"http": proxies.http_proxy, "https": proxies.https_proxy}
         except http_proxy.HTTPProxyNotAvailableError:
             return None
