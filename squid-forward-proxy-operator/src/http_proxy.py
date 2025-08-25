@@ -1,6 +1,8 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+# pylint: disable=too-many-lines
+
 r"""Library to manage the http-proxy relation.
 
 This library contains the Requires and Provides classes for handling the
@@ -117,7 +119,7 @@ class FooCharm:
         responses = self._http_proxy_provider.open_response_list(relation.id)
         ...
 
-"""
+"""  # noqa: D405,D214,D411,D416
 
 import copy
 import ipaddress
@@ -1108,7 +1110,12 @@ class HttpProxyPolyRequirer:
         """
         responses = self.open_response_list(integration_id)
         response = responses.get(requirer_id)
-        if not response or response.status != PROXY_STATUS_READY:
+        if (
+            not response
+            or response.status != PROXY_STATUS_READY
+            or not response.http_proxy
+            or not response.https_proxy
+        ):
             raise HTTPProxyNotAvailableError(
                 f"HTTP proxy not available or not ready for requirer {requirer_id} "
                 f"in integration {integration_id}"

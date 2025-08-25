@@ -4,7 +4,6 @@
 """Integration test charm."""
 
 import re
-import urllib.parse
 
 import requests
 from any_charm_base import AnyCharmBase, logger  # pylint: disable=import-error
@@ -62,8 +61,7 @@ class AnyCharm(AnyCharmBase):
         Raises:
             RuntimeError: if the HTTP proxy provider doesn't return a HTTP proxy.
         """
-        integration = self.model.get_relation("require-http-proxy")
-        proxies = self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
+        proxies = self.get_proxies()
         if not proxies:
             raise RuntimeError("proxy not ready")
         if override_user_pass:
@@ -87,3 +85,15 @@ class AnyCharm(AnyCharmBase):
         if not response:
             return None
         return response.status
+
+    def get_proxies(self) -> dict[str, str] | None:
+        """Get HTTP proxies returned from the HTTP proxy provider.
+
+        Returns:
+            HTTP proxies returned from the HTTP proxy provider.
+        """
+        try:
+            integration = self.model.get_relation("require-http-proxy")
+            return self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
+        except http_proxy.HTTPProxyNotAvailableError:
+            return None
