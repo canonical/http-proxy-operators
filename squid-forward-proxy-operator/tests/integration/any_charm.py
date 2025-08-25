@@ -47,13 +47,11 @@ class AnyCharm(AnyCharmBase):
     def test_proxy(
         self,
         url: str,
-        override_user_pass: tuple[str, str] | None = None,
     ) -> int:
         """Test HTTP proxy returned from the HTTP proxy provider.
 
         Args:
             url: test target URL.
-            override_user_pass: override user password in the proxy URL.
 
         Returns:
             HTTP status code.
@@ -64,9 +62,6 @@ class AnyCharm(AnyCharmBase):
         proxies = self.get_proxies()
         if not proxies:
             raise RuntimeError("proxy not ready")
-        if override_user_pass:
-            proxies["http"] = self._set_user(proxies["http"], *override_user_pass)
-            proxies["https"] = self._set_user(proxies["https"], *override_user_pass)
         try:
             logger.info("accessing %s via %s", url, proxies.get(self._requirer_id))
             return requests.get(url, proxies=proxies, timeout=5).status_code
