@@ -120,13 +120,11 @@ class AnyCharm:
     async def test_proxy(
         self,
         url: str,
-        override_user_pass: tuple[str, str] | None = None,
     ) -> int:
         """Test the HTTP proxy returned from the HTTP proxy provider.
 
         Args:
             url: target url
-            override_user_pass: override proxy authentication username and password
 
         Returns:
             HTTP status code
@@ -136,7 +134,6 @@ class AnyCharm:
             await self._run_rpc(
                 "test_proxy",
                 url=url,
-                override_user_pass=list(override_user_pass) if override_user_pass else None,
             ),
         )
 
