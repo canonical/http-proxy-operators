@@ -31,26 +31,22 @@ async def squid_proxy_fixture(
 class AnyCharm:
     """any-charm helper."""
 
-    def __init__(self, ops_test: OpsTest, requirer_id: str, name: str) -> None:
+    def __init__(self, ops_test: OpsTest, name: str) -> None:
         """Initialize the any-charm helper.
 
         Args:
             ops_test: OpsTest instance
-            requirer_id: requirer id
             name: any-charm application name
         """
         assert ops_test.model
         self._model = ops_test.model
         self._app: juju.application.Application | None = None
-        self.id = requirer_id
         self.name = name
 
     async def deploy(self) -> None:
         """Deploy the any-charm in the testing model."""
         any_charm_py = pathlib.Path(__file__).parent / "any_charm.py"
-        any_charm_py_content = any_charm_py.read_text(encoding="utf-8").replace(
-            "00000000-0000-0000-0000-000000000000", self.id
-        )
+        any_charm_py_content = any_charm_py.read_text(encoding="utf-8")
         http_proxy_py = pathlib.Path(__file__).parent.parent.parent / "src/http_proxy.py"
         http_proxy_py_content = http_proxy_py.read_text(encoding="utf-8")
         self._app = await self._model.deploy(
@@ -152,22 +148,18 @@ async def any_charm_abcd_fixture(ops_test: OpsTest) -> list[AnyCharm]:
     any_charms = [
         AnyCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-8000-000000000000",
             name="any-charm-a",
         ),
         AnyCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-9000-000000000000",
             name="any-charm-b",
         ),
         AnyCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-a000-000000000000",
             name="any-charm-c",
         ),
         AnyCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-b000-000000000000",
             name="any-charm-d",
         ),
     ]

@@ -58,7 +58,7 @@ async def http_proxy_policy_fixture(
 class RequirerCharm:
     """any-charm helper."""
 
-    def __init__(self, ops_test: OpsTest, requirer_id: str, name: str) -> None:
+    def __init__(self, ops_test: OpsTest, name: str) -> None:
         """Initialize the any-charm helper.
 
         Args:
@@ -69,7 +69,6 @@ class RequirerCharm:
         assert ops_test.model
         self._model = ops_test.model
         self._app: juju.application.Application | None = None
-        self.id = requirer_id
         self.name = name
 
     async def deploy(self) -> None:
@@ -78,9 +77,7 @@ class RequirerCharm:
             pathlib.Path(__file__).parent.parent.parent.parent
             / "squid-forward-proxy-operator/tests/integration/any_charm.py"
         )
-        any_charm_py_content = any_charm_py.read_text(encoding="utf-8").replace(
-            "00000000-0000-0000-0000-000000000000", self.id
-        )
+        any_charm_py_content = any_charm_py.read_text(encoding="utf-8")
         http_proxy_py = pathlib.Path(__file__).parent.parent.parent / "src/http_proxy.py"
         http_proxy_py_content = http_proxy_py.read_text(encoding="utf-8")
         self._app = await self._model.deploy(
@@ -155,14 +152,6 @@ class RequirerCharm:
         """
         return typing.cast(dict, await self._run_rpc("get_proxies"))
 
-    async def get_proxy_status(self) -> str | None:
-        """Get the HTTP proxy status returned from the HTTP proxy provider.
-
-        Returns:
-            HTTP proxy status returned from the HTTP proxy provider.
-        """
-        return typing.cast(str, await self._run_rpc("get_proxy_status"))
-
 
 @pytest_asyncio.fixture(scope="module", name="requirer_charm_abcd")
 async def requirer_charm_abcd_fixture(ops_test: OpsTest) -> list[RequirerCharm]:
@@ -170,17 +159,14 @@ async def requirer_charm_abcd_fixture(ops_test: OpsTest) -> list[RequirerCharm]:
     any_charms = [
         RequirerCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-8000-000000000000",
             name="proxy-requirer-a",
         ),
         RequirerCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-9000-000000000000",
             name="proxy-requirer-b",
         ),
         RequirerCharm(
             ops_test=ops_test,
-            requirer_id="00000000-0000-4000-a000-000000000000",
             name="proxy-requirer-c",
         ),
     ]

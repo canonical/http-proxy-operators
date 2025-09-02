@@ -22,10 +22,10 @@ class AnyCharm(AnyCharmBase):
             kwargs: keyword arguments passed to the charm.
         """
         super().__init__(*args, **kwargs)
-        self._proxy_requirer = http_proxy.HttpProxyPolyRequirer(
-            charm=self, integration_name="require-http-proxy"
+        self._proxy_requirer = http_proxy.HttpProxyDynamicRequirer(
+            charm=self,
+            relation_name="require-http-proxy",
         )
-        self._requirer_id = "00000000-0000-0000-0000-000000000000"  # replace me
 
     def request_proxy(
         self, domains: list[str], auth: list[str], src_ips: list[str] | None = None
@@ -37,12 +37,7 @@ class AnyCharm(AnyCharmBase):
             auth: HTTP proxy auth.
             src_ips: HTTP proxy src_ips.
         """
-        integration = self.model.get_relation("require-http-proxy")
-        proxy_requests = self._proxy_requirer.open_request_list(integration.id)
-        proxy_requests.delete(self._requirer_id)
-        proxy_requests.add(
-            requirer_id=self._requirer_id, domains=domains, auth=auth, src_ips=src_ips
-        )
+        self._proxy_requirer.request_http_proxy(domains, auth, src_ips)
 
     def test_proxy(
         self,
@@ -68,28 +63,11 @@ class AnyCharm(AnyCharmBase):
         except requests.exceptions.ProxyError as e:
             return int(re.findall("Tunnel connection failed: (\\d+)", str(e))[0])
 
-    def get_proxy_status(self) -> str | None:
-        """Get HTTP proxy status returned from the HTTP proxy provider.
-
-        Returns:
-            HTTP proxy status returned from the HTTP proxy provider.
-        """
-        integration = self.model.get_relation("require-http-proxy")
-        responses = self._proxy_requirer.open_response_list(integration.id)
-        response = responses.get(self._requirer_id)
-        if not response:
-            return None
-        return response.status
-
     def get_proxies(self) -> dict[str, str] | None:
         """Get HTTP proxies returned from the HTTP proxy provider.
 
         Returns:
             HTTP proxies returned from the HTTP proxy provider.
         """
-        try:
-            integration = self.model.get_relation("require-http-proxy")
-            proxies = self._proxy_requirer.get_proxies(integration.id, self._requirer_id)
-            return {"http": proxies["HTTP_PROXY"], "https": proxies["HTTPS_PROXY"]}
-        except http_proxy.HTTPProxyNotAvailableError:
-            return None
+        proxies = self._proxy_requirer.must_get_proxies()
+        return {"http": proxies["HTTP_PROXY"], "https": proxies["HTTPS_PROXY"]}
