@@ -73,7 +73,7 @@ class AnyCharm(AnyCharmBase):
             self._proxy_requirer.must_get_proxies()
             return http_proxy.PROXY_STATUS_READY
         except http_proxy.HTTPProxyUnavailableError as e:
-            return e.value.status
+            return e.status
 
     def get_proxies(self) -> dict[str, str] | None:
         """Get HTTP proxies returned from the HTTP proxy provider.
@@ -87,5 +87,5 @@ class AnyCharm(AnyCharmBase):
                 "http": proxies["HTTP_PROXY"],
                 "https": proxies["HTTPS_PROXY"],
             }
-        except http_proxy.HTTPProxyUnavailableError as e:
+        except http_proxy.HTTPProxyUnavailableError:
             return None

@@ -7,8 +7,6 @@
 
 import logging
 
-import pytest
-
 import http_proxy
 
 logger = logging.getLogger(__name__)
