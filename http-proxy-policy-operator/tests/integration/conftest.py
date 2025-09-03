@@ -151,6 +151,14 @@ class RequirerCharm:
         """
         return typing.cast(dict, await self._run_rpc("get_proxies"))
 
+    async def get_proxy_status(self) -> str | None:
+        """Get the HTTP proxy status returned from the HTTP proxy provider.
+
+        Returns:
+            HTTP proxy status returned from the HTTP proxy provider.
+        """
+        return typing.cast(str, await self._run_rpc("get_proxy_status"))
+
 
 @pytest_asyncio.fixture(scope="module", name="requirer_charm_abcd")
 async def requirer_charm_abcd_fixture(ops_test: OpsTest) -> list[RequirerCharm]:

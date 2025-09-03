@@ -69,9 +69,8 @@ async def test_proxy_requests(
         "http": "http://test:test@proxy.test",
         "https": "https://test:test@proxy.test",
     }
-    with pytest.raises(http_proxy.HTTPProxyUnavailableError) as exc_info:
-        await requirer_charm_b.get_proxies()
-    assert http_proxy.PROXY_STATUS_REJECTED == exc_info.value.status
-    with pytest.raises(http_proxy.HTTPProxyUnavailableError) as exc_info:
-        await requirer_charm_c.get_proxies()
-    assert http_proxy.PROXY_STATUS_PENDING == exc_info.value.status
+    assert await requirer_charm_a.get_proxy_status() == http_proxy.PROXY_STATUS_READY
+    assert await requirer_charm_b.get_proxies() is None
+    assert await requirer_charm_b.get_proxy_status() == http_proxy.PROXY_STATUS_REJECTED
+    assert await requirer_charm_c.get_proxies() is None
+    assert await requirer_charm_c.get_proxy_status() == http_proxy.PROXY_STATUS_PENDING

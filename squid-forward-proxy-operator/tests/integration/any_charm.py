@@ -63,11 +63,29 @@ class AnyCharm(AnyCharmBase):
         except requests.exceptions.ProxyError as e:
             return int(re.findall("Tunnel connection failed: (\\d+)", str(e))[0])
 
+    def get_proxy_status(self) -> str:
+        """Get HTTP proxy status returned from the HTTP proxy provider.
+
+        Returns:
+            HTTP proxy status returned from the HTTP proxy provider.
+        """
+        try:
+            self._proxy_requirer.must_get_proxies()
+            return http_proxy.PROXY_STATUS_READY
+        except http_proxy.HTTPProxyUnavailableError as e:
+            return e.value.status
+
     def get_proxies(self) -> dict[str, str] | None:
         """Get HTTP proxies returned from the HTTP proxy provider.
 
         Returns:
-            HTTP proxies returned from the HTTP proxy provider.
+            HTTP proxies returned from the HTTP proxy provider if ready else returns status.
         """
-        proxies = self._proxy_requirer.must_get_proxies()
-        return {"http": proxies["HTTP_PROXY"], "https": proxies["HTTPS_PROXY"]}
+        try:
+            proxies = self._proxy_requirer.must_get_proxies()
+            return {
+                "http": proxies["HTTP_PROXY"],
+                "https": proxies["HTTPS_PROXY"],
+            }
+        except http_proxy.HTTPProxyUnavailableError as e:
+            return None
