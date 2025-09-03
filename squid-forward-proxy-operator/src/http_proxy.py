@@ -20,70 +20,80 @@ charmcraft fetch-lib charms.http_proxy.v0.http_proxy
 ### Using library as a requirer
 
 In the `metadata.yaml` of the charm, add the following:
+
 ```yaml
 requires:
   http-proxy:
     interface: http-proxy
 ```
 
-Import HTTPProxyPolyRequirer in your charm by adding the following to `src/charm.py`:
-```
-from charms.http_proxy.v0.http_proxy import (
-    HttpProxyPolyRequirer,
-    HTTPProxyUnavailableError
-    )
-```
+There are two ways to initialize the requirer class:
 
-The requirer class must be instantiated as follows:
+1. To initialize the requirer with parameters using the `HttpProxyRequirer` class:
 
-class FooCharm:
+```python
+from charms.http_proxy.v0.http_proxy import {
+    HTTPProxyNotAvailableError,
+    HttpProxyRequirer
+)
+
+class FooCharm(ops.CharmBase):
     def __init__(self, *args):
-        super().__init__(*args, **kwargs)
         ...
-        # This will simply initialize the requirer class and it won't perform any action.
-        self.http_proxy_requirer = HttpProxyPolyRequirer(self, uuid = "")
-        self._requirer_id = uuid.UUID("00000000-0000-0000-0000-000000000000") # replace me
+         self.http_proxy_requirer = HttpProxyRequirer(
+            self,
+            domains=["example.com", "example.org"],
+            auth=["userpass", "none", "srcip", "srcip+userpass"],
+            src_ips=[],
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.get_proxies
+        )
+
+    def get_proxies(self, _: ops.EventBase):
+        try:
+            proxies = self.http_proxy_requirer.must_get_proxies()
+        except HTTPProxyUnavailableError as e:
+            logging.error(f"HTTP proxy not available. {e}")
+            return
+        return (proxies["HTTP_PROXY"], proxies["HTTPS_PROXY"])
+```
+
+2. To initialize the requirer with no parameters using the `HttpProxyDynamicRequirer` class:
+
+```python
+# This will simply initialize the requirer class and it won't perform any action.
+# Later the requirer data can be provided through the `request_http_proxy` method.
+class FooCharmDynamic(ops.CharmBase):
+    def __init__(self, *args):
+         ...
+        self.http_proxy_dynamic_requirer = HttpProxyDynamicRequirer(
+            self,
+             relation_name=HTTP_PROXY_INTEGRATION_NAME,
+        )
         self.framework.observe(
             self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.get_proxies
         )
         ...
 
-    # Afterwards you can add, delete, update or clear all requests using the following methods:
-    def proxy(self):
-        integration = self.model.get_relation(HTTP_PROXY_INTEGRATION_NAME)
-        proxy_requests = self.http_proxy_requirer.open_request_list(integration.id)
-
-        # to add a new request
-        proxy_requests.add(
-            requirer_id=self._requirer_id, # unique id for this request
-            domains=["example.com", "example.org"], # list of domains to proxy
-            auth=["userpass", "none", "srcip", "srcip+userpass"], # or any subset of these
-            src_ips=<optional>, # list of source IPs to override the source IP addresses
-                                # provided by the Juju integration binding information
-        )
-
-        # to delete a request
-        proxy_requests.delete(self._requirer_id)
-
-        # to update a request
-        proxy_requests.add_or_replace(
-            requirer_id=self._requirer_id,
+    def provide_proxy(self):
+        # If you have initialized the requirer with no parameters,you can call the
+        # request_http_proxy method anywhere in your charm to request proxy.
+ self.http_proxy_dynamic_requirer.request_http_proxy(
             domains=["example.com", "example.org"],
             auth=["userpass", "none", "srcip", "srcip+userpass"],
-            src_ips=<optional>,
-        )
-
-        # to clear all requests
-        proxy_requests.clear()
+            src_ips=[],
+        ) # this method is available for the HttpProxyDynamicRequirer class only.
 
     def get_proxies(self, _: ops.EventBase):
-        integration = self.model.get_relation(HTTP_PROXY_INTEGRATION_NAME)
         try:
-            proxies = self.http_proxy_requirer.get_proxies(integration.id, self._requirer_id)
-        except HTTPProxyNotAvailableError:
-            logging.error("HTTP proxy not available")
+            proxies = self.http_proxy_requirer.must_get_proxies()
+        except HTTPProxyUnavailableError as e:
+            logging.error(f"HTTP proxy not available. {e}")
             return
         return (proxies["HTTP_PROXY"], proxies["HTTPS_PROXY"])
+```
+
 
 ### Using library as a provider
 
@@ -118,7 +128,7 @@ class FooCharm:
         responses = self._http_proxy_provider.open_response_list(relation.id)
         ...
 
-"""  # noqa: D405,D214,D411,D416
+"""  # noqa: D214,D405,D410,D411,D416
 
 import copy
 import ipaddress

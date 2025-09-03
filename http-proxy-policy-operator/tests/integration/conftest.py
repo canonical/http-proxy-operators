@@ -63,7 +63,6 @@ class RequirerCharm:
 
         Args:
             ops_test: OpsTest instance
-            requirer_id: requirer id
             name: any-charm application name
         """
         assert ops_test.model
