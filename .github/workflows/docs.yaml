@@ -11,4 +11,5 @@ jobs:
     secrets: inherit
     with:
       vale-files: '["README.md", "http-proxy-policy/README.md", "http-proxy-policy-operator/README.md", "http-proxy-policy-operator/CONTRIBUTING.md", "squid-forward-proxy-operator/README.md", "squid-forward-proxy-operator/CONTRIBUTING.md"]'
+      linkcheck-files: '["README.md", "http-proxy-policy/README.md", "http-proxy-policy-operator/README.md", "http-proxy-policy-operator/CONTRIBUTING.md", "squid-forward-proxy-operator/README.md", "squid-forward-proxy-operator/CONTRIBUTING.md"]'
 
