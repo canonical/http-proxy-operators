@@ -1,16 +1,145 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""HTTP proxy charm library."""
+# pylint: disable=too-many-lines
+
+r"""Library to manage the http-proxy relation.
+
+This library contains the Requirer and Provider classes for handling the
+http-proxy interface.
+
+## Getting Started
+
+To get started using the library, you just need to fetch the library using `charmcraft`.
+
+```shell
+cd some-charm
+charmcraft fetch-lib charms.http_proxy.v0.http_proxy
+```
+
+### Using library as a requirer
+
+In the `metadata.yaml` of the charm, add the following:
+
+```yaml
+requires:
+  http-proxy:
+    interface: http-proxy
+```
+
+There are two ways to initialize the requirer class:
+
+1. To initialize the requirer with parameters using the `HttpProxyRequirer` class:
+
+```python
+from charms.http_proxy.v0.http_proxy import {
+    HTTPProxyNotAvailableError,
+    HttpProxyRequirer
+)
+
+class FooCharm(ops.CharmBase):
+    def __init__(self, *args):
+        ...
+         self.http_proxy_requirer = HttpProxyRequirer(
+            self,
+            domains=["example.com", "example.org"],
+            auth=["userpass", "none", "srcip", "srcip+userpass"],
+            src_ips=[],
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.get_proxies
+        )
+
+    def get_proxies(self, _: ops.EventBase):
+        try:
+            proxies = self.http_proxy_requirer.must_get_proxies()
+        except HTTPProxyUnavailableError as e:
+            logging.error(f"HTTP proxy not available. {e}")
+            return
+        return (proxies["HTTP_PROXY"], proxies["HTTPS_PROXY"])
+```
+
+2. To initialize the requirer with no parameters using the `HttpProxyDynamicRequirer` class:
+
+```python
+# This will simply initialize the requirer class and it won't perform any action.
+# Later the requirer data can be provided through the `request_http_proxy` method.
+class FooCharmDynamic(ops.CharmBase):
+    def __init__(self, *args):
+         ...
+        self.http_proxy_dynamic_requirer = HttpProxyDynamicRequirer(
+            self,
+             relation_name=HTTP_PROXY_INTEGRATION_NAME,
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.get_proxies
+        )
+        ...
+
+    def provide_proxy(self):
+        # If you have initialized the requirer with no parameters,you can call the
+        # request_http_proxy method anywhere in your charm to request proxy.
+ self.http_proxy_dynamic_requirer.request_http_proxy(
+            domains=["example.com", "example.org"],
+            auth=["userpass", "none", "srcip", "srcip+userpass"],
+            src_ips=[],
+        ) # this method is available for the HttpProxyDynamicRequirer class only.
+
+    def get_proxies(self, _: ops.EventBase):
+        try:
+            proxies = self.http_proxy_requirer.must_get_proxies()
+        except HTTPProxyUnavailableError as e:
+            logging.error(f"HTTP proxy not available. {e}")
+            return
+        return (proxies["HTTP_PROXY"], proxies["HTTPS_PROXY"])
+```
+
+
+### Using library as a provider
+
+In the `metadata.yaml` of the charm, add the following:
+```yaml
+provides:
+  http-proxy:
+    interface: http-proxy
+```
+
+Import HTTPProxyPolyProvider in your charm by adding the following to `src/charm.py`:
+```python
+from charms.http_proxy.v0.http_proxy import HttpProxyPolyProvider, HTTP_PROXY_INTEGRATION_NAME
+```
+
+The provider class must be instantiated as follows:
+```python
+class FooCharm:
+    def __init__(self, *args):
+        super().__init__(*args, **kwargs)
+        ...
+        self._http_proxy_provider = HttpProxyPolyProvider(self)
+        # This will simply initialize the requirer class and it won't perform any action.
+        self.framework.observe(
+            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.provide_proxy
+        )
+        ...
+
+    def provide_proxy(self, event: ops.EventBase) -> None:
+        relation = self.model.get_relation(HTTP_PROXY_INTEGRATION_NAME)
+        proxy_requests = self._http_proxy_provider.open_request_list(relation.id)
+        responses = self._http_proxy_provider.open_response_list(relation.id)
+        ...
+
+"""  # noqa: D214,D405,D410,D411,D416
 
 import copy
 import ipaddress
 import json
 import re
+import urllib.parse
 import uuid
 from typing import Annotated, Dict, Iterable, List, Optional, Sequence, Tuple, Union, cast
 
 import ops
+from ops.framework import Object
 from pydantic import BaseModel, ConfigDict, Field, SecretStr, field_validator, model_validator
 
 AUTH_METHOD_SRCIP_USERPASS = "srcip+userpass"
@@ -37,8 +166,22 @@ PROXY_STATUSES = [
     PROXY_STATUS_ERROR,
     PROXY_STATUS_READY,
 ]
-
+HTTP_PROXY_INTEGRATION_NAME = "http-proxy"
 NO_CHANGE = object()
+
+
+class HTTPProxyUnavailableError(Exception):
+    """Raised when HTTP proxy is not available."""
+
+    def __init__(self, message: str, status: str) -> None:
+        """Initialize the exception.
+
+        Args:
+            message: The exception message.
+            status: The HTTP proxy status.
+        """
+        super().__init__(message)
+        self.status = status
 
 
 def dedup(input_list: list[str]) -> list[str]:
@@ -842,7 +985,9 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
 class HttpProxyPolyProvider:
     """HTTP proxy provider."""
 
-    def __init__(self, charm: ops.CharmBase, integration_name: str) -> None:
+    def __init__(
+        self, charm: ops.CharmBase, integration_name: str = HTTP_PROXY_INTEGRATION_NAME
+    ) -> None:
         """Initialize the object.
 
         Args:
@@ -908,7 +1053,7 @@ class HttpProxyPolyProvider:
 class HttpProxyPolyRequirer:
     """HTTP proxy requirer."""
 
-    def __init__(self, charm: ops.CharmBase, integration_name: str):
+    def __init__(self, charm: ops.CharmBase, integration_name: str = HTTP_PROXY_INTEGRATION_NAME):
         """Initialize the object.
 
         Args:
@@ -969,3 +1114,173 @@ class HttpProxyPolyRequirer:
             integration_id=integration.id,
             integration_data=integration_data,
         )
+
+
+class _BaseHttpProxyRequirer(Object):
+    """Base class for HTTP proxy requirers."""
+
+    def __init__(
+        self, charm: ops.CharmBase, relation_name: str = HTTP_PROXY_INTEGRATION_NAME
+    ) -> None:
+        """Initialize the BaseHttpProxyRequirer class.
+
+        Args:
+            charm: the charm instance.
+            relation_name: HTTP proxy integration name.
+        """
+        super().__init__(charm, relation_name)
+        self._charm = charm
+        self._relation_name = relation_name
+        self._relation = self.model.get_relation(relation_name)
+        self._requirer_id = str(uuid.uuid4())
+
+        self._domains: Optional[List[str]] = None
+        self._auth: Optional[List[str]] = None
+        self._src_ips: Optional[List[str]] = None
+
+        self.framework.observe(
+            self._charm.on[self._relation_name].relation_departed, self._delete_request
+        )
+
+    def _delete_request(self, _: ops.EventBase) -> None:
+        """Delete the HTTP proxy request."""
+        if not self._relation:
+            raise ValueError("relation not found")
+
+        requirer = HttpProxyPolyRequirer(self._charm, self._relation_name)
+        request_list = requirer.open_request_list(self._relation.id)
+        try:
+            request_list.delete(requirer_id=self._requirer_id)
+        except KeyError:
+            pass
+
+    def must_get_proxies(self) -> dict:
+        """Get HTTP proxy values returned by the provider.
+
+        Returns:
+            HTTP proxy returned from the HTTP proxy provider.
+
+        Raises:
+            HTTPProxyUnavailableError: if proxies are not ready.
+        """
+        response = self._get_response()
+        if response.status != PROXY_STATUS_READY:
+            raise HTTPProxyUnavailableError(
+                message=f"HTTP proxy is not ready. Response status: {response.status}",
+                status=response.status,
+            )
+
+        http_proxy_url = response.http_proxy
+        https_proxy_url = response.https_proxy
+
+        username = response.user.username if response.user else None
+        password = response.user.password.get_secret_value() if response.user else None
+
+        if username and password:
+            # http_proxy and https_proxy will not be None if status is READY
+            http_proxy_url = self._set_user(http_proxy_url, username, password)  # type: ignore
+            https_proxy_url = self._set_user(https_proxy_url, username, password)  # type: ignore
+
+        return {
+            "HTTP_PROXY": http_proxy_url,
+            "HTTPS_PROXY": https_proxy_url,
+        }
+
+    def _create_or_update_http_proxy_request(self) -> None:
+        """Create or update a HTTP proxy request."""
+        if not self._relation:
+            raise ValueError("relation not found")
+
+        requirer = HttpProxyPolyRequirer(self._charm, self._relation_name)
+        request_list = requirer.open_request_list(self._relation.id)
+        request_list.add_or_replace(
+            requirer_id=self._requirer_id,
+            domains=cast(List[str], self._domains),
+            auth=cast(List[str], self._auth),
+            src_ips=self._src_ips,
+        )
+
+    def _get_response(self) -> HttpProxyResponse:
+        """Get the HTTP proxy response."""
+        if not self._relation:
+            raise ValueError("relation not found")
+
+        requirer = HttpProxyPolyRequirer(self._charm, self._relation_name)
+        responses = requirer.open_response_list(self._relation.id)
+        response = responses.get(self._requirer_id)
+        if not response:
+            raise ValueError("Response not found")
+        return response
+
+    def _set_user(self, url: str, username: str, password: str) -> str:
+        """Set the user credentials in the proxy url."""
+        parsed = urllib.parse.urlparse(url)
+        return f"{parsed.scheme}://{username}:{password}@{parsed.netloc}"
+
+
+class HttpProxyRequirer(_BaseHttpProxyRequirer):
+    """HTTP proxy static requirer."""
+
+    def __init__(  # pylint: disable=too-many-arguments
+        self,
+        charm: ops.CharmBase,
+        relation_name: str = HTTP_PROXY_INTEGRATION_NAME,
+        *,
+        domains: List[str],
+        auth: List[str],
+        src_ips: Optional[List[str]] = None,
+    ) -> None:
+        """Initialize the HttpProxyRequirer class.
+
+        Args:
+            charm: The charm instance.
+            relation_name: The name of the relation to use for the HTTP proxy.
+            domains: List of domains to request proxy access for.
+            auth: List of authentication modes supported by the application.
+                See AUTH_METHODS for valid values.
+            src_ips: list of source IPs to override the source IP addresses
+                provided by the Juju integration binding information.
+        """
+        super().__init__(charm, relation_name)
+        self._domains = domains
+        self._auth = auth
+        self._src_ips = src_ips
+
+        self.framework.observe(
+            self._charm.on[self._relation_name].relation_created, self._request_proxy
+        )
+
+    def _request_proxy(self, _: ops.EventBase) -> None:
+        """Request a HTTP proxy."""
+        if not self._domains or not self._auth:
+            raise ValueError("domains and auth are required.")
+        self._create_or_update_http_proxy_request()
+
+
+class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
+    """HTTP proxy dynamic requirer."""
+
+    def request_http_proxy(
+        self,
+        domains: List[str],
+        auth: List[str],
+        src_ips: Optional[List[str]] = None,
+    ) -> None:
+        """Request a HTTP proxy.
+
+        Args:
+            domains: List of domains to request proxy access for.
+            auth: List of authentication modes supported by the application.
+                See AUTH_METHODS for valid values.
+            src_ips: list of source IPs to override the source IP addresses
+                provided by the Juju integration binding information.
+
+        Raises:
+            ValueError: if domains or auth are not provided.
+        """
+        if not domains or not auth:
+            raise ValueError("domains and auth are required.")
+        self._domains = domains
+        self._auth = auth
+        self._src_ips = src_ips
+        self._create_or_update_http_proxy_request()
