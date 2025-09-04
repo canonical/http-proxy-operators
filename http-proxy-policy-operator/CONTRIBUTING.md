@@ -22,7 +22,7 @@ This document explains the processes and practices recommended for contributing 
 
 ## Developing
 
-To make contributions to this charm, you'll need a working [development setup](https://juju.is/docs/sdk/dev-setup).
+To make contributions to this charm, you'll need a working [development setup](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-juju-deployment/set-up-your-juju-deployment-local-testing-and-development/).
 
 The code for this charm can be downloaded as follows:
 
@@ -98,4 +98,4 @@ juju deploy ./http-proxy-policy_amd64.charm
 
 ## Canonical contributor agreement
 
-Canonical welcomes contributions to the http-proxy-policy charm. Please check out our [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
+Canonical welcomes contributions to the http-proxy-policy charm. Please check out our [contributor agreement](https://canonical.com/legal/contributors) if you're interested in contributing to the solution.

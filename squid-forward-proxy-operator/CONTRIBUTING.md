@@ -4,14 +4,14 @@
 
 ## Overview
 
-This document explains the processes and practices recommended for contributing enhancements to the <charm-name> charm.
+This document explains the processes and practices recommended for contributing enhancements to the squid-forward-proxy-operator charm.
 
 - Generally, before developing enhancements to this charm, you should consider [opening an issue
-  ](link to issues page) explaining your use case.
+  ](https://github.com/canonical/http-proxy-operators/issues) explaining your use case.
 - If you would like to chat with us about your use-cases or proposed implementation, you can reach
   us at [Canonical Matrix public channel](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
   or [Discourse](https://discourse.charmhub.io/).
-- Familiarising yourself with the [Charmed Operator Framework](https://juju.is/docs/sdk) library
+- Familiarising yourself with the [Juju documentation](https://documentation.ubuntu.com/juju/3.6/)
   will help you a lot when working on new features or bug fixes.
 - All enhancements require review before being merged. Code review typically examines
   - code quality
@@ -22,12 +22,12 @@ This document explains the processes and practices recommended for contributing 
 
 ## Developing
 
-To make contributions to this charm, you'll need a working [development setup](https://juju.is/docs/sdk/dev-setup).
+To make contributions to this charm, you'll need a working [development setup](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-juju-deployment/set-up-your-juju-deployment-local-testing-and-development/).
 
 The code for this charm can be downloaded as follows:
 
 ```
-git clone https://github.com/canonical/<charm-name>
+git clone https://github.com/canonical/http-proxy-operators
 ```
 
 You can use the environments created by `tox` for development:
@@ -97,4 +97,4 @@ juju deploy ./<charm-name>.charm
 
 ## Canonical contributor agreement
 
-Canonical welcomes contributions to the <charm-name> charm. Please check out our [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
+Canonical welcomes contributions to the <charm-name> charm. Please check out our [contributor agreement](https://canonical.com/legal/contributors) if you're interested in contributing to the solution.
