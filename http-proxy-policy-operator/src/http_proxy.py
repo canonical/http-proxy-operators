@@ -140,8 +140,8 @@ class HttpProxySpec(BaseModel):
         Returns:
             The canonical representation of the domains.
         """
-        if not domains:
-            raise ValueError("no domains specified")
+        # if not domains:
+        #     raise ValueError("no domains specified")
         valid_domains = []
         invalid_domains = []
         for domain in domains:
