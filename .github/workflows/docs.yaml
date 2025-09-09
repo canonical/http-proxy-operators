@@ -10,6 +10,5 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/docs.yaml@main
     secrets: inherit
     with:
-    with:
       vale-files: './**/*.md'
       linkcheck-files: './**/*.md'
