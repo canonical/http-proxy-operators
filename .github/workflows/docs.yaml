@@ -37,8 +37,8 @@ jobs:
       - name: Run Vale Linter
         uses: errata-ai/vale-action@v2.1.1
         with:
-          files: ${{ inputs.vale-files }}
-          fail_on_error: ${{ inputs.vale-fail-on-error }}
+          files: './**/*.md'
+          fail_on_error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -52,5 +52,5 @@ jobs:
         id: lychee
         uses: lycheeverse/lychee-action@v2.6.1
         with:
-          fail: ${{ inputs.linkcheck-fail-on-error }}
-          args: --verbose --no-progress ${{ inputs.linkcheck-files }}
+          fail: true
+          args: --verbose --no-progress './**/*.md'
