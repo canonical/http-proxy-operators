@@ -10,6 +10,6 @@ jobs:
     uses: canonical/operator-workflows/.github/workflows/docs.yaml@main
     secrets: inherit
     with:
-      vale-files: '["README.md", "http-proxy-policy/README.md", "http-proxy-policy-operator/README.md", "http-proxy-policy-operator/CONTRIBUTING.md", "squid-forward-proxy-operator/README.md", "squid-forward-proxy-operator/CONTRIBUTING.md"]'
-      linkcheck-files: '["README.md", "http-proxy-policy/README.md", "http-proxy-policy-operator/README.md", "http-proxy-policy-operator/CONTRIBUTING.md", "squid-forward-proxy-operator/README.md", "squid-forward-proxy-operator/CONTRIBUTING.md"]'
-
+    with:
+      vale-files: './**/*.md'
+      linkcheck-files: './**/*.md'
