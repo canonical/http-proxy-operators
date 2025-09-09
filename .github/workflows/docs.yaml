@@ -8,7 +8,6 @@ on:
 jobs:
   docs-checks:
     uses: canonical/operator-workflows/.github/workflows/docs.yaml@main
-    runs-on: 'ubuntu-22.04'
     secrets: inherit
     with:
       vale-files: './**/*.md'
