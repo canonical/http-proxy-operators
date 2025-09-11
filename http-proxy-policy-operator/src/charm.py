@@ -164,21 +164,32 @@ class HttpProxyPolicyCharm(ops.CharmBase):
         if not self.unit.is_leader():
             self.unit.status = ops.ActiveStatus()
             return
-        if statistic.invalid_relations:
-            self.app.status = ops.BlockedStatus("invalid relation data from http proxy backend")
+        if statistic.invalid_backend_responses:
+            self.app.status = ops.BlockedStatus(
+                "Invalid responses from http proxy backend. Check debug logs."
+            )
+            return
+        if statistic.invalid_backend_relations:
+            self.app.status = ops.BlockedStatus(
+                "Invalid http proxy backend integrations. Check debug logs."
+            )
             return
         if statistic.missing_backend_relations:
             self.app.status = ops.WaitingStatus("waiting for http proxy backend")
-        status = f"accepted: {statistic.accepted_requests}"
-        status += f", rejected: {statistic.rejected_requests}"
-        if statistic.invalid_backend_responses:
-            status += f", invalid requests: {statistic.invalid_backend_responses}"
-        if statistic.duplicated_requests:
-            status += f", duplicated requests: {statistic.duplicated_requests}"
-        if statistic.invalid_relations:
-            status += f", invalid integrations: {statistic.invalid_relations}"
-        if statistic.invalid_backend_responses:
-            status += f", invalid backend responses: {statistic.invalid_backend_responses}"
+            return
+
+        fields = {
+            "accepted": statistic.accepted_requests,
+            "rejected": statistic.rejected_requests,
+            "pending": statistic.pending_requests,
+            "invalid requests": statistic.invalid_requests,
+            "duplicated": statistic.duplicated_requests,
+            "invalid integrations": statistic.invalid_relations,
+            "invalid backend responses": statistic.invalid_backend_responses,
+        }
+        summary = ", ".join(f"{k}: {v}" for k, v in fields.items() if v)
+
+        self.app.status = ops.ActiveStatus(summary)
 
     def _get_peer_secrets(self, field: str) -> dict[str, str] | None:
         """Get a juju secret from peer relation.

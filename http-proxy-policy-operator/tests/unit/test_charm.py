@@ -108,7 +108,7 @@ def test_reply_requests(mock_policy):
         endpoint="http-proxy",
         remote_app_data={
             "requests": json.dumps(
-                [EXAMPLE_RAW_REQUESTS[1]],
+                [EXAMPLE_RAW_REQUESTS[2]],
             )
         },
     )
@@ -246,11 +246,11 @@ def test_relay_responses(mock_policy):
     ]
 
 
-def test_ignore_invalid_requests(mock_policy):
+def test_invalid_requests(mock_policy):
     """
     arrange: prepare HTTP proxy requirer relation with invalid requests
     act: run the config-changed event
-    assert: the charm should ignore invalid requests
+    assert: the charm should set the request as invalid.
     """
     ctx = ops.testing.Context(HttpProxyPolicyCharm)
     relation1 = ops.testing.Relation(
@@ -327,6 +327,14 @@ def test_ignore_invalid_requests(mock_policy):
             "requirer": "00000000-0000-4000-8000-000000000000",
             "src_ips": ["192.0.2.0"],
         }
+    ]
+    assert json.loads(
+        cast(dict, state_out.get_relation(relation3.id).local_app_data)["responses"]
+    ) == [
+        {
+            "requirer": "00000000-0000-4000-b000-000000000000",
+            "status": http_proxy.PROXY_STATUS_INVALID,
+        },
     ]
 
 
