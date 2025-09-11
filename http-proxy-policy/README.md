@@ -1,6 +1,6 @@
 # HTTP proxy policy snap
 
-This snap is meant to be the workload of the [http-proxy-policy-operator](https://github.com/canonical/http-proxy-policy/http-proxy-policy-operator) 
+This snap is meant to be the workload of the [http-proxy-policy-operator](https://github.com/canonical/http-proxy-operators/tree/main/http-proxy-policy-operator) 
 charm.  
 
 ## Get started
@@ -60,5 +60,4 @@ sudo snap set charmed-http-proxy-policy secret-key=test
 
 ## Project and community
 * [Issues](https://github.com/canonical/http-proxy-operators/issues)
-* [Contribute](https://github.com/canonical/http-proxy-operators/blob/main/CONTRIBUTING.md)
 * [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)

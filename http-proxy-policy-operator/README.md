@@ -33,7 +33,7 @@ a virtual machine with 4 CPUs, 8 GB RAM, and 50 GB of disk space.
 
 ### Set up
 
-You can follow the how-to guide [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up)
+You can follow the how-to guide [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-juju-deployment/set-up-your-juju-deployment-local-testing-and-development/)
 to set up a test environment for Juju with LXD.
 
 ### Deploy
