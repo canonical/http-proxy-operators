@@ -32,11 +32,11 @@ And if you run `kubectl describe pod indico-0`, all the containers will have as 
 
 ## OCI images
 
-We use [Rockcraft](https://canonical-rockcraft.readthedocs-hosted.com/en/latest/) to build OCI Images for <charm-name>. 
+We use [Rockcraft](https://documentation.ubuntu.com/rockcraft/stable/) to build OCI Images for <charm-name>. 
 The images are defined in [<charm-name> rock](link to rock).
 They are published to [Charmhub](https://charmhub.io/), the official repository of charms.
 
-> See more: [How to publish your charm on Charmhub](https://juju.is/docs/sdk/publishing)
+> See more: [How to publish your charm on Charmhub](https://documentation.ubuntu.com/charmcraft/stable/howto/manage-charms/#publish-a-charm-on-charmhub)
 
 ## Metrics
 <! --
@@ -67,14 +67,14 @@ For this charm, the following Juju events are observed:
 Numbered list of Juju events. Link to describe the event in more detail (either in Juju docs or in a specific charm's docs). When is the event fired? What does the event indicate/mean?
 -->
 
-> See more in the Juju docs: [Event](https://juju.is/docs/sdk/event)
+> See more in the Juju docs: [Hook](https://documentation.ubuntu.com/juju/3.6/reference/hook/)
 
 ## Charm code overview
 
 The `src/charm.py` is the default entry point for a charm and has the <relevant-charm-class> Python class which inherits from CharmBase. CharmBase is the base class 
-from which all Charms are formed, defined by [Ops](https://juju.is/docs/sdk/ops) (Python framework for developing charms).
+from which all Charms are formed, defined by [Ops](https://documentation.ubuntu.com/ops/latest/) (Python framework for developing charms).
 
-> See more in the Juju docs: [Charm](https://juju.is/docs/sdk/constructs#heading--charm)
+> See more in the Juju docs: [Charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/)
 
 The `__init__` method guarantees that the charm observes all events relevant to its operation and handles them.
 

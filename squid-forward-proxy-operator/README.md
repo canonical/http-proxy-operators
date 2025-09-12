@@ -1,6 +1,6 @@
 # Squid forward proxy charm
 
-[![CharmHub Badge](https://charmhub.io/squid-forward-policy/badge.svg)](https://charmhub.io/squid-forward-policy)
+[![CharmHub Badge](https://charmhub.io/squid-forward-proxy/badge.svg)](https://charmhub.io/squid-forward-proxy)
 [![Publish to edge](https://github.com/canonical/http-proxy-operators/actions/workflows/publish.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/publish.yaml/badge.svg)
 [![Promote charm](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml/badge.svg)](https://github.com/canonical/http-proxy-operators/actions/workflows/promote_charm.yaml)
 [![Discourse Status](https://img.shields.io/discourse/status?server=https%3A%2F%2Fdiscourse.charmhub.io&style=flat&label=CharmHub%20Discourse)](https://discourse.charmhub.io)
@@ -27,7 +27,7 @@ a virtual machine with 4 CPUs, 8 GB RAM, and 50 GB of disk space.
 
 ### Set up
 
-You can follow the how-to guide [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up) to set up a test environment for Juju with LXD.
+You can follow the how-to guide [here](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-juju-deployment/set-up-your-juju-deployment-local-testing-and-development/) to set up a test environment for Juju with LXD.
 
 ### Deploy
 
