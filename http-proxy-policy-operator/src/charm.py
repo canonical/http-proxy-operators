@@ -175,7 +175,7 @@ class HttpProxyPolicyCharm(ops.CharmBase):
             )
             return
         if statistic.missing_backend_relations:
-            self.app.status = ops.WaitingStatus("waiting for http proxy backend")
+            self.app.status = ops.WaitingStatus("Waiting for http-proxy-backend relation.")
             return
 
         fields = {

@@ -171,6 +171,7 @@ def test_reply_requests(mock_policy):
             "src_ips": ["192.0.2.0"],
         }
     ]
+    assert state_out.app_status == ops.testing.ActiveStatus("accepted: 1, rejected: 1, pending: 1")
 
 
 def test_relay_responses(mock_policy):
@@ -336,6 +337,9 @@ def test_invalid_requests(mock_policy):
             "status": http_proxy.PROXY_STATUS_INVALID,
         },
     ]
+    assert state_out.app_status == ops.testing.ActiveStatus(
+        "accepted: 1, invalid requests: 1, invalid integrations: 1"
+    )
 
 
 def test_ignore_duplicate_requests(mock_policy):
@@ -396,6 +400,7 @@ def test_ignore_duplicate_requests(mock_policy):
         )
         == []
     )
+    assert state_out.app_status == ops.testing.ActiveStatus("duplicated: 2")
 
 
 def test_cleanup_responses(mock_policy):
@@ -474,3 +479,110 @@ def test_cleanup_responses(mock_policy):
             "status": http_proxy.PROXY_STATUS_ACCEPTED,
         }
     ]
+
+
+def test_invalid_backend_response(mock_policy):
+    """
+    arrange: prepare HTTP proxy requirer relation, proxy backend relation with invalid response,
+             and PostgreSQL relation.
+    act: run the config-changed event
+    assert: the charm should ignore invalid backend response
+    """
+    ctx = ops.testing.Context(HttpProxyPolicyCharm)
+    relation = ops.testing.Relation(
+        id=111,
+        endpoint="http-proxy",
+        remote_app_data={
+            "requests": json.dumps(
+                [EXAMPLE_RAW_REQUESTS[0]],
+            )
+        },
+    )
+    mock_policy.HttpProxyPolicyClient.refresh.return_value = [EXAMPLE_EVALUATED_REQUESTS[0]]
+    backend_secret = ops.testing.Secret(tracked_content={"username": "test", "password": "test"})
+    backend_relation = ops.testing.Relation(
+        endpoint="http-proxy-backend",
+        remote_app_data={
+            "responses": json.dumps([{"requirer": "00000000-0000-4000-8000-000000000000"}])
+        },
+    )
+    pgsql_relation = ops.testing.Relation(
+        endpoint="postgresql",
+        remote_app_data={
+            "database": "http-proxy-policy",
+            "endpoints": "postgresql.test:5432",
+            "username": "postgres",
+            "password": "postgres",
+        },
+    )
+    state_in = ops.testing.State(
+        leader=True,
+        relations=[
+            relation,
+            backend_relation,
+            pgsql_relation,
+            ops.testing.PeerRelation(endpoint="http-proxy-policy-peer"),
+        ],
+        secrets=[backend_secret],
+    )
+    state_out = ctx.run(ctx.on.config_changed(), state_in)
+    response = json.loads(
+        cast(dict, state_out.get_relation(relation.id).local_app_data)["responses"]
+    )
+    assert response == [
+        {
+            "requirer": "00000000-0000-4000-8000-000000000000",
+            "status": http_proxy.PROXY_STATUS_ACCEPTED,
+        }
+    ]
+    expected_status = "Invalid responses from http proxy backend. Check debug logs."
+    assert state_out.app_status == ops.testing.BlockedStatus(expected_status)
+
+
+def test_missing_backend_relation(mock_policy):
+    """
+    arrange: prepare HTTP proxy requirer relation, and PostgreSQL relation without proxy backend
+             relation.
+    act: run the config-changed event
+    assert: the charm should set the unit status to waiting.
+    """
+    ctx = ops.testing.Context(HttpProxyPolicyCharm)
+    relation = ops.testing.Relation(
+        id=111,
+        endpoint="http-proxy",
+        remote_app_data={
+            "requests": json.dumps(
+                [EXAMPLE_RAW_REQUESTS[0]],
+            )
+        },
+    )
+    mock_policy.HttpProxyPolicyClient.refresh.return_value = [EXAMPLE_EVALUATED_REQUESTS[0]]
+    pgsql_relation = ops.testing.Relation(
+        endpoint="postgresql",
+        remote_app_data={
+            "database": "http-proxy-policy",
+            "endpoints": "postgresql.test:5432",
+            "username": "postgres",
+            "password": "postgres",
+        },
+    )
+    state_in = ops.testing.State(
+        leader=True,
+        relations=[
+            relation,
+            pgsql_relation,
+            ops.testing.PeerRelation(endpoint="http-proxy-policy-peer"),
+        ],
+    )
+    state_out = ctx.run(ctx.on.config_changed(), state_in)
+    response = json.loads(
+        cast(dict, state_out.get_relation(relation.id).local_app_data)["responses"]
+    )
+    assert response == [
+        {
+            "requirer": "00000000-0000-4000-8000-000000000000",
+            "status": http_proxy.PROXY_STATUS_ACCEPTED,
+        }
+    ]
+    expected_status = "Waiting for http-proxy-backend relation."
+    assert state_out.app_status == ops.testing.WaitingStatus(expected_status)

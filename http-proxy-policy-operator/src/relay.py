@@ -135,7 +135,6 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
                             auth=None,
                             user=None,
                         )
-                        self._statistic.duplicated_requests += 1
                     duplicated_requirers.add(requirer)
                     continue
                 try:
