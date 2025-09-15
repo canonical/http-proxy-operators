@@ -73,6 +73,10 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
         Return:
             HTTP proxy policy statistic.
         """
+        # this ensures that each new run of relay starts with fresh stats. This might
+        # be required later, if relay is called multiple times during a charm invocation,
+        # such as with deferred events, custom events etc.
+        self._statistic = HttpProxyPolicyStatistic()
         collected_requests = self._collect_proxy_requests()
         evaluated_requests = self._evaluate_proxy_requests(
             proxy_requests=collected_requests, client=client
