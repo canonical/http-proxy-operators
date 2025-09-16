@@ -279,26 +279,23 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         Args:
             requirer_id: http proxy request requirer id
         """
-        response = self.responses.get(requirer_id)
         try:
             request = self._requests.get(requirer_id)
         except ValueError:
-            if response:
-                self.responses.update(
-                    requirer_id,
-                    status=http_proxy.PROXY_STATUS_INVALID,
-                    http_proxy=None,
-                    https_proxy=None,
-                    auth=None,
-                    user=None,
-                )
-            else:
-                self.responses.add(requirer_id, status=http_proxy.PROXY_STATUS_INVALID)
+            self.responses.add_or_replace(
+                requirer_id,
+                status=http_proxy.PROXY_STATUS_INVALID,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
             self.invalid_request_count += 1
             return
         auth = request.auth[0]
         username = None
         password = None
+        response = self.responses.get(requirer_id)
         if http_proxy.AUTH_METHOD_USERPASS in auth:
             if response and response.user:
                 username = response.user.username
@@ -307,24 +304,14 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
                 username = squid.derive_proxy_username(request)
                 password = self._generate_proxy_password()
             self.proxy_users[username] = password
-        if response:
-            self.responses.update(
-                requirer_id,
-                status=http_proxy.PROXY_STATUS_READY,
-                auth=auth,
-                http_proxy=self._proxy_url,
-                https_proxy=self._proxy_url,
-                user={"username": username, "password": password} if username else None,
-            )
-        else:
-            self.responses.add(
-                requirer_id,
-                status=http_proxy.PROXY_STATUS_READY,
-                auth=auth,
-                http_proxy=self._proxy_url,
-                https_proxy=self._proxy_url,
-                user={"username": username, "password": password} if username else None,
-            )
+        self.responses.add_or_replace(
+            requirer_id,
+            status=http_proxy.PROXY_STATUS_READY,
+            auth=auth,
+            http_proxy=self._proxy_url,
+            https_proxy=self._proxy_url,
+            user={"username": username, "password": password} if username else None,
+        )
         self.proxy_requests.append(request)
 
     @staticmethod

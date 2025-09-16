@@ -23,6 +23,7 @@ class HttpProxyPolicyStatistic:  # pylint: disable=too-many-instance-attributes
         duplicated_requests: duplicated proxy requests
         accepted_requests: accepted proxy requests
         rejected_requests: rejected proxy requests
+        pending_requests: pending proxy requests
         invalid_backend_responses: invalid backend responses
         invalid_backend_relations: invalid backend relation
         missing_backend_relations: missing backend relation
@@ -33,6 +34,7 @@ class HttpProxyPolicyStatistic:  # pylint: disable=too-many-instance-attributes
     duplicated_requests: int = 0
     accepted_requests: int = 0
     rejected_requests: int = 0
+    pending_requests: int = 0
     invalid_backend_responses: int = 0
     invalid_backend_relations: int = 0
     missing_backend_relations: int = 0
@@ -71,6 +73,9 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
         Return:
             HTTP proxy policy statistic.
         """
+        # this ensures that each new run of relay starts with fresh stats. This might
+        # be required later, if relay is called multiple times during a charm invocation,
+        # such as with deferred events, custom events etc.
         self._statistic = HttpProxyPolicyStatistic()
         collected_requests = self._collect_proxy_requests()
         evaluated_requests = self._evaluate_proxy_requests(
@@ -88,6 +93,7 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
         collected: dict[str, http_proxy.HttpProxyRequest] = {}
         duplicated_requirers = set()
         for relation in self._provider_relations:
+            proxy_responses = self._proxy_provider.open_response_list(relation.id)
             try:
                 proxy_requests = self._proxy_provider.open_request_list(relation.id)
             except http_proxy.IntegrationDataError as e:
@@ -102,11 +108,36 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
                         requirer,
                     )
                     self._statistic.duplicated_requests += 1
+                    proxy_responses.add_or_replace(
+                        requirer,
+                        status=http_proxy.PROXY_STATUS_INVALID,
+                        http_proxy=None,
+                        https_proxy=None,
+                        auth=None,
+                        user=None,
+                    )
                     if duplicated_request := collected.pop(requirer, None):
                         logger.debug(
-                            "duplicated proxy request, relation id: %s, requirer id: %s",
+                            "removed duplicated proxy request from collected list, "
+                            "relation id: %s, requirer id: %s",
                             duplicated_request.group,
                             duplicated_request.id,
+                        )
+                        # Note: If a requirer_id already exists in another relation and was
+                        # previously marked as ACCEPTED, it will now be reclassified as DUPLICATED
+                        # and set to INVALID. This ensures that no two relations can
+                        # simultaneously manage the same requirer_id.
+                        self._statistic.duplicated_requests += 1
+                        dup_responses = self._proxy_provider.open_response_list(
+                            duplicated_request.group
+                        )
+                        dup_responses.add_or_replace(
+                            requirer,
+                            status=http_proxy.PROXY_STATUS_INVALID,
+                            http_proxy=None,
+                            https_proxy=None,
+                            auth=None,
+                            user=None,
                         )
                     duplicated_requirers.add(requirer)
                     continue
@@ -119,12 +150,20 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
                         requirer,
                     )
                     self._statistic.invalid_requests += 1
+                    proxy_responses.add_or_replace(
+                        requirer,
+                        status=http_proxy.PROXY_STATUS_INVALID,
+                        http_proxy=None,
+                        https_proxy=None,
+                        auth=None,
+                        user=None,
+                    )
                     continue
         return collected
 
     def _evaluate_proxy_requests(
         self,
-        proxy_requests: dict[str, http_proxy.HttpProxyRequest],
+        proxy_requests: dict[str, tuple[int, http_proxy.HttpProxyRequest]],
         client: policy.HttpProxyPolicyClient,
     ) -> dict[str, policy.EvaluatedHttpProxyRequest]:
         """Submit the proxy requests to the HTTP proxy policy server.
@@ -143,6 +182,8 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
                 self._statistic.accepted_requests += 1
             if evaluated_request.status == http_proxy.PROXY_STATUS_REJECTED:
                 self._statistic.rejected_requests += 1
+            if evaluated_request.status == http_proxy.PROXY_STATUS_PENDING:
+                self._statistic.pending_requests += 1
             result[str(evaluated_request.id)] = evaluated_request
         return result
 
