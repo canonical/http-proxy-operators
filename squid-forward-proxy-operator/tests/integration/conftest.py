@@ -43,6 +43,7 @@ class AnyCharm:
         Args:
             ops_test: OpsTest instance
             name: any-charm application name
+            pytestconfig: pytest config
         """
         assert ops_test.model
         self._model = ops_test.model

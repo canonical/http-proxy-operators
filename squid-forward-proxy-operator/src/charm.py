@@ -85,6 +85,7 @@ class SquidProxyCharm(ops.CharmBase):
         temporary_integration_errors = 0
         integration_errors = 0
         invalid_requests = 0
+        unsupported_requests = 0
         proxy_requests: list[http_proxy.HttpProxyRequest] = []
         proxy_users: dict[str, str] = {}
         secret_ids = []
@@ -115,6 +116,7 @@ class SquidProxyCharm(ops.CharmBase):
             proxy_users.update(reconciler.proxy_users)
             secret_ids.extend(reconciler.responses.get_juju_secrets())
             invalid_requests += reconciler.invalid_request_count
+            unsupported_requests += reconciler.unsupported_request_count
         squid.update_config_and_passwd(
             proxy_requests=proxy_requests, proxy_users=proxy_users, http_port=self._get_http_port()
         )
@@ -124,6 +126,8 @@ class SquidProxyCharm(ops.CharmBase):
             status_message += f", invalid: {invalid_requests}"
         if temporary_integration_errors:
             status_message += f", temporary integration errors: {temporary_integration_errors}"
+        if unsupported_requests:
+            status_message += f", unsupported: {unsupported_requests}"
         if integration_errors:
             status = ops.BlockedStatus
             status_message += f", integration errors: {integration_errors}"
@@ -264,12 +268,14 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         self.proxy_users: dict[str, str] = {}
         self.proxy_requests: list[http_proxy.HttpProxyRequest] = []
         self.invalid_request_count = 0
+        self.unsupported_request_count = 0
 
     def reconcile(self) -> None:
         """Run the reconciliation loop on this integration."""
         self.proxy_users.clear()
         self.proxy_requests.clear()
         self.invalid_request_count = 0
+        self.unsupported_request_count = 0
         for requirer_id in self._requests.get_requirer_ids():
             self._reconcile_request_as_leader(requirer_id)
 
@@ -281,6 +287,17 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods
         """
         try:
             request = self._requests.get(requirer_id)
+            if request.domains == () or request.auth == ():
+                self.responses.add_or_replace(
+                    requirer_id,
+                    status=http_proxy.PROXY_STATUS_UNSUPPORTED,
+                    http_proxy=None,
+                    https_proxy=None,
+                    auth=None,
+                    user=None,
+                )
+                self.unsupported_request_count += 1
+                return
         except ValueError:
             self.responses.add_or_replace(
                 requirer_id,

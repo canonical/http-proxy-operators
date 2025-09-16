@@ -24,6 +24,7 @@ class HttpProxyPolicyStatistic:  # pylint: disable=too-many-instance-attributes
         accepted_requests: accepted proxy requests
         rejected_requests: rejected proxy requests
         pending_requests: pending proxy requests
+        unsupported_requests: unsupported proxy requests
         invalid_backend_responses: invalid backend responses
         invalid_backend_relations: invalid backend relation
         missing_backend_relations: missing backend relation
@@ -35,6 +36,7 @@ class HttpProxyPolicyStatistic:  # pylint: disable=too-many-instance-attributes
     accepted_requests: int = 0
     rejected_requests: int = 0
     pending_requests: int = 0
+    unsupported_requests: int = 0
     invalid_backend_responses: int = 0
     invalid_backend_relations: int = 0
     missing_backend_relations: int = 0
@@ -142,7 +144,24 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
                     duplicated_requirers.add(requirer)
                     continue
                 try:
-                    collected[requirer] = proxy_requests.get(requirer)
+                    request = proxy_requests.get(requirer)
+                    if request.domains == () or request.auth == ():
+                        logger.debug(
+                            "unsupported proxy request, relation id: %s, requirer id: %s",
+                            relation.id,
+                            requirer,
+                        )
+                        self._statistic.unsupported_requests += 1
+                        proxy_responses.add_or_replace(
+                            requirer,
+                            status=http_proxy.PROXY_STATUS_UNSUPPORTED,
+                            http_proxy=None,
+                            https_proxy=None,
+                            auth=None,
+                            user=None,
+                        )
+                        continue
+                    collected[requirer] = request
                 except ValueError:
                     logger.debug(
                         "invalid proxy request, relation id: %s, requirer id: %s",

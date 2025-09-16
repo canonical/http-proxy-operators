@@ -184,6 +184,7 @@ class HttpProxyPolicyCharm(ops.CharmBase):
             "pending": statistic.pending_requests,
             "invalid requests": statistic.invalid_requests,
             "duplicated": statistic.duplicated_requests,
+            "unsupported": statistic.unsupported_requests,
             "invalid integrations": statistic.invalid_relations,
             "invalid backend responses": statistic.invalid_backend_responses,
         }

@@ -35,6 +35,7 @@ There are two ways to initialize the requirer class:
 from charms.http_proxy.v0.http_proxy import {
     HTTPProxyNotAvailableError,
     HttpProxyRequirer
+    HTTP_PROXY_INTEGRATION_NAME
 )
 
 class FooCharm(ops.CharmBase):
@@ -42,6 +43,7 @@ class FooCharm(ops.CharmBase):
         ...
          self.http_proxy_requirer = HttpProxyRequirer(
             self,
+             relation_name=HTTP_PROXY_INTEGRATION_NAME,
             domains=["example.com", "example.org"],
             auth=["userpass", "none", "srcip", "srcip+userpass"],
             src_ips=[],
@@ -52,7 +54,7 @@ class FooCharm(ops.CharmBase):
 
     def get_proxies(self, _: ops.EventBase):
         try:
-            proxies = self.http_proxy_requirer.must_get_proxies()
+            proxies = self.http_proxy_requirer.fetch_proxies()
         except HTTPProxyUnavailableError as e:
             logging.error(f"HTTP proxy not available. {e}")
             return
@@ -63,31 +65,40 @@ class FooCharm(ops.CharmBase):
 
 ```python
 # This will simply initialize the requirer class and it won't perform any action.
-# Later the requirer data can be provided through the `request_http_proxy` method.
+# Later provide the requirer data through the request_http_proxy method.
+
+from charms.http_proxy.v0.http_proxy import {
+    HTTPProxyNotAvailableError,
+    HttpProxyDynamicRequirer,
+    HTTP_PROXY_INTEGRATION_NAME
+)
+
 class FooCharmDynamic(ops.CharmBase):
     def __init__(self, *args):
-         ...
+        ...
         self.http_proxy_dynamic_requirer = HttpProxyDynamicRequirer(
             self,
-             relation_name=HTTP_PROXY_INTEGRATION_NAME,
+            relation_name=HTTP_PROXY_INTEGRATION_NAME,
         )
         self.framework.observe(
             self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self.get_proxies
         )
+        self.framework.observe(self.on.config_changed, self.provide_proxy)
         ...
 
     def provide_proxy(self):
-        # If you have initialized the requirer with no parameters,you can call the
-        # request_http_proxy method anywhere in your charm to request proxy.
- self.http_proxy_dynamic_requirer.request_http_proxy(
+        # If you have initialized the HttpProxyDynamicRequirer class
+        # you can call the request_http_proxy method anywhere in your charm
+        # to request proxy.
+        self.http_proxy_dynamic_requirer.request_http_proxy(
             domains=["example.com", "example.org"],
             auth=["userpass", "none", "srcip", "srcip+userpass"],
             src_ips=[],
-        ) # this method is available for the HttpProxyDynamicRequirer class only.
+        )
 
     def get_proxies(self, _: ops.EventBase):
         try:
-            proxies = self.http_proxy_requirer.must_get_proxies()
+            proxies = self.http_proxy_requirer.fetch_proxies()
         except HTTPProxyUnavailableError as e:
             logging.error(f"HTTP proxy not available. {e}")
             return
@@ -126,7 +137,16 @@ class FooCharm:
         relation = self.model.get_relation(HTTP_PROXY_INTEGRATION_NAME)
         proxy_requests = self._http_proxy_provider.open_request_list(relation.id)
         responses = self._http_proxy_provider.open_response_list(relation.id)
-        ...
+        for requirer in proxy_requests.get_requirer_ids():
+            request = proxy_requests.get(requirer)
+            responses.add_or_replace(
+                requirer_id=request.id,
+                status=http_proxy.PROXY_STATUS_READY,
+                auth=request.auth[0],
+                http_proxy="http://proxy.test",
+                https_proxy="https://proxy.test",
+                user=None,
+            )
 
 """  # noqa: D214,D405,D410,D411,D416
 
@@ -158,11 +178,13 @@ PROXY_STATUS_REJECTED = "rejected"
 PROXY_STATUS_INVALID = "invalid"
 PROXY_STATUS_ERROR = "error"
 PROXY_STATUS_READY = "ready"
+PROXY_STATUS_UNSUPPORTED = "unsupported"
 PROXY_STATUSES = [
     PROXY_STATUS_PENDING,
     PROXY_STATUS_ACCEPTED,
     PROXY_STATUS_REJECTED,
     PROXY_STATUS_INVALID,
+    PROXY_STATUS_UNSUPPORTED,
     PROXY_STATUS_ERROR,
     PROXY_STATUS_READY,
 ]
@@ -283,8 +305,10 @@ class HttpProxySpec(BaseModel):
         Returns:
             The canonical representation of the domains.
         """
-        if not domains:
-            raise ValueError("no domains specified")
+        if domains is None:
+            raise ValueError("Domains cannot be None.")
+        if domains == []:
+            return tuple()
         valid_domains = []
         invalid_domains = []
         for domain in domains:
@@ -314,8 +338,10 @@ class HttpProxySpec(BaseModel):
         Returns:
             The canonical representation of the auth.
         """
-        if not auth:
-            raise ValueError("no auth method specified")
+        if auth is None:
+            raise ValueError("auth cannot be None.")
+        if auth == []:
+            return tuple()
         invalid_auth = [a for a in auth if a not in AUTH_METHODS]
         if invalid_auth:
             raise ValueError(f"invalid auth type: {invalid_auth}")
@@ -1154,14 +1180,14 @@ class _BaseHttpProxyRequirer(Object):
         except KeyError:
             pass
 
-    def must_get_proxies(self) -> dict:
+    def fetch_proxies(self) -> dict:
         """Get HTTP proxy values returned by the provider.
 
         Returns:
-            HTTP proxy returned from the HTTP proxy provider.
+            HTTP proxy values.
 
         Raises:
-            HTTPProxyUnavailableError: if proxies are not ready.
+            HTTPProxyUnavailableError: If proxies are not ready.
         """
         response = self._get_response()
         if response.status != PROXY_STATUS_READY:
@@ -1252,7 +1278,7 @@ class HttpProxyRequirer(_BaseHttpProxyRequirer):
 
     def _request_proxy(self, _: ops.EventBase) -> None:
         """Request a HTTP proxy."""
-        if not self._domains or not self._auth:
+        if self._domains is None or self._auth is None:
             raise ValueError("domains and auth are required.")
         self._create_or_update_http_proxy_request()
 
@@ -1278,7 +1304,7 @@ class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
         Raises:
             ValueError: if domains or auth are not provided.
         """
-        if not domains or not auth:
+        if domains is None or auth is None:
             raise ValueError("domains and auth are required.")
         self._domains = domains
         self._auth = auth

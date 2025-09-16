@@ -168,14 +168,6 @@ def test_http_proxy_request_list_reader_validate_input(requests):
         pytest.param(
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
-                "domains": [],
-                "auth": [http_proxy.AUTH_METHOD_NONE],
-            },
-            id="empty domains",
-        ),
-        pytest.param(
-            {
-                "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": "example.com",
                 "auth": [http_proxy.AUTH_METHOD_NONE],
             },
@@ -227,14 +219,6 @@ def test_http_proxy_request_list_reader_validate_input(requests):
                 "domains": ["example.com"],
             },
             id="missing auth",
-        ),
-        pytest.param(
-            {
-                "requirer": "00000000-0000-4000-8000-000000000000",
-                "domains": ["example.com"],
-                "auth": [],
-            },
-            id="empty auth",
         ),
         pytest.param(
             {
@@ -302,6 +286,54 @@ def test_http_proxy_request_list_reader_validate_request(proxy_request):
                 implicit_src_ips=True,
             ),
             id="normal request",
+        ),
+        pytest.param(
+            {
+                "requirer": "00000000-0000-4000-8000-000000000000",
+                "domains": [],
+                "auth": [http_proxy.AUTH_METHOD_NONE],
+            },
+            http_proxy.HttpProxyRequest(
+                group=123,
+                id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
+                domains=(),
+                auth=(http_proxy.AUTH_METHOD_NONE,),
+                src_ips=("10.0.0.1",),
+                implicit_src_ips=True,
+            ),
+            id="empty domains",
+        ),
+        pytest.param(
+            {
+                "requirer": "00000000-0000-4000-8000-000000000000",
+                "domains": ["example.com"],
+                "auth": [],
+            },
+            http_proxy.HttpProxyRequest(
+                group=123,
+                id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
+                domains=("example.com:80", "example.com:443"),
+                auth=(),
+                src_ips=("10.0.0.1",),
+                implicit_src_ips=True,
+            ),
+            id="empty auth",
+        ),
+        pytest.param(
+            {
+                "requirer": "00000000-0000-4000-8000-000000000000",
+                "domains": [],
+                "auth": [],
+            },
+            http_proxy.HttpProxyRequest(
+                group=123,
+                id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
+                domains=(),
+                auth=(),
+                src_ips=("10.0.0.1",),
+                implicit_src_ips=True,
+            ),
+            id="empty domains and auth",
         ),
         pytest.param(
             {
@@ -434,26 +466,10 @@ def test_http_proxy_request_list_reader_get_request(proxy_request, parsed_reques
         pytest.param(
             {
                 "requirer_id": "00000000-0000-4000-8000-000000000000",
-                "domains": [],
-                "auth": [http_proxy.AUTH_METHOD_NONE],
-            },
-            id="missing domains",
-        ),
-        pytest.param(
-            {
-                "requirer_id": "00000000-0000-4000-8000-000000000000",
                 "domains": ["example.com:123456"],
                 "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid domains",
-        ),
-        pytest.param(
-            {
-                "requirer_id": "00000000-0000-4000-8000-000000000000",
-                "domains": ["example.com"],
-                "auth": [],
-            },
-            id="missing auth",
         ),
         pytest.param(
             {
@@ -486,13 +502,13 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
 
     writer.add(
         requirer_id="00000000-0000-4000-8000-000000000000",
-        domains=["example.com"],
+        domains=[],
         auth=[http_proxy.AUTH_METHOD_NONE],
     )
     assert writer.get("00000000-0000-4000-8000-000000000000") == http_proxy.HttpProxyRequest(
         group=123,
         id=uuid.UUID("00000000-0000-4000-8000-000000000000"),
-        domains=("example.com:80", "example.com:443"),
+        domains=(),
         auth=(http_proxy.AUTH_METHOD_NONE,),
         src_ips=("10.0.0.1",),
         implicit_src_ips=True,
@@ -500,7 +516,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
     assert json.loads(writer._integration_data["requests"]) == [
         {
             "auth": [http_proxy.AUTH_METHOD_NONE],
-            "domains": ["example.com"],
+            "domains": [],
             "requirer": "00000000-0000-4000-8000-000000000000",
         }
     ]
@@ -522,7 +538,7 @@ def test_http_proxy_request_list_read_writer_add_delete_request():
     assert json.loads(writer._integration_data["requests"]) == [
         {
             "auth": [http_proxy.AUTH_METHOD_NONE],
-            "domains": ["example.com"],
+            "domains": [],
             "requirer": "00000000-0000-4000-8000-000000000000",
         },
         {

@@ -70,7 +70,7 @@ class AnyCharm(AnyCharmBase):
             HTTP proxy status returned from the HTTP proxy provider.
         """
         try:
-            self._proxy_requirer.must_get_proxies()
+            self._proxy_requirer.fetch_proxies()
             return http_proxy.PROXY_STATUS_READY
         except http_proxy.HTTPProxyUnavailableError as e:
             return e.status
@@ -82,7 +82,7 @@ class AnyCharm(AnyCharmBase):
             HTTP proxies returned from the HTTP proxy provider if ready else returns status.
         """
         try:
-            proxies = self._proxy_requirer.must_get_proxies()
+            proxies = self._proxy_requirer.fetch_proxies()
             return {
                 "http": proxies["HTTP_PROXY"],
                 "https": proxies["HTTPS_PROXY"],

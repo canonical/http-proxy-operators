@@ -342,6 +342,54 @@ def test_invalid_requests(mock_policy):
     )
 
 
+def test_unsupported_requests(mock_policy):  # pylint: disable=unused-argument
+    """
+    arrange: prepare HTTP proxy requirer relation with unsupported requests
+    act: run the config-changed event
+    assert: the charm should set the request as unsupported.
+    """
+    ctx = ops.testing.Context(HttpProxyPolicyCharm)
+    relation1 = ops.testing.Relation(
+        endpoint="http-proxy",
+        remote_app_data={
+            "requests": json.dumps(
+                [{"requirer": "00000000-0000-4000-b000-000000000000", "domains": [], "auth": []}]
+            )
+        },
+    )
+    pgsql_relation = ops.testing.Relation(
+        endpoint="postgresql",
+        remote_app_data={
+            "database": "http-proxy-policy",
+            "endpoints": "postgresql.test:5432",
+            "username": "postgres",
+            "password": "postgres",
+        },
+    )
+    backend_relation = ops.testing.Relation(
+        endpoint="http-proxy-backend",
+    )
+    state_in = ops.testing.State(
+        leader=True,
+        relations=[
+            relation1,
+            pgsql_relation,
+            backend_relation,
+            ops.testing.PeerRelation(endpoint="http-proxy-policy-peer"),
+        ],
+    )
+    state_out = ctx.run(ctx.on.config_changed(), state_in)
+    assert json.loads(
+        cast(dict, state_out.get_relation(relation1.id).local_app_data)["responses"]
+    ) == [
+        {
+            "requirer": "00000000-0000-4000-b000-000000000000",
+            "status": http_proxy.PROXY_STATUS_UNSUPPORTED,
+        },
+    ]
+    assert state_out.app_status == ops.testing.ActiveStatus("unsupported: 1")
+
+
 def test_ignore_duplicate_requests(mock_policy):
     """
     arrange: prepare HTTP proxy requirer relation with duplicate requests.
