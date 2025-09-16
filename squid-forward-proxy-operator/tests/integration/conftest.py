@@ -23,6 +23,12 @@ async def squid_proxy_fixture(
     if not charm:
         charm = await ops_test.build_charm(".")
     assert ops_test.model
+    if (
+        pytestconfig.getoption("--no-deploy")
+        and "squid-forward-proxy" in ops_test.model.applications
+    ):
+        application = ops_test.model.applications["squid-forward-proxy"]
+        return application
     charm = await ops_test.model.deploy(os.path.abspath(charm), num_units=3)
     await ops_test.model.wait_for_idle()
     return charm
@@ -31,7 +37,7 @@ async def squid_proxy_fixture(
 class AnyCharm:
     """any-charm helper."""
 
-    def __init__(self, ops_test: OpsTest, name: str) -> None:
+    def __init__(self, ops_test: OpsTest, name: str, pytestconfig: pytest.Config) -> None:
         """Initialize the any-charm helper.
 
         Args:
@@ -40,6 +46,7 @@ class AnyCharm:
         """
         assert ops_test.model
         self._model = ops_test.model
+        self._pytestconfig = pytestconfig
         self._app: juju.application.Application | None = None
         self.name = name
 
@@ -49,6 +56,9 @@ class AnyCharm:
         any_charm_py_content = any_charm_py.read_text(encoding="utf-8")
         http_proxy_py = pathlib.Path(__file__).parent.parent.parent / "src/http_proxy.py"
         http_proxy_py_content = http_proxy_py.read_text(encoding="utf-8")
+        if self._pytestconfig.getoption("--no-deploy"):
+            self._app = self._model.applications[self.name]
+            return
         self._app = await self._model.deploy(
             "any-charm",
             application_name=self.name,
@@ -143,59 +153,72 @@ class AnyCharm:
 
 
 @pytest_asyncio.fixture(scope="module", name="any_charm_abcd")
-async def any_charm_abcd_fixture(ops_test: OpsTest) -> list[AnyCharm]:
+async def any_charm_abcd_fixture(ops_test: OpsTest, pytestconfig: pytest.Config) -> list[AnyCharm]:
     """Deploy the any-charms in the testing model."""
     any_charms = [
         AnyCharm(
             ops_test=ops_test,
             name="any-charm-a",
+            pytestconfig=pytestconfig,
         ),
         AnyCharm(
             ops_test=ops_test,
             name="any-charm-b",
+            pytestconfig=pytestconfig,
         ),
         AnyCharm(
             ops_test=ops_test,
             name="any-charm-c",
+            pytestconfig=pytestconfig,
         ),
         AnyCharm(
             ops_test=ops_test,
             name="any-charm-d",
+            pytestconfig=pytestconfig,
         ),
     ]
     await asyncio.gather(*[any_charm.deploy() for any_charm in any_charms])
+
     assert ops_test.model
     await ops_test.model.wait_for_idle(apps=[any_charm.name for any_charm in any_charms])
     return any_charms
 
 
 @pytest_asyncio.fixture(scope="module")
-async def any_charm_a(any_charm_abcd, squid_proxy) -> AnyCharm:
+async def any_charm_a(any_charm_abcd, squid_proxy, pytestconfig: pytest.Config) -> AnyCharm:
     """Set up the any-charm-a in the testing model."""
     any_charm = any_charm_abcd[0]
+    if pytestconfig.getoption("--no-deploy"):
+        return any_charm
     await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
 
 
 @pytest_asyncio.fixture(scope="module")
-async def any_charm_b(any_charm_abcd, squid_proxy) -> AnyCharm:
+async def any_charm_b(any_charm_abcd, squid_proxy, pytestconfig: pytest.Config) -> AnyCharm:
     """Set up the any-charm-b in the testing model."""
     any_charm = any_charm_abcd[1]
+    if pytestconfig.getoption("--no-deploy"):
+        return any_charm
     await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
 
 
 @pytest_asyncio.fixture(scope="module")
-async def any_charm_c(any_charm_abcd, squid_proxy) -> AnyCharm:
+async def any_charm_c(any_charm_abcd, squid_proxy, pytestconfig: pytest.Config) -> AnyCharm:
     """Set up the any-charm-c in the testing model."""
     any_charm = any_charm_abcd[2]
+    if pytestconfig.getoption("--no-deploy"):
+        return any_charm
     await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
 
 
 @pytest_asyncio.fixture(scope="module")
-async def any_charm_d(any_charm_abcd, squid_proxy) -> AnyCharm:
+async def any_charm_d(any_charm_abcd, squid_proxy, pytestconfig: pytest.Config) -> AnyCharm:
     """Set up the any-charm-d in the testing model."""
     any_charm = any_charm_abcd[3]
+    if pytestconfig.getoption("--no-deploy"):
+        return any_charm
     await any_charm.integrate(f"{squid_proxy.name}:http-proxy")
     return any_charm
