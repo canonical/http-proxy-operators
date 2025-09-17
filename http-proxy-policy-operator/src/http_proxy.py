@@ -1161,9 +1161,10 @@ class _BaseHttpProxyRequirer(Object):
         self._relation_name = relation_name
         self._relation = self.model.get_relation(relation_name)
 
-        if not self._stored.requirer_id:
+        self._stored.set_default(requirer_id="")
+        if self._stored.requirer_id == "":
             self._stored.requirer_id = str(uuid.uuid4())
-        self._requirer_id = self._stored.requirer_id
+        self._requirer_id = str(self._stored.requirer_id)
 
         self._domains: Optional[List[str]] = None
         self._auth: Optional[List[str]] = None
