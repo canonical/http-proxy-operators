@@ -79,7 +79,7 @@ class AnyCharm(AnyCharmBase):
         """Get HTTP proxies returned from the HTTP proxy provider.
 
         Returns:
-            HTTP proxies returned from the HTTP proxy provider if ready else returns status.
+            HTTP proxies returned from the HTTP proxy provider if ready else returns None.
         """
         try:
             proxies = self._proxy_requirer.fetch_proxies()
