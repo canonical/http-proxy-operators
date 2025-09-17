@@ -1278,8 +1278,8 @@ class HttpProxyRequirer(_BaseHttpProxyRequirer):
 
     def _request_proxy(self, _: ops.EventBase) -> None:
         """Request a HTTP proxy."""
-        if self._domains is None or self._auth is None:
-            raise ValueError("domains and auth are required.")
+        if not self._domains or not self._auth:
+            raise ValueError("domains and auth cannot be empty.")
         self._create_or_update_http_proxy_request()
 
 

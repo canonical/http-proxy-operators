@@ -236,7 +236,7 @@ class SquidProxyCharm(ops.CharmBase):
         return typing.cast(int, self.config["http-port"])
 
 
-class IntegrationReconciler:  # pylint: disable=too-few-public-methods
+class IntegrationReconciler:  # pylint: disable=too-few-public-methods,too-many-instance-attributes
     """Integration reconciliation helper.
 
     Attributes:
