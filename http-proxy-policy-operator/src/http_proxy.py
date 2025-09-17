@@ -1145,6 +1145,8 @@ class HttpProxyPolyRequirer:
 class _BaseHttpProxyRequirer(Object):
     """Base class for HTTP proxy requirers."""
 
+    _stored = ops.StoredState()
+
     def __init__(
         self, charm: ops.CharmBase, relation_name: str = HTTP_PROXY_INTEGRATION_NAME
     ) -> None:
@@ -1158,7 +1160,10 @@ class _BaseHttpProxyRequirer(Object):
         self._charm = charm
         self._relation_name = relation_name
         self._relation = self.model.get_relation(relation_name)
-        self._requirer_id = str(uuid.uuid4())
+
+        if not self._stored.requirer_id:
+            self._stored.requirer_id = str(uuid.uuid4())
+        self._requirer_id = self._stored.requirer_id
 
         self._domains: Optional[List[str]] = None
         self._auth: Optional[List[str]] = None
@@ -1235,7 +1240,7 @@ class _BaseHttpProxyRequirer(Object):
         responses = requirer.open_response_list(self._relation.id)
         response = responses.get(self._requirer_id)
         if not response:
-            raise ValueError("Response not found")
+            raise ValueError(f"Response not found. Requirer ID: {self._requirer_id}")
         return response
 
     def _set_user(self, url: str, username: str, password: str) -> str:
@@ -1278,8 +1283,8 @@ class HttpProxyRequirer(_BaseHttpProxyRequirer):
 
     def _request_proxy(self, _: ops.EventBase) -> None:
         """Request a HTTP proxy."""
-        if self._domains is None or self._auth is None:
-            raise ValueError("domains and auth are required.")
+        if not self._domains or not self._auth:
+            raise ValueError("domains and auth cannot be empty.")
         self._create_or_update_http_proxy_request()
 
 
