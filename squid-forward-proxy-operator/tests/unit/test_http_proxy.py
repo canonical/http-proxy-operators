@@ -231,14 +231,6 @@ def test_http_proxy_request_list_reader_validate_input(requests):
         pytest.param(
             {
                 "requirer": "00000000-0000-4000-8000-000000000000",
-                "domains": ["example.com"],
-                "auth": ["foobar"],
-            },
-            id="unknown auth",
-        ),
-        pytest.param(
-            {
-                "requirer": "00000000-0000-4000-8000-000000000000",
                 "domains": "example.com",
                 "auth": [http_proxy.AUTH_METHOD_NONE],
                 "src_ips": "10.0.0.1",
@@ -470,14 +462,6 @@ def test_http_proxy_request_list_reader_get_request(proxy_request, parsed_reques
                 "auth": [http_proxy.AUTH_METHOD_NONE],
             },
             id="invalid domains",
-        ),
-        pytest.param(
-            {
-                "requirer_id": "00000000-0000-4000-8000-000000000000",
-                "domains": ["example.com"],
-                "auth": ["foobar"],
-            },
-            id="unknown auth",
         ),
     ],
 )

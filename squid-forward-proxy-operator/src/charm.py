@@ -15,10 +15,10 @@ from charms.grafana_agent.v0 import cos_agent
 
 import http_proxy
 import squid
+from http_proxy import DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 
 logger = logging.getLogger(__name__)
 
-HTTP_PROXY_INTEGRATION_NAME = "http-proxy"
 PEER_INTEGRATION_NAME = "squid-peer"
 
 
@@ -33,7 +33,7 @@ class SquidProxyCharm(ops.CharmBase):
         """
         super().__init__(*args)
         self._proxy_provider = http_proxy.HttpProxyPolyProvider(
-            charm=self, integration_name=HTTP_PROXY_INTEGRATION_NAME
+            charm=self, integration_name=DEFAULT_HTTP_PROXY_INTEGRATION_NAME
         )
         self._grafana_agent = cos_agent.COSAgentProvider(
             self,
@@ -46,16 +46,16 @@ class SquidProxyCharm(ops.CharmBase):
         self.framework.observe(self.on.upgrade_charm, self._install)
         self.framework.observe(self.on.config_changed, self._reconcile)
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_changed, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_joined, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_joined, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_departed, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_departed, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_broken, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_broken, self._reconcile
         )
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_changed, self._reconcile)
         self.framework.observe(self.on[PEER_INTEGRATION_NAME].relation_joined, self._reconcile)
@@ -287,18 +287,8 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods,too-many-
         """
         try:
             request = self._requests.get(requirer_id)
-            if request.domains == () or request.auth == ():
-                self.responses.add_or_replace(
-                    requirer_id,
-                    status=http_proxy.PROXY_STATUS_UNSUPPORTED,
-                    http_proxy=None,
-                    https_proxy=None,
-                    auth=None,
-                    user=None,
-                )
-                self.unsupported_request_count += 1
-                return
         except ValueError:
+            logger.warning("invalid data in request from requirer id %s", requirer_id)
             self.responses.add_or_replace(
                 requirer_id,
                 status=http_proxy.PROXY_STATUS_INVALID,
@@ -309,6 +299,9 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods,too-many-
             )
             self.invalid_request_count += 1
             return
+        if not self._is_supported_request(request, requirer_id):
+            return
+
         auth = request.auth[0]
         username = None
         password = None
@@ -330,6 +323,49 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods,too-many-
             user={"username": username, "password": password} if username else None,
         )
         self.proxy_requests.append(request)
+
+    def _is_supported_request(
+        self, request: http_proxy.HttpProxyRequest, requirer_id: str
+    ) -> bool:
+        """Check if the request is supported.
+
+        Args:
+            request: http proxy request
+            requirer_id: http proxy request requirer id
+
+        Returns:
+            True if the request is supported, False otherwise.
+        """
+        if not request.domains or not request.auth:
+            logger.warning("empty domains or auth in request from requirer id %s", requirer_id)
+            self.responses.add_or_replace(
+                requirer_id,
+                status=http_proxy.PROXY_STATUS_UNSUPPORTED,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
+            self.unsupported_request_count += 1
+            return False
+        unsupported_auth = [auth for auth in request.auth if auth not in http_proxy.AUTH_METHODS]
+        if unsupported_auth:
+            logger.warning(
+                "unsupported auth methods %s in request from requirer id %s",
+                unsupported_auth,
+                requirer_id,
+            )
+            self.responses.add_or_replace(
+                requirer_id,
+                status=http_proxy.PROXY_STATUS_UNSUPPORTED,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
+            self.unsupported_request_count += 1
+            return False
+        return True
 
     @staticmethod
     def _generate_proxy_password() -> str:

@@ -93,7 +93,8 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
             proxy requests from http_proxy relations.
         """
         collected: dict[str, http_proxy.HttpProxyRequest] = {}
-        duplicated_requirers = set()
+        duplicated_requirers: set = set()
+
         for relation in self._provider_relations:
             proxy_responses = self._proxy_provider.open_response_list(relation.id)
             try:
@@ -104,81 +105,168 @@ class HttpProxyRequestRelay:  # pylint: disable=too-few-public-methods
                 continue
             for requirer in proxy_requests.get_requirer_ids():
                 if requirer in collected or requirer in duplicated_requirers:
-                    logger.debug(
-                        "duplicated proxy request, relation id: %s, requirer id: %s",
-                        relation.id,
-                        requirer,
-                    )
-                    self._statistic.duplicated_requests += 1
-                    proxy_responses.add_or_replace(
-                        requirer,
-                        status=http_proxy.PROXY_STATUS_INVALID,
-                        http_proxy=None,
-                        https_proxy=None,
-                        auth=None,
-                        user=None,
-                    )
-                    if duplicated_request := collected.pop(requirer, None):
-                        logger.debug(
-                            "removed duplicated proxy request from collected list, "
-                            "relation id: %s, requirer id: %s",
-                            duplicated_request.group,
-                            duplicated_request.id,
-                        )
-                        # Note: If a requirer_id already exists in another relation and was
-                        # previously marked as ACCEPTED, it will now be reclassified as DUPLICATED
-                        # and set to INVALID. This ensures that no two relations can
-                        # simultaneously manage the same requirer_id.
-                        self._statistic.duplicated_requests += 1
-                        dup_responses = self._proxy_provider.open_response_list(
-                            duplicated_request.group
-                        )
-                        dup_responses.add_or_replace(
-                            requirer,
-                            status=http_proxy.PROXY_STATUS_INVALID,
-                            http_proxy=None,
-                            https_proxy=None,
-                            auth=None,
-                            user=None,
-                        )
-                    duplicated_requirers.add(requirer)
-                    continue
-                try:
-                    request = proxy_requests.get(requirer)
-                    if request.domains == () or request.auth == ():
-                        logger.debug(
-                            "unsupported proxy request, relation id: %s, requirer id: %s",
-                            relation.id,
-                            requirer,
-                        )
-                        self._statistic.unsupported_requests += 1
-                        proxy_responses.add_or_replace(
-                            requirer,
-                            status=http_proxy.PROXY_STATUS_UNSUPPORTED,
-                            http_proxy=None,
-                            https_proxy=None,
-                            auth=None,
-                            user=None,
-                        )
-                        continue
-                    collected[requirer] = request
-                except ValueError:
-                    logger.debug(
-                        "invalid proxy request, relation id: %s, requirer id: %s",
-                        relation.id,
-                        requirer,
-                    )
-                    self._statistic.invalid_requests += 1
-                    proxy_responses.add_or_replace(
-                        requirer,
-                        status=http_proxy.PROXY_STATUS_INVALID,
-                        http_proxy=None,
-                        https_proxy=None,
-                        auth=None,
-                        user=None,
+                    self._handle_duplicate_request(
+                        relation.id, requirer, collected, duplicated_requirers
                     )
                     continue
+
+                request = self._get_request(proxy_requests, relation.id, requirer, proxy_responses)
+                if request is None:
+                    continue
+
+                if not self._is_supported_request(request, relation.id, requirer, proxy_responses):
+                    continue
+
+                collected[requirer] = request
+
         return collected
+
+    def _handle_duplicate_request(
+        self,
+        relation_id: int,
+        requirer: str,
+        collected: dict[str, http_proxy.HttpProxyRequest],
+        duplicated_requirers: set,
+    ) -> None:
+        """Handle duplicated proxy request.
+
+        Args:
+            relation_id: relation id.
+            requirer: requirer id.
+            collected: collected proxy requests.
+            duplicated_requirers: set of already identified duplicated requirer ids.
+        """
+        logger.debug(
+            "duplicated proxy request, relation id: %s, requirer id: %s", relation_id, requirer
+        )
+        self._statistic.duplicated_requests += 1
+
+        proxy_responses = self._proxy_provider.open_response_list(relation_id)
+        proxy_responses.add_or_replace(
+            requirer,
+            status=http_proxy.PROXY_STATUS_INVALID,
+            http_proxy=None,
+            https_proxy=None,
+            auth=None,
+            user=None,
+        )
+
+        if duplicated_request := collected.pop(requirer, None):
+            logger.debug(
+                "removed duplicated proxy request from collected list, "
+                "relation id: %s, requirer id: %s",
+                duplicated_request.group,
+                duplicated_request.id,
+            )
+
+            self._statistic.duplicated_requests += 1
+            dup_responses = self._proxy_provider.open_response_list(duplicated_request.group)
+            # Note: If a requirer_id already exists in another relation and was
+            # previously marked as ACCEPTED, it will now be reclassified as DUPLICATED
+            # and set to INVALID. This ensures that no two relations can
+            # simultaneously manage the same requirer_id.
+            dup_responses.add_or_replace(
+                requirer,
+                status=http_proxy.PROXY_STATUS_INVALID,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
+
+        duplicated_requirers.add(requirer)
+
+    def _get_request(
+        self,
+        proxy_requests: http_proxy._HttpProxyRequestListReader,
+        relation_id: int,
+        requirer: str,
+        proxy_responses: http_proxy._HttpProxyResponseListReadWriter,
+    ) -> http_proxy.HttpProxyRequest | None:
+        """Get proxy request from the proxy requests list.
+
+        Args:
+            proxy_requests: proxy requests list.
+            relation_id: relation id.
+            requirer: requirer id.
+            proxy_responses: proxy responses list.
+
+        Returns:
+            proxy request, or None if the request is invalid.
+        """
+        try:
+            return proxy_requests.get(requirer)
+        except ValueError:
+            logger.debug(
+                "invalid proxy request, relation id: %s, requirer id: %s", relation_id, requirer
+            )
+            self._statistic.invalid_requests += 1
+            proxy_responses.add_or_replace(
+                requirer,
+                status=http_proxy.PROXY_STATUS_INVALID,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
+            return None
+
+    def _is_supported_request(
+        self,
+        request: http_proxy.HttpProxyRequest,
+        relation_id: int,
+        requirer: str,
+        proxy_responses: http_proxy._HttpProxyResponseListReadWriter,
+    ) -> bool:
+        """Check if the proxy request is supported.
+
+        Args:
+            request: proxy request.
+            relation_id: relation id.
+            requirer: requirer id.
+            proxy_responses: proxy responses list.
+
+        Returns:
+            True if the request is supported.
+        """
+        if not request.domains or not request.auth:
+            logger.debug(
+                "unsupported proxy request, relation id: %s, requirer id: %s",
+                relation_id,
+                requirer,
+            )
+            self._statistic.unsupported_requests += 1
+            proxy_responses.add_or_replace(
+                requirer,
+                status=http_proxy.PROXY_STATUS_UNSUPPORTED,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
+            return False
+
+        unsupported_auth = [auth for auth in request.auth if auth not in http_proxy.AUTH_METHODS]
+        if unsupported_auth:
+            logger.debug(
+                "unsupported authentication modes in proxy request, "
+                "relation id: %s, requirer id: %s, unsupported auth methods: %s",
+                relation_id,
+                requirer,
+                unsupported_auth,
+            )
+            self._statistic.unsupported_requests += 1
+            proxy_responses.add_or_replace(
+                requirer,
+                status=http_proxy.PROXY_STATUS_UNSUPPORTED,
+                http_proxy=None,
+                https_proxy=None,
+                auth=None,
+                user=None,
+            )
+            return False
+
+        return True
 
     def _evaluate_proxy_requests(
         self,

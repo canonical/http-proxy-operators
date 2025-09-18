@@ -18,10 +18,10 @@ from charms.data_platform_libs.v0.data_interfaces import DatabaseRequires
 import http_proxy
 import policy
 import relay
+from http_proxy import DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 
 logger = logging.getLogger(__name__)
 
-HTTP_PROXY_INTEGRATION_NAME = "http-proxy"
 HTTP_PROXY_BACKEND_INTEGRATION_NAME = "http-proxy-backend"
 PEER_INTEGRATION_NAME = "http-proxy-policy-peer"
 POLICY_SERVER_ENDPOINT = "http://localhost:8080"
@@ -49,9 +49,9 @@ class HttpProxyPolicyCharm(ops.CharmBase):
         self.on.define_event("reconcile", ReconcileEvent)
         self._relay = relay.HttpProxyRequestRelay(
             proxy_provider=http_proxy.HttpProxyPolyProvider(
-                charm=self, integration_name=HTTP_PROXY_INTEGRATION_NAME
+                charm=self, integration_name=DEFAULT_HTTP_PROXY_INTEGRATION_NAME
             ),
-            provider_relations=self.model.relations[HTTP_PROXY_INTEGRATION_NAME],
+            provider_relations=self.model.relations[DEFAULT_HTTP_PROXY_INTEGRATION_NAME],
             proxy_backend=http_proxy.HttpProxyPolyRequirer(
                 charm=self, integration_name=HTTP_PROXY_BACKEND_INTEGRATION_NAME
             ),
@@ -68,16 +68,16 @@ class HttpProxyPolicyCharm(ops.CharmBase):
         self.framework.observe(self._postgresql.on.endpoints_changed, self._reconcile)
         self.framework.observe(self.on.postgresql_relation_broken, self._reconcile)
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_changed, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_changed, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_joined, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_joined, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_departed, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_departed, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_INTEGRATION_NAME].relation_broken, self._reconcile
+            self.on[DEFAULT_HTTP_PROXY_INTEGRATION_NAME].relation_broken, self._reconcile
         )
         self.framework.observe(
             self.on[HTTP_PROXY_BACKEND_INTEGRATION_NAME].relation_changed, self._reconcile
