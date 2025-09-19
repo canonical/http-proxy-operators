@@ -245,6 +245,63 @@ def test_squid_charm_handle_invalid_request(mock_squid):
     assert "00000000-0000-4000-9000-000000000000" not in mock_squid.read_config()
 
 
+def test_squid_charm_handle_unsupported_request(mock_squid):
+    """
+    arrange: Set up the charm with a http-proxy integration using unsupported requests.
+    act: Simulate a config-changed event.
+    assert: The charm should respond to the requests with the unsupported status.
+    """
+    ctx = ops.testing.Context(SquidProxyCharm)
+    integration = ops.testing.Relation(
+        endpoint="http-proxy",
+        remote_app_data={
+            "requests": json.dumps(
+                [
+                    {
+                        "requirer": "00000000-0000-4000-8000-000000000000",
+                        "domains": [],
+                        "auth": [http_proxy.AUTH_METHOD_NONE],
+                    },
+                    {
+                        "requirer": "00000000-0000-4000-9000-000000000000",
+                        "domains": ["example.com:80"],
+                        "auth": [],
+                    },
+                    {
+                        "requirer": "00000000-0000-5000-9000-000000000000",
+                        "domains": [],
+                        "auth": [],
+                    },
+                ]
+            )
+        },
+    )
+    state_in = ops.testing.State(
+        leader=True,
+        relations=[integration, ops.testing.PeerRelation(endpoint="squid-peer")],
+    )
+    state_out = ctx.run(ctx.on.config_changed(), state_in)
+    responses = json.loads(
+        typing.cast(dict, state_out.get_relation(integration.id).local_app_data)["responses"]
+    )
+    assert responses == [
+        {
+            "requirer": "00000000-0000-4000-8000-000000000000",
+            "status": http_proxy.PROXY_STATUS_UNSUPPORTED,
+        },
+        {
+            "requirer": "00000000-0000-4000-9000-000000000000",
+            "status": http_proxy.PROXY_STATUS_UNSUPPORTED,
+        },
+        {
+            "requirer": "00000000-0000-5000-9000-000000000000",
+            "status": http_proxy.PROXY_STATUS_UNSUPPORTED,
+        },
+    ]
+    for response in responses:
+        assert response["requirer"] not in mock_squid.read_config()
+
+
 def test_squid_charm_update(mock_squid):
     """
     arrange: Set up the charm with a http-proxy integration with responses.

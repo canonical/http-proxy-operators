@@ -8,7 +8,7 @@ import ipaddress
 import itertools
 import re
 import uuid
-from typing import Optional, Sequence, Annotated
+from typing import Annotated, Optional, Sequence
 
 from django.db import models
 from pydantic import BaseModel, BeforeValidator, model_validator
@@ -27,6 +27,7 @@ PROXY_STATUS_PENDING = "pending"
 PROXY_STATUS_ACCEPTED = "accepted"
 PROXY_STATUS_REJECTED = "rejected"
 PROXY_STATUS_INVALID = "invalid"
+PROXY_STATUS_UNSUPPORTED = "unsupported"
 PROXY_STATUS_ERROR = "error"
 PROXY_STATUS_READY = "ready"
 PROXY_STATUSES = [
@@ -34,6 +35,7 @@ PROXY_STATUSES = [
     PROXY_STATUS_ACCEPTED,
     PROXY_STATUS_REJECTED,
     PROXY_STATUS_INVALID,
+    PROXY_STATUS_UNSUPPORTED,
     PROXY_STATUS_ERROR,
     PROXY_STATUS_READY,
 ]
@@ -49,6 +51,7 @@ class RangeSet:
 
     Integer ranges are represented by tuples (a, b), which denote integers i such that a <= i < b.
     """
+
     def __init__(self, ranges: list[tuple[int, int]]):
         self._ranges = self._merge(ranges)
 
@@ -113,13 +116,17 @@ class IpSet:
     @property
     def ipv6(self) -> RangeSet:
         if self._ipv6 is None:
-            self._ipv6 = self._build_ip_range_set([ip for ip in self.source if ":" in ip], 6)
+            self._ipv6 = self._build_ip_range_set(
+                [ip for ip in self.source if ":" in ip], 6
+            )
         return self._ipv6
 
     @property
     def ipv4(self) -> RangeSet:
         if self._ipv4 is None:
-            self._ipv4 = self._build_ip_range_set([ip for ip in self.source if "." in ip], 4)
+            self._ipv4 = self._build_ip_range_set(
+                [ip for ip in self.source if "." in ip], 4
+            )
         return self._ipv4
 
     def _build_ip_range_set(self, ips: list[str], version: int) -> RangeSet:
@@ -133,7 +140,9 @@ class IpSet:
 
     def is_superset_of(self, other: "IpSet") -> bool:
         """Check if this IP set is a superset of the other IP set."""
-        return self.ipv4.is_superset_of(other.ipv4) and self.ipv6.is_superset_of(other.ipv6)
+        return self.ipv4.is_superset_of(other.ipv4) and self.ipv6.is_superset_of(
+            other.ipv6
+        )
 
     def overlap(self, other: "IpSet") -> bool:
         """Check if this IP set overlaps with another IP set."""
@@ -335,12 +344,16 @@ class RuleInput(BaseModel):
     domains: Annotated[
         tuple[str, ...],
         BeforeValidator(
-            lambda domains: (_validate_and_transform_domains(domains=domains) if domains else ())
+            lambda domains: (
+                _validate_and_transform_domains(domains=domains) if domains else ()
+            )
         ),
     ] = ()
     auth: Annotated[
         tuple[str, ...],
-        BeforeValidator(lambda auth: _validate_and_transform_auth(auth=auth) if auth else ()),
+        BeforeValidator(
+            lambda auth: _validate_and_transform_auth(auth=auth) if auth else ()
+        ),
     ] = ()
     src_ips: Annotated[
         tuple[str, ...],
@@ -378,7 +391,9 @@ class Rule(models.Model):
 
 class RequestInput(BaseModel):
     requirer: uuid.UUID
-    domains: Annotated[tuple[str, ...], BeforeValidator(_validate_and_transform_domains)]
+    domains: Annotated[
+        tuple[str, ...], BeforeValidator(_validate_and_transform_domains)
+    ]
     auth: Annotated[tuple[str, ...], BeforeValidator(_validate_and_transform_auth)]
     src_ips: Annotated[tuple[str, ...], BeforeValidator(_validate_and_sort_src_ip)]
     implicit_src_ips: bool
@@ -391,7 +406,10 @@ class RequestInput(BaseModel):
             The validated object.
         """
         if (
-            any(auth in (AUTH_METHOD_SRCIP, AUTH_METHOD_SRCIP_USERPASS) for auth in self.auth)
+            any(
+                auth in (AUTH_METHOD_SRCIP, AUTH_METHOD_SRCIP_USERPASS)
+                for auth in self.auth
+            )
             and not self.src_ips
         ):
             raise ValueError("no src_ips specified for srcip authentication")
