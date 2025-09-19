@@ -1197,6 +1197,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         """
         if not self._relation:
             requirer_id = str(uuid.uuid4())
+            return requirer_id
         relation_data = self._relation.data[self._relation.app]
         responses = relation_data.get("responses", "[]")
         try:
