@@ -64,8 +64,8 @@ async def test_proxy_requests(
     await ops_test.model.wait_for_idle()
 
     assert await requirer_charm_a.get_proxies() == {
-        "http": "http://test:test@proxy.test",
-        "https": "https://test:test@proxy.test",
+        "http": "http://test:test@proxy.test/",
+        "https": "https://test:test@proxy.test/",
     }
     assert await requirer_charm_a.get_proxy_status() == http_proxy.PROXY_STATUS_READY
     assert await requirer_charm_b.get_proxies() is None
