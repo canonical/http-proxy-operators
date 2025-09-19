@@ -1200,14 +1200,14 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             return requirer_id
         relation_data = self._relation.data[self._relation.app]
         responses = relation_data.get("responses", "[]")
-        if len(responses) == 0:
-            return str(uuid.uuid4())
         try:
             responses = json.loads(responses)
         except json.decoder.JSONDecodeError as exc:
             raise IntegrationDataError("not json") from exc
         if not isinstance(responses, list):
             raise IntegrationDataError("not a list")
+        if len(responses) == 0:
+            return str(uuid.uuid4())
         response = responses[0]
         if not isinstance(response, dict):
             raise IntegrationDataError("not a dict")
