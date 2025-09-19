@@ -1196,7 +1196,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             The requirer ID.
         """
         if not self._relation:
-            raise ValueError("relation not found")
+            requirer_id = str(uuid.uuid4())
         relation_data = self._relation.data[self._relation.app]
         responses = relation_data.get("responses", "[]")
         try:
