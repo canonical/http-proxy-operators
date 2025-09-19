@@ -238,8 +238,8 @@ def test_relay_responses(mock_policy):
     assert response == [
         {
             "auth": "srcip+userpass",
-            "http_proxy": "http://proxy.test",
-            "https_proxy": "https://proxy.test",
+            "http_proxy": "http://proxy.test/",
+            "https_proxy": "https://proxy.test/",
             "requirer": "00000000-0000-4000-8000-000000000000",
             "status": "ready",
             "user": new_secret,

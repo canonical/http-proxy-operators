@@ -472,8 +472,8 @@ class HttpProxyResponse(BaseModel):
     id: uuid.UUID
     status: str
     auth: Optional[str] = None
-    http_proxy: Optional[str] = None
-    https_proxy: Optional[str] = None
+    http_proxy: Optional[HttpUrl] = None
+    https_proxy: Optional[HttpUrl] = None
     user: Optional[HttpProxyUser] = None
 
     @field_validator("status", mode="before")
@@ -858,8 +858,8 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         *,
         status: str,
         auth: str | None = None,
-        http_proxy: Optional[str] = None,
-        https_proxy: Optional[str] = None,
+        http_proxy: Optional[HttpUrl | str] = None,
+        https_proxy: Optional[HttpUrl | str] = None,
         user: Dict[str, str] | None = None,
     ) -> None:
         """Add a new HTTP proxy response.
@@ -899,9 +899,9 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         if user is not None:
             response["user"] = self._create_secret(user)
         if http_proxy is not None:
-            response["http_proxy"] = http_proxy
+            response["http_proxy"] = str(http_proxy)
         if https_proxy is not None:
-            response["https_proxy"] = https_proxy
+            response["https_proxy"] = str(https_proxy)
         self._responses[requirer_id] = response
         self._dump()
 
@@ -911,8 +911,8 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         *,
         status: str | object = NO_CHANGE,
         auth: str | None | object = NO_CHANGE,
-        http_proxy: str | None | object = NO_CHANGE,
-        https_proxy: str | None | object = NO_CHANGE,
+        http_proxy: HttpUrl | str | None | object = NO_CHANGE,
+        https_proxy: HttpUrl | str | None | object = NO_CHANGE,
         user: Dict[str, str] | None | object = NO_CHANGE,
     ) -> None:
         """Update an HTTP proxy response.
@@ -931,10 +931,9 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
             response["status"] = status
         if auth is not NO_CHANGE:
             response["auth"] = auth
-        if http_proxy is not NO_CHANGE:
-            response["http_proxy"] = http_proxy
-        if https_proxy is not NO_CHANGE:
-            response["https_proxy"] = https_proxy
+        for key, value in {"http_proxy": http_proxy, "https_proxy": https_proxy}.items():
+            if value is not NO_CHANGE:
+                response[key] = str(value) if value is not None else None
         test_response = copy.deepcopy(response)
         if user is not NO_CHANGE:
             test_response["user"] = user
@@ -959,8 +958,8 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         *,
         status: str,
         auth: str | None = None,
-        http_proxy: Optional[str] = None,
-        https_proxy: Optional[str] = None,
+        http_proxy: Optional[str | HttpUrl] = None,
+        https_proxy: Optional[str | HttpUrl] = None,
         user: Dict[str, str] | None = None,
     ) -> None:
         """Add a new HTTP proxy response or replace an existing one.
@@ -1258,7 +1257,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             raise HTTPProxyUnavailableError(
                 "Invalid proxy url", status=PROXY_STATUS_READY
             ) from exc
-        return proxy_config.model_dump()
+        return proxy_config.model_dump(mode="json")
 
     def _create_or_update_http_proxy_request(
         self,
