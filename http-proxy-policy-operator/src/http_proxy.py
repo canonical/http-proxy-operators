@@ -1195,27 +1195,28 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         Returns:
             The requirer ID.
         """
+        new_id = str(uuid.uuid4())
         if not self._relation:
-            requirer_id = str(uuid.uuid4())
-            return requirer_id
+            return new_id
         relation_data = self._relation.data[self._relation.app]
-        responses = relation_data.get("responses", "[]")
+        raw_responses = relation_data.get("responses")
+        if not raw_responses:
+            return new_id
         try:
-            responses = json.loads(responses)
+            responses = json.loads(raw_responses)
         except json.decoder.JSONDecodeError as exc:
-            raise IntegrationDataError("not json") from exc
+            raise IntegrationDataError("responses is not valid JSON") from exc
         if not isinstance(responses, list):
-            raise IntegrationDataError("not a list")
-        if len(responses) == 0:
-            return str(uuid.uuid4())
+            raise IntegrationDataError("responses must be a list")
+        if not responses:
+            return new_id
         response = responses[0]
         if not isinstance(response, dict):
-            raise IntegrationDataError("not a dict")
+            raise IntegrationDataError("each response must be a dict")
         try:
-            requirer_id = response["requirer"]
+            return response["requirer"]
         except KeyError:
-            requirer_id = str(uuid.uuid4())
-        return requirer_id
+            return new_id
 
     def _delete_request(self, _: ops.EventBase) -> None:
         """Delete the HTTP proxy request."""
