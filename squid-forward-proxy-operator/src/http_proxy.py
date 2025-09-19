@@ -1244,8 +1244,8 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
                 status=response.status,
             )
 
-        http_proxy_url = response.http_proxy
-        https_proxy_url = response.https_proxy
+        http_proxy_url = str(response.http_proxy)
+        https_proxy_url = str(response.https_proxy)
 
         user = response.user
         if user:
