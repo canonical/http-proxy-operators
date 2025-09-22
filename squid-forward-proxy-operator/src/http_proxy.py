@@ -1189,7 +1189,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             self._charm.on[self._relation_name].relation_departed, self._delete_request
         )
 
-    def _get_requirer_id(self) -> str:
+    def _get_requirer_id(self) -> str | None:
         """Get the requirer ID from integration data or generate a new one.
 
         Returns:
@@ -1197,7 +1197,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         """
         new_id = str(uuid.uuid4())
         if not self._relation:
-            return new_id
+            return None
         relation_data = self._relation.data[self._relation.app]
         raw_responses = relation_data.get("responses")
         if not raw_responses:
