@@ -1230,7 +1230,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             return new_id
         request = requests[0]
         try:
-            logging.info(f"using existing requirer ID : {request["requirer"]} from relation data")
+            logging.info("using existing requirer ID : %s from relation data", request["requirer"])
             return request["requirer"]
         except KeyError:
             logging.warning("no requirer ID found in relation data, using a new requirer ID")
