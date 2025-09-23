@@ -147,6 +147,8 @@ class FooCharm:
         ...
 
     def provide_proxy(self, event: ops.EventBase) -> None:
+        if not self.model.unit.is_leader():
+            return
         relation = self.model.get_relation(DEFAULT_HTTP_PROXY_INTEGRATION_NAME)
         proxy_requests = self._http_proxy_provider.open_request_list(relation.id)
         responses = self._http_proxy_provider.open_response_list(relation.id)
