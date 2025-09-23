@@ -88,5 +88,6 @@ class AnyCharm(AnyCharmBase):
                 "http": proxies["http_proxy"],
                 "https": proxies["https_proxy"],
             }
-        except http_proxy.HTTPProxyUnavailableError:
+        except http_proxy.HTTPProxyUnavailableError as e:
+            logger.info(f"proxy not available: {e}")
             return None
