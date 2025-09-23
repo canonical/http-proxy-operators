@@ -28,7 +28,13 @@ requires:
     limit: 1
 ```
 
-There are two ways to initialize the requirer class:
+There are two ways to initialize the requirer class: using the `HttpProxyRequirer` class
+with parameters or using the `HttpProxyDynamicRequirer` class with no parameters.
+`HttpProxyRequirer` class is used when the requirer parameters are known at initialization time.
+`HttpProxyDynamicRequirer` class is used when the requirer parameters are not known at
+initialization time and will be provided later through the `request_http_proxy` method.
+The main use case for the `HttpProxyDynamicRequirer` class is when the list of domains
+requiring proxy is dynamic.
 
 1. To initialize the requirer with parameters using the `HttpProxyRequirer` class:
 
@@ -56,11 +62,12 @@ class FooCharm(ops.CharmBase):
 
     def get_proxies(self, _: ops.EventBase):
         try:
-            proxies = self.http_proxy_requirer.fetch_proxies()
+            proxy_values = self.http_proxy_requirer.fetch_proxies()
+            proxies = proxy_values.as_strings()
         except HTTPProxyUnavailableError as e:
             logging.error(f"HTTP proxy not available. Proxy status: {e.status}")
             return None
-        return (proxies["HTTP_PROXY"], proxies["HTTPS_PROXY"])
+        return (proxies["http_proxy"], proxies["https_proxy"])
 ```
 
 2. To initialize the requirer with no parameters using the `HttpProxyDynamicRequirer` class:
@@ -88,7 +95,7 @@ class FooCharmDynamic(ops.CharmBase):
         self.framework.observe(self.on.config_changed, self.provide_proxy)
         ...
 
-    def provide_proxy(self):
+    def provide_proxy(self, _: ops.EventBase):
         # If you have initialized the HttpProxyDynamicRequirer class
         # you can call the request_http_proxy method anywhere in your charm
         # to request proxy.
@@ -100,11 +107,12 @@ class FooCharmDynamic(ops.CharmBase):
 
     def get_proxies(self, _: ops.EventBase):
         try:
-            proxies = self.http_proxy_requirer.fetch_proxies()
+            proxy_values = self.http_proxy_requirer.fetch_proxies()
+            proxies = proxy_values.as_strings()
         except HTTPProxyUnavailableError as e:
             logging.error(f"HTTP proxy not available. Proxy status: {e.status}")
             return None
-        return (proxies["HTTP_PROXY"], proxies["HTTPS_PROXY"])
+        return (proxies["http_proxy"], proxies["https_proxy"])
 ```
 
 
@@ -166,10 +174,10 @@ from typing import Annotated, Dict, Iterable, List, Optional, Sequence, Tuple, U
 import ops
 from ops.framework import Object
 from pydantic import (
+    AnyUrl,
     BaseModel,
     ConfigDict,
     Field,
-    HttpUrl,
     SecretStr,
     ValidationError,
     field_validator,
@@ -210,12 +218,23 @@ class ProxyConfig(BaseModel):
     """Proxy configuration.
 
     Attributes:
-        HTTP_PROXY: HTTP proxy.
-        HTTPS_PROXY: HTTPS proxy.
+        http_proxy: HTTP proxy.
+        https_proxy: HTTPS proxy.
     """
 
-    HTTP_PROXY: HttpUrl
-    HTTPS_PROXY: HttpUrl
+    http_proxy: AnyUrl
+    https_proxy: AnyUrl
+
+    def as_strings(self) -> dict[str, str]:
+        """Return the proxy URLs as strings.
+
+        Returns:
+            A dictionary with string values for http_proxy and https_proxy.
+        """
+        return {
+            "http_proxy": str(self.http_proxy),
+            "https_proxy": str(self.https_proxy),
+        }
 
 
 class HTTPProxyUnavailableError(Exception):
@@ -228,7 +247,9 @@ class HTTPProxyUnavailableError(Exception):
             message: The exception message.
             status: The HTTP proxy status.
         """
-        super().__init__(message)
+        full_message = f"{message}. (status: {status})" if status is not None else message
+        super().__init__(full_message)
+        self.message = message
         self.status = status
 
 
@@ -375,7 +396,7 @@ class HttpProxySpec(BaseModel):
         sorted_auth = dedup(
             sorted(
                 auth,
-                key=lambda a: AUTH_METHODS.index(a) if a in AUTH_METHODS else len(AUTH_METHODS),
+                key=lambda a: AUTH_METHODS.index(a) if a in AUTH_METHODS else -1,
             )
         )
         return tuple(sorted_auth)
@@ -472,8 +493,8 @@ class HttpProxyResponse(BaseModel):
     id: uuid.UUID
     status: str
     auth: Optional[str] = None
-    http_proxy: Optional[HttpUrl] = None
-    https_proxy: Optional[HttpUrl] = None
+    http_proxy: Optional[AnyUrl] = None
+    https_proxy: Optional[AnyUrl] = None
     user: Optional[HttpProxyUser] = None
 
     @field_validator("status", mode="before")
@@ -858,8 +879,8 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         *,
         status: str,
         auth: str | None = None,
-        http_proxy: Optional[HttpUrl | str] = None,
-        https_proxy: Optional[HttpUrl | str] = None,
+        http_proxy: Optional[AnyUrl | str] = None,
+        https_proxy: Optional[AnyUrl | str] = None,
         user: Dict[str, str] | None = None,
     ) -> None:
         """Add a new HTTP proxy response.
@@ -911,8 +932,8 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         *,
         status: str | object = NO_CHANGE,
         auth: str | None | object = NO_CHANGE,
-        http_proxy: HttpUrl | str | None | object = NO_CHANGE,
-        https_proxy: HttpUrl | str | None | object = NO_CHANGE,
+        http_proxy: AnyUrl | str | None | object = NO_CHANGE,
+        https_proxy: AnyUrl | str | None | object = NO_CHANGE,
         user: Dict[str, str] | None | object = NO_CHANGE,
     ) -> None:
         """Update an HTTP proxy response.
@@ -958,8 +979,8 @@ class _HttpProxyResponseListReadWriter(_HttpProxyResponseListReader):
         *,
         status: str,
         auth: str | None = None,
-        http_proxy: Optional[str | HttpUrl] = None,
-        https_proxy: Optional[str | HttpUrl] = None,
+        http_proxy: Optional[str | AnyUrl] = None,
+        https_proxy: Optional[str | AnyUrl] = None,
         user: Dict[str, str] | None = None,
     ) -> None:
         """Add a new HTTP proxy response or replace an existing one.
@@ -1181,15 +1202,11 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         self._requirer_id = self._get_requirer_id()
         self._requirer = HttpProxyPolyRequirer(self._charm, self._relation_name)
 
-        self._domains: Optional[List[str]] = None
-        self._auth: Optional[List[str]] = None
-        self._src_ips: Optional[List[str]] = None
-
         self.framework.observe(
-            self._charm.on[self._relation_name].relation_departed, self._delete_request
+            self._charm.on[self._relation_name].relation_broken, self._on_relation_broken
         )
 
-    def _get_requirer_id(self) -> str | None:
+    def _get_requirer_id(self) -> str:
         """Get the requirer ID from integration data or generate a new one.
 
         Returns:
@@ -1197,28 +1214,21 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         """
         new_id = str(uuid.uuid4())
         if not self._relation:
-            return None
+            return new_id
         relation_data = self._relation.data[self._relation.app]
-        raw_responses = relation_data.get("responses")
-        if not raw_responses:
+        data = relation_data.get("requests")
+        if not data:
             return new_id
-        try:
-            responses = json.loads(raw_responses)
-        except json.decoder.JSONDecodeError as exc:
-            raise IntegrationDataError("responses is not valid JSON") from exc
-        if not isinstance(responses, list):
-            raise IntegrationDataError("responses must be a list")
-        if not responses:
+        requests = json.loads(data)
+        if not requests:
             return new_id
-        response = responses[0]
-        if not isinstance(response, dict):
-            raise IntegrationDataError("each response must be a dict")
+        request = requests[0]
         try:
-            return response["requirer"]
+            return request["requirer"]
         except KeyError:
             return new_id
 
-    def _delete_request(self, _: ops.EventBase) -> None:
+    def _on_relation_broken(self, _: ops.EventBase) -> None:
         """Delete the HTTP proxy request."""
         if not self._relation:
             raise ValueError("relation not found")
@@ -1228,7 +1238,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         except KeyError:
             pass
 
-    def fetch_proxies(self) -> dict:
+    def fetch_proxies(self) -> ProxyConfig:
         """Get HTTP proxy values returned by the provider.
 
         Returns:
@@ -1240,7 +1250,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         response = self._get_response()
         if response.status != PROXY_STATUS_READY:
             raise HTTPProxyUnavailableError(
-                message=f"HTTP proxy is not ready. Response status: {response.status}",
+                message="HTTP proxy is not ready",
                 status=response.status,
             )
 
@@ -1255,13 +1265,13 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             https_proxy_url = self._set_user(https_proxy_url, username, password)  # type: ignore
         try:
             proxy_config = ProxyConfig(
-                HTTP_PROXY=http_proxy_url, HTTPS_PROXY=https_proxy_url  # type: ignore
+                http_proxy=http_proxy_url, https_proxy=https_proxy_url  # type: ignore
             )
         except ValidationError as exc:
             raise HTTPProxyUnavailableError(
                 "Invalid proxy url", status=PROXY_STATUS_READY
             ) from exc
-        return proxy_config.model_dump(mode="json")
+        return proxy_config
 
     def _create_or_update_http_proxy_request(
         self,
@@ -1270,6 +1280,8 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         src_ips: Optional[List[str]] = None,
     ) -> None:
         """Create or update a HTTP proxy request."""
+        if not self.model.unit.is_leader():
+            return
         # relation would not be None here
         request_list = self._requirer.open_request_list(self._relation.id)  # type: ignore
         request_list.add_or_replace(
@@ -1363,7 +1375,6 @@ class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
         """
         if not self._relation:
             raise ValueError("relation not found")
-        self._domains = domains if domains is not None else []
-        self._auth = auth if auth is not None else []
-        self._src_ips = src_ips
-        self._create_or_update_http_proxy_request(self._domains, self._auth, self._src_ips)
+        domains = domains if domains is not None else []
+        auth = auth if auth is not None else []
+        self._create_or_update_http_proxy_request(domains, auth, src_ips)
