@@ -168,6 +168,7 @@ class FooCharm:
 import copy
 import ipaddress
 import json
+import logging
 import re
 import urllib.parse
 import uuid
@@ -1216,18 +1217,23 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         """
         new_id = str(uuid.uuid4())
         if not self._relation:
+            logging.warning("relation not found, using a new requirer ID")
             return new_id
         relation_data = self._relation.data[self._relation.app]
         data = relation_data.get("requests")
         if not data:
+            logging.warning("no requests found in relation data, using a new requirer ID")
             return new_id
         requests = json.loads(data)
         if not requests:
+            logging.warning("empty requests found in relation data, using a new requirer ID")
             return new_id
         request = requests[0]
         try:
+            logging.info(f"using existing requirer ID : {request["requirer"]} from relation data")
             return request["requirer"]
         except KeyError:
+            logging.warning("no requirer ID found in relation data, using a new requirer ID")
             return new_id
 
     def _on_relation_broken(self, _: ops.EventBase) -> None:
@@ -1379,4 +1385,5 @@ class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
             raise ValueError("relation not found")
         domains = domains if domains is not None else []
         auth = auth if auth is not None else []
+        self._create_or_update_http_proxy_request(domains, auth, src_ips)
         self._create_or_update_http_proxy_request(domains, auth, src_ips)
