@@ -1219,7 +1219,7 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         if not self._relation:
             logging.warning("relation not found, using a new requirer ID")
             return new_id
-        relation_data = self._relation.data[self._relation.app]
+        relation_data = self._relation.data[self._charm.app]
         data = relation_data.get("requests")
         if not data:
             logging.warning("no requests found in relation data, using a new requirer ID")
@@ -1385,5 +1385,4 @@ class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
             raise ValueError("relation not found")
         domains = domains if domains is not None else []
         auth = auth if auth is not None else []
-        self._create_or_update_http_proxy_request(domains, auth, src_ips)
         self._create_or_update_http_proxy_request(domains, auth, src_ips)
