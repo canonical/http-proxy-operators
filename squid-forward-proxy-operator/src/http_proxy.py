@@ -28,13 +28,14 @@ requires:
     limit: 1
 ```
 
-There are two ways to initialize the requirer class: using the `HttpProxyRequirer` class
-with parameters or using the `HttpProxyDynamicRequirer` class with no parameters.
-`HttpProxyRequirer` class is used when the requirer parameters are known at initialization time.
-`HttpProxyDynamicRequirer` class is used when the requirer parameters are not known at
-initialization time and will be provided later through the `request_http_proxy` method.
-The main use case for the `HttpProxyDynamicRequirer` class is when the list of domains
-requiring proxy is dynamic.
+There are three ways to initialize the requirer class. For requirers that need to issue only
+a single request, they must either use the `HttpProxyRequirer` class or the
+`HttpProxyDynamicRequirer` class. `HttpProxyRequirer` class is used when the requirer parameters
+are known at initialization time. `HttpProxyDynamicRequirer` class is used when the requirer
+parameters are not known at initialization time and will be provided later through the
+`request_http_proxy` method. The main use case for the `HttpProxyDynamicRequirer` class
+is when the list of domains requiring proxy is dynamic. For requirers that need to issue
+multiple requests, they must use the `HttpProxyPolyRequirer` class.
 
 1. To initialize the requirer with parameters using the `HttpProxyRequirer` class:
 
@@ -62,12 +63,11 @@ class FooCharm(ops.CharmBase):
 
     def get_proxies(self, _: ops.EventBase):
         try:
-            proxy_values = self.http_proxy_requirer.fetch_proxies()
-            proxies = proxy_values.as_strings()
+            proxies = self.http_proxy_requirer.fetch_proxies()
         except HTTPProxyUnavailableError as e:
             logging.error(f"HTTP proxy not available. Proxy status: {e.status}")
             return None
-        return (proxies["http_proxy"], proxies["https_proxy"])
+        return (proxies.http_proxy, proxies.https_proxy)
 ```
 
 2. To initialize the requirer with no parameters using the `HttpProxyDynamicRequirer` class:
@@ -99,6 +99,8 @@ class FooCharmDynamic(ops.CharmBase):
         # If you have initialized the HttpProxyDynamicRequirer class
         # you can call the request_http_proxy method anywhere in your charm
         # to request proxy.
+        if not self.model.unit.is_leader():
+            return
         self.http_proxy_dynamic_requirer.request_http_proxy(
             domains=["example.com", "example.org"],
             auth=["userpass", "none", "srcip", "srcip+userpass"],
@@ -107,13 +109,20 @@ class FooCharmDynamic(ops.CharmBase):
 
     def get_proxies(self, _: ops.EventBase):
         try:
-            proxy_values = self.http_proxy_requirer.fetch_proxies()
-            proxies = proxy_values.as_strings()
+            proxies = self.http_proxy_requirer.fetch_proxies()
         except HTTPProxyUnavailableError as e:
             logging.error(f"HTTP proxy not available. Proxy status: {e.status}")
             return None
-        return (proxies["http_proxy"], proxies["https_proxy"])
+        return (proxies.http_proxy, proxies.https_proxy)
 ```
+
+3. To initialize the requirer with multiple requests using the `HttpProxyPolyRequirer` class,
+refer to the implementation in [http-proxy-policy-operator]. This class is for more advanced use
+cases where developers want to issue multiple requests with different parameters.
+
+[http-proxy-policy-operator]:
+    https://github.com/canonical/http-proxy-operators/blob/main/
+    http-proxy-policy-operator/src/charm.py
 
 
 ### Using library as a provider
@@ -172,6 +181,7 @@ import logging
 import re
 import urllib.parse
 import uuid
+from dataclasses import dataclass
 from typing import Annotated, Dict, Iterable, List, Optional, Sequence, Tuple, Union, cast
 
 import ops
@@ -217,7 +227,8 @@ DEFAULT_HTTP_PROXY_INTEGRATION_NAME = "http-proxy"
 NO_CHANGE = object()
 
 
-class ProxyConfig(BaseModel):
+@dataclass
+class ProxyConfig:
     """Proxy configuration.
 
     Attributes:
@@ -225,19 +236,8 @@ class ProxyConfig(BaseModel):
         https_proxy: HTTPS proxy.
     """
 
-    http_proxy: AnyUrl
-    https_proxy: AnyUrl
-
-    def as_strings(self) -> dict[str, str]:
-        """Return the proxy URLs as strings.
-
-        Returns:
-            A dictionary with string values for http_proxy and https_proxy.
-        """
-        return {
-            "http_proxy": str(self.http_proxy),
-            "https_proxy": str(self.https_proxy),
-        }
+    http_proxy: str
+    https_proxy: str
 
 
 class HTTPProxyUnavailableError(Exception):
@@ -357,8 +357,8 @@ class HttpProxySpec(BaseModel):
         """
         if domains is None:
             raise ValueError("Domains cannot be None.")
-        if not isinstance(domains, (list, tuple)):
-            raise ValueError("Domains must be a list.")
+        if isinstance(domains, str):
+            raise ValueError("domains cannot be a string.")
         if len(domains) == 0:
             return tuple()
         valid_domains = []
@@ -392,8 +392,8 @@ class HttpProxySpec(BaseModel):
         """
         if auth is None:
             raise ValueError("auth cannot be None.")
-        if not isinstance(auth, (list, tuple)):
-            raise ValueError("Domains must be a list.")
+        if isinstance(auth, str):
+            raise ValueError("auth cannot be a string.")
         if len(auth) == 0:
             return tuple()
         sorted_auth = dedup(
@@ -410,15 +410,15 @@ class HttpProxySpec(BaseModel):
         """Validate and transform the src_ips input.
 
         Args:
-            src_ips: The input auth.
+            src_ips: The input src_ips.
 
         Returns:
             The canonical representation of the src_ips.
         """
         if src_ips is None:
             return tuple()
-        if not isinstance(src_ips, (list, tuple)):
-            raise ValueError("Domains must be a list.")
+        if isinstance(src_ips, str):
+            raise ValueError("source IPs cannot be a string.")
         validated_ips = []
         invalid_ips = []
         for ip in src_ips:
@@ -658,9 +658,9 @@ class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
     def add(
         self,
         requirer_id: Union[str, uuid.UUID],
-        domains: list[str],
-        auth: list[str],
-        src_ips: list[str] | None = None,
+        domains: Sequence[str],
+        auth: Sequence[str],
+        src_ips: Sequence[str] | None = None,
     ) -> None:
         """Add a new HTTP proxy request.
 
@@ -699,9 +699,9 @@ class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
     def add_or_replace(
         self,
         requirer_id: Union[str, uuid.UUID],
-        domains: list[str],
-        auth: list[str],
-        src_ips: list[str] | None = None,
+        domains: Sequence[str],
+        auth: Sequence[str],
+        src_ips: Sequence[str] | None = None,
     ) -> None:
         """Add a new HTTP proxy request or replace an existing one.
 
@@ -1205,10 +1205,6 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         self._requirer_id = self._get_requirer_id()
         self._requirer = HttpProxyPolyRequirer(self._charm, self._relation_name)
 
-        self.framework.observe(
-            self._charm.on[self._relation_name].relation_broken, self._on_relation_broken
-        )
-
     def _get_requirer_id(self) -> str:
         """Get the requirer ID from integration data or generate a new one.
 
@@ -1236,16 +1232,6 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
             logging.warning("no requirer ID found in relation data, using a new requirer ID")
             return new_id
 
-    def _on_relation_broken(self, _: ops.EventBase) -> None:
-        """Delete the HTTP proxy request."""
-        if not self._relation:
-            raise ValueError("relation not found")
-        request_list = self._requirer.open_request_list(self._relation.id)
-        try:
-            request_list.delete(requirer_id=self._requirer_id)
-        except KeyError:
-            pass
-
     def fetch_proxies(self) -> ProxyConfig:
         """Get HTTP proxy values returned by the provider.
 
@@ -1268,13 +1254,10 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
         user = response.user
         if user:
             username, password = user.username, user.password.get_secret_value()
-            # http_proxy and https_proxy will not be None if status is READY
-            http_proxy_url = self._set_user(http_proxy_url, username, password)  # type: ignore
-            https_proxy_url = self._set_user(https_proxy_url, username, password)  # type: ignore
+            http_proxy_url = self._set_user(http_proxy_url, username, password)
+            https_proxy_url = self._set_user(https_proxy_url, username, password)
         try:
-            proxy_config = ProxyConfig(
-                http_proxy=http_proxy_url, https_proxy=https_proxy_url  # type: ignore
-            )
+            proxy_config = ProxyConfig(http_proxy=http_proxy_url, https_proxy=https_proxy_url)
         except ValidationError as exc:
             raise HTTPProxyUnavailableError(
                 "Invalid proxy url", status=PROXY_STATUS_READY
@@ -1283,13 +1266,13 @@ class _BaseHttpProxyRequirer(Object):  # pylint: disable=too-many-instance-attri
 
     def _create_or_update_http_proxy_request(
         self,
-        domains: List[str],
-        auth: List[str],
-        src_ips: Optional[List[str]] = None,
+        domains: Optional[Sequence[str]] = None,
+        auth: Optional[Sequence[str]] = None,
+        src_ips: Optional[Sequence[str]] = None,
     ) -> None:
         """Create or update a HTTP proxy request."""
-        if not self.model.unit.is_leader():
-            return
+        domains = domains if domains is not None else []
+        auth = auth if auth is not None else []
         # relation would not be None here
         request_list = self._requirer.open_request_list(self._relation.id)  # type: ignore
         request_list.add_or_replace(
@@ -1326,19 +1309,19 @@ class HttpProxyRequirer(_BaseHttpProxyRequirer):
         charm: ops.CharmBase,
         relation_name: str = DEFAULT_HTTP_PROXY_INTEGRATION_NAME,
         *,
-        domains: List[str],
-        auth: List[str],
-        src_ips: Optional[List[str]] = None,
+        domains: Optional[Sequence[str]] = None,
+        auth: Optional[Sequence[str]] = None,
+        src_ips: Optional[Sequence[str]] = None,
     ) -> None:
         """Initialize the HttpProxyRequirer class.
 
         Args:
             charm: The charm instance.
             relation_name: The name of the relation to use for the HTTP proxy.
-            domains: List of domains to request proxy access for.
-            auth: List of authentication modes supported by the application.
+            domains: Sequence of domains to request proxy access for.
+            auth: Sequence of authentication modes supported by the application.
                 See AUTH_METHODS for valid values.
-            src_ips: list of source IPs to override the source IP addresses
+            src_ips: Sequence of source IPs to override the source IP addresses
                 provided by the Juju integration binding information.
         """
         super().__init__(charm, relation_name)
@@ -1353,9 +1336,7 @@ class HttpProxyRequirer(_BaseHttpProxyRequirer):
 
     def _request_proxy(self, _: ops.EventBase) -> None:
         """Request a HTTP proxy."""
-        if not self._domains or not self._auth:
-            raise ValueError("domains and auth cannot be empty.")
-        if not self._relation:
+        if not self._relation or not self.model.unit.is_leader():
             return
         self._create_or_update_http_proxy_request(self._domains, self._auth, self._src_ips)
 
@@ -1365,17 +1346,17 @@ class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
 
     def request_http_proxy(
         self,
-        domains: Optional[List[str]] = None,
-        auth: Optional[List[str]] = None,
-        src_ips: Optional[List[str]] = None,
+        domains: Optional[Sequence[str]] = None,
+        auth: Optional[Sequence[str]] = None,
+        src_ips: Optional[Sequence[str]] = None,
     ) -> None:
         """Request a HTTP proxy.
 
         Args:
-            domains: List of domains to request proxy access for.
-            auth: List of authentication modes supported by the application.
+            domains: Sequence of domains to request proxy access for.
+            auth: Sequence of authentication modes supported by the application.
                 See AUTH_METHODS for valid values.
-            src_ips: list of source IPs to override the source IP addresses
+            src_ips: Sequence of source IPs to override the source IP addresses
                 provided by the Juju integration binding information.
 
         Raises:
@@ -1383,6 +1364,6 @@ class HttpProxyDynamicRequirer(_BaseHttpProxyRequirer):
         """
         if not self._relation:
             raise ValueError("relation not found")
-        domains = domains if domains is not None else []
-        auth = auth if auth is not None else []
+        if not self.model.unit.is_leader():
+            raise ValueError("unit is not leader")
         self._create_or_update_http_proxy_request(domains, auth, src_ips)

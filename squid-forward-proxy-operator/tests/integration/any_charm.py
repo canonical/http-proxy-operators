@@ -82,11 +82,10 @@ class AnyCharm(AnyCharmBase):
             HTTP proxies returned from the HTTP proxy provider if ready else returns None.
         """
         try:
-            proxy_values = self._proxy_requirer.fetch_proxies()
-            proxies = proxy_values.as_strings()
+            proxies = self._proxy_requirer.fetch_proxies()
             return {
-                "http": proxies["http_proxy"],
-                "https": proxies["https_proxy"],
+                "http": proxies.http_proxy,
+                "https": proxies.https_proxy,
             }
         except http_proxy.HTTPProxyUnavailableError as e:
             logger.info(f"proxy not available: {e}")
