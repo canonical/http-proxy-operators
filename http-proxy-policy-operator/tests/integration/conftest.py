@@ -39,7 +39,8 @@ async def http_proxy_policy_fixture(
                 {
                     "any_charm.py": (pathlib.Path(__file__).parent / "any_charm.py").read_text(),
                     "http_proxy.py": (
-                        pathlib.Path(__file__).parent.parent.parent / "src/http_proxy.py"
+                        pathlib.Path(__file__).parent.parent.parent
+                        / "lib/charms/squid_forward_proxy/v0/http_proxy.py"
                     ).read_text(),
                 }
             ),
