@@ -1,13 +1,15 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
+# pylint: disable=import-error
+
 """Integration test charm."""
 
 import re
 
 import http_proxy
 import requests
-from any_charm_base import AnyCharmBase, logger  # pylint: disable=import-error
+from any_charm_base import AnyCharmBase, logger
 
 
 class AnyCharm(AnyCharmBase):
