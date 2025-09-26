@@ -10,8 +10,8 @@ from typing import Optional
 
 import requests
 from charms.operator_libs_linux.v2 import snap
+from charms.squid_forward_proxy.v0 import http_proxy
 
-import http_proxy
 import timer
 
 

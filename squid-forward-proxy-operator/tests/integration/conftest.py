@@ -47,7 +47,10 @@ class AnyCharm:
         """Deploy the any-charm in the testing model."""
         any_charm_py = pathlib.Path(__file__).parent / "any_charm.py"
         any_charm_py_content = any_charm_py.read_text(encoding="utf-8")
-        http_proxy_py = pathlib.Path(__file__).parent.parent.parent / "src/http_proxy.py"
+        http_proxy_py = (
+            pathlib.Path(__file__).parent.parent.parent
+            / "lib/charms/squid_forward_proxy/v0/http_proxy.py"
+        )
         http_proxy_py_content = http_proxy_py.read_text(encoding="utf-8")
         self._app = await self._model.deploy(
             "any-charm",
