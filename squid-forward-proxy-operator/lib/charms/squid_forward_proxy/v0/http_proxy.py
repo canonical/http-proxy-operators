@@ -119,8 +119,7 @@ refer to the implementation in [http-proxy-policy-operator]. This class is for m
 cases where developers want to issue multiple requests with different parameters.
 
 [http-proxy-policy-operator]:
-    https://github.com/canonical/http-proxy-operators/blob/main/
-    http-proxy-policy-operator/src/charm.py
+    https://github.com/canonical/http-proxy-operators/blob/main/http-proxy-policy-operator/src/charm.py
 
 
 ### Using library as a provider
