@@ -1,5 +1,11 @@
 # Changelog
 
+## 2025-09-26
+
+### Updated
+
+- Converted the `http-proxy` module into a CharmHub library.
+
 ## 2025-08-25
 
 ### Updated
