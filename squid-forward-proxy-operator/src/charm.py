@@ -379,4 +379,3 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods,too-many-
 
 if __name__ == "__main__":  # pragma: nocover
     ops.main.main(SquidProxyCharm)
-    ops.main.main(SquidProxyCharm)
