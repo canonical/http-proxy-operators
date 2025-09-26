@@ -15,10 +15,10 @@ from typing import Any, cast
 import ops
 from charms.data_platform_libs.v0.data_interfaces import DatabaseRequires
 from charms.squid_forward_proxy.v0 import http_proxy
+from charms.squid_forward_proxy.v0.http_proxy import DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 
 import policy
 import relay
-from http_proxy import DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 
 logger = logging.getLogger(__name__)
 
