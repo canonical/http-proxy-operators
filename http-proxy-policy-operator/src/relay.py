@@ -6,8 +6,8 @@ import dataclasses
 import logging
 
 import ops
+from charms.squid_forward_proxy.v0 import http_proxy
 
-import http_proxy
 import policy
 
 logger = logging.getLogger(__name__)

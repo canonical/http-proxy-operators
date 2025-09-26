@@ -12,10 +12,10 @@ import typing
 
 import ops
 from charms.grafana_agent.v0 import cos_agent
+from charms.squid_forward_proxy.v0 import http_proxy
+from charms.squid_forward_proxy.v0.http_proxy import DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 
-import http_proxy
 import squid
-from http_proxy import DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 
 logger = logging.getLogger(__name__)
 
@@ -378,4 +378,5 @@ class IntegrationReconciler:  # pylint: disable=too-few-public-methods,too-many-
 
 
 if __name__ == "__main__":  # pragma: nocover
+    ops.main.main(SquidProxyCharm)
     ops.main.main(SquidProxyCharm)

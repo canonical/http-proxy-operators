@@ -4,8 +4,7 @@
 """Integration test charm."""
 
 from any_charm_base import AnyCharmBase  # pylint: disable=import-error
-
-import http_proxy
+from charms.squid_forward_proxy.v0 import http_proxy
 
 
 class AnyCharm(AnyCharmBase):  # pylint: disable=too-few-public-methods

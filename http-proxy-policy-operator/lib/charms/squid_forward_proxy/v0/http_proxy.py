@@ -1,9 +1,7 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-# pylint: disable=too-many-lines
-
-r"""Library to manage the http-proxy relation.
+"""Library to manage the http-proxy relation.
 
 This library contains the Requirer and Provider classes for handling the
 http-proxy interface.
@@ -171,8 +169,17 @@ class FooCharm:
                 https_proxy="https://proxy.test",
                 user=None,
             )
+"""
 
-"""  # noqa: D214,D405,D410,D411,D416
+# The unique Charmhub library identifier, never change it
+LIBID = "0dd2d8435fad41ce9a4bcdbda4d9a22d"
+
+# Increment this major API version when introducing breaking changes
+LIBAPI = 0
+
+# Increment this PATCH version before using `charmcraft publish-lib` or reset
+# to 0 if you are raising the major API version
+LIBPATCH = 1
 
 import copy
 import ipaddress

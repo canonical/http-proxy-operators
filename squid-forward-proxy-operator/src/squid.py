@@ -14,8 +14,7 @@ from collections import defaultdict
 
 from charms.operator_libs_linux.v0 import apt
 from charms.operator_libs_linux.v1 import systemd
-
-from http_proxy import (
+from charms.squid_forward_proxy.v0.http_proxy import (
     AUTH_METHOD_SRCIP,
     AUTH_METHOD_USERPASS,
     HttpProxySpec,

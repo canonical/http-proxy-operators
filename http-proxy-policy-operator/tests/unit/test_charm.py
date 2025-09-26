@@ -11,8 +11,8 @@ import uuid
 from typing import cast
 
 import ops.testing
+from charms.squid_forward_proxy.v0 import http_proxy
 
-import http_proxy
 import policy
 from charm import HttpProxyPolicyCharm
 

@@ -10,8 +10,7 @@ import uuid
 
 import pydantic
 import pytest
-
-import http_proxy
+from charms.squid_forward_proxy.v0 import http_proxy
 
 
 class PureHttpProxyRequestListReader(http_proxy._HttpProxyRequestListReader):

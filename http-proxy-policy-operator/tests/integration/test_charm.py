@@ -7,7 +7,7 @@
 
 import logging
 
-import http_proxy
+from charms.squid_forward_proxy.v0 import http_proxy
 
 logger = logging.getLogger(__name__)
 
