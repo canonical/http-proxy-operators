@@ -24,7 +24,7 @@ class IngressConfiguratorCharm(ops.CharmBase):
     """Charm the service."""
 
     def __init__(self, *args: typing.Any):
-        """Initialize the ingress-configurator charm.
+        """Initialize the http-proxy-configurator charm.
 
         Args:
             args: Arguments passed to the CharmBase parent constructor.
