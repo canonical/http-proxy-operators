@@ -20,7 +20,7 @@ HTTP_PROXY_RELATION = "http-proxy"
 CHARM_CONFIG_DELIMITER = ","
 
 
-class IngressConfiguratorCharm(ops.CharmBase):
+class HTTPProxyConfiguratorCharm(ops.CharmBase):
     """Charm the service."""
 
     def __init__(self, *args: typing.Any):
