@@ -76,4 +76,4 @@ def parse_charm_config(value: Optional[str]) -> Optional[list[str]]:
 
 
 if __name__ == "__main__":  # pragma: nocover
-    ops.main.main(IngressConfiguratorCharm)
+    ops.main.main(HTTPProxyConfiguratorCharm)
