@@ -20,11 +20,11 @@ HTTP_PROXY_RELATION = "http-proxy"
 CHARM_CONFIG_DELIMITER = ","
 
 
-class IngressConfiguratorCharm(ops.CharmBase):
+class HTTPProxyConfiguratorCharm(ops.CharmBase):
     """Charm the service."""
 
     def __init__(self, *args: typing.Any):
-        """Initialize the ingress-configurator charm.
+        """Initialize the http-proxy-configurator charm.
 
         Args:
             args: Arguments passed to the CharmBase parent constructor.
@@ -73,4 +73,4 @@ class IngressConfiguratorCharm(ops.CharmBase):
 
 
 if __name__ == "__main__":  # pragma: nocover
-    ops.main.main(IngressConfiguratorCharm)
+    ops.main.main(HTTPProxyConfiguratorCharm)
