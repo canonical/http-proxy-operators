@@ -31,7 +31,7 @@ links:
 
 requires:
   http-proxy:
-    interface: http-proxy
+    interface: http_proxy
     limit: 1
 
 config:

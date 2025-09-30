@@ -38,14 +38,25 @@ class IngressConfiguratorCharm(ops.CharmBase):
 
     def _reconcile(self, _: ops.EventBase) -> None:
         """Reconcile the charm."""
+        domains = cast(Optional[str], self.config.get("http-proxy-domains"))
+        auth = cast(Optional[str], self.config.get("http-proxy-auth"))
+        src_ips = cast(Optional[str], self.config.get("http-proxy-src-ips"))
+
+        if domains is None or auth is None:
+            logger.error("Error validating the charm configuration.")
+            self.unit.status = ops.BlockedStatus(
+                "Both http-proxy-domains and http-proxy-auth must be set."
+            )
+            return
+
         # We don't do any validation in the charm itself since most of it are already handled by the library.
         # Furthermore, the library does pre-validation modifications to the parameters given to
         # `request_http_proxy` so we delegate this to the library to avoid having to reimplement this logic.
         try:
             self._http_proxy.request_http_proxy(
-                parse_charm_config(cast(Optional[str], self.config.get("http-proxy-domains"))),
-                parse_charm_config(cast(Optional[str], self.config.get("http-proxy-auth"))),
-                parse_charm_config(cast(Optional[str], self.config.get("http-proxy-src-ips"))),
+                domains.split(CHARM_CONFIG_DELIMITER),
+                auth.split(CHARM_CONFIG_DELIMITER),
+                None if src_ips is None else src_ips.split(CHARM_CONFIG_DELIMITER),
             )
             self.unit.status = ops.ActiveStatus()
         # Catching ValidationError first as those are the errors wrapped by pydantic for model validation.
@@ -59,20 +70,6 @@ class IngressConfiguratorCharm(ops.CharmBase):
             logger.exception("Error validating the charm state.")
             self.unit.status = ops.BlockedStatus(str(exc))
             return
-
-
-def parse_charm_config(value: Optional[str]) -> Optional[list[str]]:
-    """Parse a http-proxy-configurator charm config to a list of str.
-
-    Args:
-        value: Config value to parse
-
-    Returns:
-        Optional[list[str]]: Parsed list of str.
-    """
-    if value is None:
-        return None
-    return value.split(CHARM_CONFIG_DELIMITER)
 
 
 if __name__ == "__main__":  # pragma: nocover
