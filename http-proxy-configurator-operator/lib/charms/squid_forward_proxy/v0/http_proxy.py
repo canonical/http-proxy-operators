@@ -685,6 +685,7 @@ class _HttpProxyRequestListReadWriter(_HttpProxyRequestListReader):
                 f"http proxy request with requirer id {repr(requirer_id)} already exists"
             )
         # here to validate the inputs only
+        logging.getLogger().info(f"********** Validating requests: {domains}, {auth}")
         HttpProxySpec(
             group=0,
             id=requirer_id,  # type: ignore

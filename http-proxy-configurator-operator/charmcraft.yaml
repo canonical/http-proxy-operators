@@ -39,18 +39,16 @@ config:
     http-proxy-domains:
       type: string
       description: Comma-separated list of domains that the application needs to access via the HTTP proxy.
-      default: none
     http-proxy-auth:
       type: string
       description: | 
         Comma-separated list of authentication methods that the application can support. 
         Authentication methods have to be a subset of ["none","srcip","userpass","srcip+userpass"].
-      default: none
+      default: "none"
     http-proxy-source-ips: 
       type: string
       description: Comma-separated list of source IPs to override the source IP addresses
         provided by the Juju integration binding information.
-      default: none
 
 charm-libs:
   - lib: squid_forward_proxy.http_proxy
