@@ -38,6 +38,8 @@ def test_config_hostnames_and_paths(
 
     squid_proxy_address = str(get_unit_addresses(juju, squid_proxy)[0])
     response = requests.get(
-        "https://canonical.com", proxies={"https": f"https://{squid_proxy_address}:3128"}
+        "https://canonical.com",
+        proxies={"https": f"https://{squid_proxy_address}:3128"},
+        timeout=60,
     )
     assert "Trusted open source" in response.text
