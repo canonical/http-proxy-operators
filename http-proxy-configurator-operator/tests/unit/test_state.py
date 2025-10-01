@@ -254,3 +254,19 @@ def test_proxy_auth_method_all():
     all_methods = state.ProxyAuthMethod.all()
     assert all_methods == ["none", "srcip", "userpass", "srcip+userpass"]
     assert len(all_methods) == 4
+
+
+def test_state_from_charm_srcip_and_userpass_without_source_ips():
+    """
+    arrange: mock a charm with srcip+userpass auth method but no source IPs configured
+    act: instantiate a State
+    assert: an InvalidCharmConfigError is raised
+    """
+    charm = Mock(CharmBase)
+    charm.config = {
+        "http-proxy-domains": "example.com",
+        "http-proxy-auth": "srcip+userpass",
+        "http-proxy-source-ips": "",
+    }
+    with pytest.raises(state.InvalidCharmConfigError):
+        state.State.from_charm(charm)

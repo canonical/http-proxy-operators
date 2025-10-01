@@ -9,7 +9,7 @@ from typing import Annotated, Optional, cast
 
 import ops
 from annotated_types import Len
-from pydantic import ValidationError
+from pydantic import ValidationError, model_validator
 from pydantic.dataclasses import dataclass
 from pydantic.networks import IPvAnyAddress
 
@@ -59,6 +59,27 @@ class State:
     http_proxy_domains: Annotated[list[str], Len(min_length=1)]
     http_proxy_auth: Annotated[list[ProxyAuthMethod], Len(min_length=1)]
     http_proxy_source_ips: list[IPvAnyAddress]
+
+    @model_validator(mode="after")
+    def validate_source_ips_set_for_srcip_auth_method(self) -> "State":
+        """Validate that if srcip is set then http_proxy_source_ips must be also.
+
+        Returns: this class instance.
+
+        Raises:
+            ValueError: if the validation doesn't pass.
+        """
+        if (
+            any(
+                auth in {ProxyAuthMethod.SRC_IP, ProxyAuthMethod.SRC_IP_AND_USERPASS}
+                for auth in self.http_proxy_auth
+            )
+            and not self.http_proxy_source_ips
+        ):
+            raise ValueError(
+                "Source IP address(es) must be provided if http_proxy_auth contains srcip."
+            )
+        return self
 
     @classmethod
     def from_charm(cls, charm: ops.CharmBase) -> "State":

@@ -6,8 +6,7 @@
 import jubilant
 import pytest
 import requests
-
-from .conftest import get_unit_addresses
+from conftest import get_unit_addresses
 
 
 @pytest.mark.abort_on_fail
