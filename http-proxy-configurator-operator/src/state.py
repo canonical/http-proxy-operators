@@ -65,7 +65,7 @@ class State:
         """Create an State class from a charm instance.
 
         Args:
-            charm: the ingress-configurator charm.
+            charm: the http-proxy-configurator charm.
 
         Raises:
             InvalidCharmConfigError: when the integrator mode config is invalid.

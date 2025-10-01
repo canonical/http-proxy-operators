@@ -1,7 +1,7 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
 
-"""Unit tests for the ingress configurator charm."""
+"""Unit tests for the http-proxy-configurator charm."""
 
 import ops.testing
 
