@@ -20,9 +20,7 @@ def test_config_hostnames_and_paths(
     Args:
         juju: Jubilant juju fixture
         application: Name of the ingress-configurator application.
-        haproxy: Name of the haproxy application.
-        any_charm_backend: Any charm running an apache webserver.
-        http_session: Modified requests session fixture for making HTTP requests.
+        squid_proxy: Name of the squid_proxy application.
     """
     juju.integrate(f"{squid_proxy}:http-proxy", f"{application}:http-proxy")
     juju.config(

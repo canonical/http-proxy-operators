@@ -4,7 +4,7 @@
 """http-proxy-configurator-operator charm state."""
 
 import logging
-from enum import StrEnum
+from enum import Enum
 from typing import Annotated, Optional, cast
 
 import ops
@@ -21,7 +21,7 @@ class InvalidCharmConfigError(Exception):
     """Exception raised when the parsed charm config is invalid."""
 
 
-class ProxyAuthMethod(StrEnum):
+class ProxyAuthMethod(str, Enum):
     """http-route auth method.
 
     Attributes:
