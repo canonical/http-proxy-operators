@@ -10,6 +10,7 @@ __pycache__/
 .mypy_cache
 *.egg-info/
 */*.rock
+*/.venv/
 
 # BEGIN VALE WORKFLOW IGNORE
 .vale/styles/*

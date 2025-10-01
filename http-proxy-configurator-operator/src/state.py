@@ -22,7 +22,14 @@ class InvalidCharmConfigError(Exception):
 
 
 class ProxyAuthMethod(StrEnum):
-    """http-route auth method."""
+    """http-route auth method.
+
+    Attributes:
+        NONE: No authentication.
+        SRC_IP: Authentication with source IP address.
+        USERPASS: Authentication with password.
+        SRC_IP_AND_USERPASS: Authentication with both source IP address and password.
+    """
 
     NONE = "none"
     SRC_IP = "srcip"
@@ -45,8 +52,8 @@ class State:
 
     Attributes:
         http_proxy_domains: Configured list of backend ip addresses.
-        http_proxy_auth_methods: Configured list of backend ports.
-        http_proxy_auth_source_ips: The configured protocol for the backend.
+        http_proxy_auth: Configured list of backend ports.
+        http_proxy_source_ips: The configured protocol for the backend.
     """
 
     http_proxy_domains: Annotated[list[str], Len(min_length=1)]
@@ -59,10 +66,9 @@ class State:
 
         Args:
             charm: the ingress-configurator charm.
-            ingress_data: the ingress requirer relation data.
 
         Raises:
-            InvalidStateError: when the integrator mode config is invalid.
+            InvalidCharmConfigError: when the integrator mode config is invalid.
 
         Returns:
             State: instance of the state component.
