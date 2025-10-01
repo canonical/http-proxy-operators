@@ -14,6 +14,14 @@ jobs:
     with:
       self-hosted-runner: false
       working-directory: ./${{ matrix.charm }}-operator
+  http-proxy-configurator:
+    name: Charm Unit Tests
+    uses: canonical/operator-workflows/.github/workflows/test.yaml@main
+    secrets: inherit
+    with:
+      self-hosted-runner: false
+      python-version: 3.12
+      working-directory: ./http-proxy-configurator-operator
   integration-tests:
     name: Charm Integration Tests
     strategy:
@@ -39,14 +47,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           python3 ./manage.py test --settings=http_proxy_policy.test_settings
-  http-proxy-configurator:
-    name: Charm Unit Tests
-    uses: canonical/operator-workflows/.github/workflows/test.yaml@main
-    secrets: inherit
-    with:
-      self-hosted-runner: false
-      python-version: 3.12
-      working-directory: ./http-proxy-configurator-operator
   build-snap:
     name: Build Snap
     runs-on: ubuntu-latest
