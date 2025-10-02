@@ -144,7 +144,7 @@ def _parse_charm_config_values(value: Optional[str]) -> list[str]:
     # We use `not value` here to also catch value = ""
     if not value:
         return []
-    return value.split(CHARM_CONFIG_DELIMITER)
+    return [s.strip() for s in value.split(CHARM_CONFIG_DELIMITER)]
 
 
 def _get_invalid_config_fields(exc: ValidationError) -> list[str]:
