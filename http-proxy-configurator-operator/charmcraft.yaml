@@ -52,7 +52,7 @@ config:
         provided by the Juju integration binding information.
 
 actions:
-  get_proxies:
+  get-proxies:
       description: |
         Get HTTP and HTTPS proxy values from the provider. 
         Returns None if proxy is unavailable.
