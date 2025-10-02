@@ -37,7 +37,7 @@ def test_config_hostnames_and_paths(
         error=jubilant.any_error,
     )
 
-    squid_proxy_address = ipaddress.ip_address(str(get_unit_addresses(juju, squid_proxy)[0]))
+    squid_proxy_address = get_unit_addresses(juju, squid_proxy)[0]
     proxy_url = f"http://{str(squid_proxy_address)}:3128"
     if squid_proxy_address.version == 6:
         proxy_url = f"http://[{str(squid_proxy_address)}]:3128"
