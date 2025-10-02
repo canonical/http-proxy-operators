@@ -76,7 +76,7 @@ def application_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju, charm:
 
 
 @pytest.fixture(scope="module", name="squid_proxy")
-def squid_proxy_fixture(juju: jubilant.Juju):
+def squid_proxy_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju):
     """Deploy the squid-forward-proxy charm.
 
     Args:
@@ -85,6 +85,9 @@ def squid_proxy_fixture(juju: jubilant.Juju):
     Yields:
         The deployed application name.
     """
+    if pytestconfig.getoption("--no-setup") and SQUID_PROXY_APP in juju.status().apps:
+        yield SQUID_PROXY_APP
+        return
     juju.deploy(
         charm=SQUID_PROXY_APP,
         app=SQUID_PROXY_APP,
