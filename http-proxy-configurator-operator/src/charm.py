@@ -66,8 +66,8 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
         try:
             proxy_config = self._http_proxy.fetch_proxies()
             result = {
-                "http_proxy": proxy_config.http_proxy,
-                "https_proxy": proxy_config.https_proxy,
+                "http-proxy": proxy_config.http_proxy,
+                "https-proxy": proxy_config.https_proxy,
             }
             event.set_results(result)
         except (ValueError, HTTPProxyUnavailableError) as exc:

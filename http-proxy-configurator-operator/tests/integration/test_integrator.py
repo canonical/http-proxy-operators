@@ -36,7 +36,7 @@ def test_config_hostnames_and_paths(
     proxy_config = juju.run(f"{application}/0", "get-proxies")
     response = requests.get(
         "https://canonical.com",
-        proxies={"https": proxy_config.get("https_proxy")},
+        proxies={"https": proxy_config.results.get("https_proxy")},
         timeout=60,
     )
     assert "Trusted open source" in response.text
