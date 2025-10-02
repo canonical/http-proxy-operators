@@ -21,7 +21,7 @@ CHARM_CONFIG_DELIMITER = ","
 
 
 class HTTPProxyConfiguratorCharm(ops.CharmBase):
-    """Charm the service."""
+    """Charm the http-proxy configurator."""
 
     def __init__(self, *args: typing.Any):
         """Initialize the http-proxy-configurator charm.

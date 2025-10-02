@@ -19,7 +19,8 @@ name: http-proxy-configurator
 title: http-proxy configurator charm.
 description: |
   A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
-  that serves as a configurator for the http-proxy interface.
+  that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for 
+  both charmed and non-charmed workloads.
 
 summary: Configurator charm for the http-proxy interface.
 links:
