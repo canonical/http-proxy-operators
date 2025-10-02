@@ -1,5 +1,6 @@
 # Copyright 2025 Canonical Ltd.
 # See LICENSE file for licensing details.
+# pylint: disable=protected-access
 
 """Unit tests for the state module."""
 
@@ -205,43 +206,43 @@ def test_state_from_charm_none_config_values():
         state.State.from_charm(charm)
 
 
-def test_parse_charm_config_values_empty_string():
+def test__parse_charm_config_values_empty_string():
     """
     arrange: provide an empty string
-    act: call parse_charm_config_values
+    act: call _parse_charm_config_values
     assert: an empty list is returned
     """
-    result = state.parse_charm_config_values("")
+    result = state._parse_charm_config_values("")
     assert result == []
 
 
-def test_parse_charm_config_values_none():
+def test__parse_charm_config_values_none():
     """
     arrange: provide None value
-    act: call parse_charm_config_values
+    act: call _parse_charm_config_values
     assert: an empty list is returned
     """
-    result = state.parse_charm_config_values(None)
+    result = state._parse_charm_config_values(None)
     assert result == []
 
 
-def test_parse_charm_config_values_single_value():
+def test__parse_charm_config_values_single_value():
     """
     arrange: provide a single value string
-    act: call parse_charm_config_values
+    act: call _parse_charm_config_values
     assert: a list with one element is returned
     """
-    result = state.parse_charm_config_values("single")
+    result = state._parse_charm_config_values("single")
     assert result == ["single"]
 
 
-def test_parse_charm_config_values_multiple_values():
+def test__parse_charm_config_values_multiple_values():
     """
     arrange: provide a comma-separated string
-    act: call parse_charm_config_values
+    act: call _parse_charm_config_values
     assert: a list with all values is returned
     """
-    result = state.parse_charm_config_values("value1,value2,value3")
+    result = state._parse_charm_config_values("value1,value2,value3")
     assert result == ["value1", "value2", "value3"]
 
 

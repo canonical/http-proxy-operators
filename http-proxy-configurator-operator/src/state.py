@@ -99,19 +99,19 @@ class State:
         configured_source_ips = cast(Optional[str], charm.config.get("http-proxy-source-ips"))
         try:
             return cls(
-                http_proxy_domains=parse_charm_config_values(configured_domains),
+                http_proxy_domains=_parse_charm_config_values(configured_domains),
                 http_proxy_auth=[
                     ProxyAuthMethod(config)
-                    for config in parse_charm_config_values(configured_auth)
+                    for config in _parse_charm_config_values(configured_auth)
                 ],
                 http_proxy_source_ips=[
                     cast(IPvAnyAddress, config)
-                    for config in parse_charm_config_values(configured_source_ips)
+                    for config in _parse_charm_config_values(configured_source_ips)
                 ],
             )
         except ValidationError as exc:
             logger.error(str(exc))
-            error_field_str = ",".join(f"{field}" for field in get_invalid_config_fields(exc))
+            error_field_str = ",".join(f"{field}" for field in _get_invalid_config_fields(exc))
             raise InvalidCharmConfigError(
                 f"Invalid charm configuration(s): {error_field_str}"
             ) from exc
@@ -120,7 +120,7 @@ class State:
             invalid_proxy_auth_configs = ",".join(
                 [
                     config
-                    for config in parse_charm_config_values(configured_auth)
+                    for config in _parse_charm_config_values(configured_auth)
                     if config not in ProxyAuthMethod
                 ]
             )
@@ -132,7 +132,7 @@ class State:
             ) from exc
 
 
-def parse_charm_config_values(value: Optional[str]) -> list[str]:
+def _parse_charm_config_values(value: Optional[str]) -> list[str]:
     """Parse a charm config containing a list of values into a python list.
 
     Args:
@@ -147,7 +147,7 @@ def parse_charm_config_values(value: Optional[str]) -> list[str]:
     return value.split(CHARM_CONFIG_DELIMITER)
 
 
-def get_invalid_config_fields(exc: ValidationError) -> list[str]:
+def _get_invalid_config_fields(exc: ValidationError) -> list[str]:
     """Return a list on invalid config from pydantic validation error.
 
     Args:
