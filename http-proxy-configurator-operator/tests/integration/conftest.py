@@ -113,6 +113,8 @@ def get_unit_addresses(juju: jubilant.Juju, application: str) -> list[IPv4Addres
     """
     unit_addresses: list[IPv4Address | IPv6Address] = []
     if application_status := juju.status().apps.get(application):
-        for unit_status in application_status.units.values():
-            unit_addresses.append(ip_address(unit_status.public_address))
+        unit_addresses = [
+            ip_address(unit_status.public_address)
+            for unit_status in application_status.units.values()
+        ]
     return unit_addresses
