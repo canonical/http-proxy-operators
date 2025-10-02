@@ -1,0 +1,56 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+type: charm
+base: ubuntu@24.04
+build-base: ubuntu@24.04
+
+platforms:
+  amd64:
+
+parts:
+  charm:
+    build-snaps:
+      - rustup
+    override-build: |
+      rustup default stable
+      craftctl default
+
+name: http-proxy-configurator
+title: http-proxy configurator charm.
+description: |
+  A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
+  that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for 
+  both charmed and non-charmed workloads.
+
+summary: Configurator charm for the http-proxy interface.
+links:
+  documentation:
+  issues: https://github.com/canonical/http-proxy-operators/issues
+  source: https://github.com/canonical/http-proxy-operators
+  contact:
+    - https://launchpad.net/~canonical-is-devops
+
+requires:
+  http-proxy:
+    interface: http_proxy
+    limit: 1
+
+config:
+  options:
+    http-proxy-domains:
+      type: string
+      description: Comma-separated list of domains that the application needs to access via the HTTP proxy.
+    http-proxy-auth:
+      type: string
+      description: | 
+        Comma-separated list of authentication methods that the application can support. 
+        Authentication methods have to be a subset of ["none","srcip","userpass","srcip+userpass"].
+      default: "none"
+    http-proxy-source-ips: 
+      type: string
+      description: Comma-separated list of source IPs to override the source IP addresses
+        provided by the Juju integration binding information.
+
+charm-libs:
+  - lib: squid_forward_proxy.http_proxy
+    version: "0"

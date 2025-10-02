@@ -14,11 +14,19 @@ jobs:
     with:
       self-hosted-runner: false
       working-directory: ./${{ matrix.charm }}-operator
+  http-proxy-configurator:
+    name: Charm Unit Tests
+    uses: canonical/operator-workflows/.github/workflows/test.yaml@main
+    secrets: inherit
+    with:
+      self-hosted-runner: false
+      python-version: 3.12
+      working-directory: ./http-proxy-configurator-operator
   integration-tests:
     name: Charm Integration Tests
     strategy:
       matrix:
-        charm: [ squid-forward-proxy, http-proxy-policy ]
+        charm: [ squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
     uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
@@ -39,7 +47,6 @@ jobs:
         run: |
           pip install -r requirements.txt
           python3 ./manage.py test --settings=http_proxy_policy.test_settings
-
   build-snap:
     name: Build Snap
     runs-on: ubuntu-latest
