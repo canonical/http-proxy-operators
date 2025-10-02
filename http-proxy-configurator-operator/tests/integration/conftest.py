@@ -99,22 +99,3 @@ def squid_proxy_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju):
         lambda status: jubilant.all_active(status, SQUID_PROXY_APP),
     )
     yield SQUID_PROXY_APP
-
-
-def get_unit_addresses(juju: jubilant.Juju, application: str) -> list[IPv4Address | IPv6Address]:
-    """Fetch all unit addresses from juju status.
-
-    Args:
-        juju: jubilant Juju class.
-        application: Name of the application
-
-    Returns:
-        The list of addresses of all the units of the application.
-    """
-    unit_addresses: list[IPv4Address | IPv6Address] = []
-    if application_status := juju.status().apps.get(application):
-        unit_addresses = [
-            ip_address(unit_status.public_address)
-            for unit_status in application_status.units.values()
-        ]
-    return unit_addresses

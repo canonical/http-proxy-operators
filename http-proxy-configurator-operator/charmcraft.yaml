@@ -51,6 +51,12 @@ config:
       description: Comma-separated list of source IPs to override the source IP addresses
         provided by the Juju integration binding information.
 
+actions:
+  get_proxies:
+      description: |
+        Get HTTP and HTTPS proxy values from the provider. 
+        Returns None if proxy is unavailable.
+
 charm-libs:
   - lib: squid_forward_proxy.http_proxy
     version: "0"
