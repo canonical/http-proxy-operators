@@ -36,28 +36,6 @@ def test_state_from_charm():
     ).split(",")
 
 
-def test_state_from_charm_all_auth_methods():
-    """
-    arrange: mock a charm with all valid auth methods
-    act: instantiate a State
-    assert: all auth methods are correctly parsed
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "example.com",
-        "http-proxy-auth": "none,srcip,userpass,srcip+userpass",
-        "http-proxy-source-ips": "192.168.1.1",
-    }
-    charm_state = state.State.from_charm(charm)
-
-    assert charm_state.http_proxy_auth == [
-        state.ProxyAuthMethod.NONE,
-        state.ProxyAuthMethod.SRC_IP,
-        state.ProxyAuthMethod.USERPASS,
-        state.ProxyAuthMethod.SRC_IP_AND_USERPASS,
-    ]
-
-
 def test_state_from_charm_empty_source_ips():
     """
     arrange: mock a charm with empty source IPs
@@ -75,82 +53,75 @@ def test_state_from_charm_empty_source_ips():
     assert not charm_state.http_proxy_source_ips
 
 
-def test_state_from_charm_no_domains():
+@pytest.mark.parametrize(
+    "invalid_config",
+    [
+        pytest.param(
+            {
+                "http-proxy-domains": "",
+                "http-proxy-auth": "none",
+                "http-proxy-source-ips": "192.168.1.1",
+            },
+            id="missing-domains",
+        ),
+        pytest.param(
+            {
+                "http-proxy-domains": "example.com",
+                "http-proxy-auth": "invalid",
+                "http-proxy-source-ips": "192.168.1.1",
+            },
+            id="invalid-auth",
+        ),
+        pytest.param(
+            {
+                "http-proxy-domains": "example.com",
+                "http-proxy-auth": "none,invalid,srcip",
+                "http-proxy-source-ips": "192.168.1.1",
+            },
+            id="invalid-auth-list",
+        ),
+        pytest.param(
+            {
+                "http-proxy-domains": "example.com",
+                "http-proxy-auth": "none",
+                "http-proxy-source-ips": "999.999.999.999",
+            },
+            id="invalid-ip-address",
+        ),
+        pytest.param(
+            {
+                "http-proxy-domains": "example.com",
+                "http-proxy-auth": "none",
+                "http-proxy-source-ips": "not-an-ip",
+            },
+            id="invalid-ip-value",
+        ),
+        pytest.param(
+            {
+                "http-proxy-domains": None,
+                "http-proxy-auth": None,
+                "http-proxy-source-ips": None,
+            },
+            id="none-value",
+        ),
+        pytest.param(
+            {
+                "http-proxy-domains": "example.com",
+                "http-proxy-auth": "srcip+userpass",
+                "http-proxy-source-ips": "",
+            },
+            id="missing-source-ips-with-auth",
+        ),
+    ],
+)
+def test_state_from_charm_invalid_config(invalid_config):
     """
     arrange: mock a charm without domain configuration
     act: instantiate a State
     assert: an InvalidCharmConfigError is raised
     """
     charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "",
-        "http-proxy-auth": "none",
-        "http-proxy-source-ips": "192.168.1.1",
-    }
-    with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
-
-
-def test_state_from_charm_invalid_auth_method():
-    """
-    arrange: mock a charm with invalid auth method configuration
-    act: instantiate a State
-    assert: an InvalidCharmConfigError is raised
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "example.com",
-        "http-proxy-auth": "invalid",
-        "http-proxy-source-ips": "192.168.1.1",
-    }
-    with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
-
-
-def test_state_from_charm_mixed_valid_invalid_auth():
-    """
-    arrange: mock a charm with mixed valid and invalid auth methods
-    act: instantiate a State
-    assert: an InvalidCharmConfigError is raised
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "example.com",
-        "http-proxy-auth": "none,invalid,srcip",
-        "http-proxy-source-ips": "192.168.1.1",
-    }
-    with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
-
-
-def test_state_from_charm_invalid_ipv4():
-    """
-    arrange: mock a charm with invalid IPv4 address
-    act: instantiate a State
-    assert: an InvalidCharmConfigError is raised
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "example.com",
-        "http-proxy-auth": "none",
-        "http-proxy-source-ips": "999.999.999.999",
-    }
-    with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
-
-
-def test_state_from_charm_invalid_ip_format():
-    """
-    arrange: mock a charm with invalid IP format
-    act: instantiate a State
-    assert: an InvalidCharmConfigError is raised
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "example.com",
-        "http-proxy-auth": "none",
-        "http-proxy-source-ips": "not-an-ip",
-    }
+    charm.config = invalid_config
     with pytest.raises(state.InvalidCharmConfigError):
         state.State.from_charm(charm)
 
@@ -188,22 +159,6 @@ def test_state_from_charm_mixed_ipv4_ipv6():
     charm_state = state.State.from_charm(charm)
 
     assert len(charm_state.http_proxy_source_ips) == 2
-
-
-def test_state_from_charm_none_config_values():
-    """
-    arrange: mock a charm with None config values
-    act: instantiate a State
-    assert: an InvalidCharmConfigError is raised
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": None,
-        "http-proxy-auth": None,
-        "http-proxy-source-ips": None,
-    }
-    with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
 
 
 def test__parse_charm_config_values_empty_string():
@@ -255,19 +210,3 @@ def test_proxy_auth_method_all():
     all_methods = state.ProxyAuthMethod.all()
     assert all_methods == ["none", "srcip", "userpass", "srcip+userpass"]
     assert len(all_methods) == 4
-
-
-def test_state_from_charm_srcip_and_userpass_without_source_ips():
-    """
-    arrange: mock a charm with srcip+userpass auth method but no source IPs configured
-    act: instantiate a State
-    assert: an InvalidCharmConfigError is raised
-    """
-    charm = Mock(CharmBase)
-    charm.config = {
-        "http-proxy-domains": "example.com",
-        "http-proxy-auth": "srcip+userpass",
-        "http-proxy-source-ips": "",
-    }
-    with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
