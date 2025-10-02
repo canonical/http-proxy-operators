@@ -3,8 +3,6 @@
 
 """Test the charm in integrator mode."""
 
-import ipaddress
-
 import jubilant
 import pytest
 import requests
