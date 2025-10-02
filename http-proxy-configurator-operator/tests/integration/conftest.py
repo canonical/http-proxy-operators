@@ -4,7 +4,6 @@
 """Integration tests configuration."""
 
 import pathlib
-from ipaddress import IPv4Address, IPv6Address, ip_address
 from typing import cast
 
 import jubilant
