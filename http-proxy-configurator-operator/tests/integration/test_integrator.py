@@ -3,11 +3,11 @@
 
 """Test the charm in integrator mode."""
 
+from typing import cast
+
 import jubilant
 import pytest
 import requests
-
-from .conftest import get_unit_addresses
 
 
 @pytest.mark.abort_on_fail
@@ -35,14 +35,10 @@ def test_config_hostnames_and_paths(
         error=jubilant.any_error,
     )
 
-    squid_proxy_address = get_unit_addresses(juju, squid_proxy)[0]
-    proxy_url = f"http://{str(squid_proxy_address)}:3128"
-    if squid_proxy_address.version == 6:
-        proxy_url = f"http://[{str(squid_proxy_address)}]:3128"
-
+    proxy_config = juju.run(f"{application}/0", "get-proxies")
     response = requests.get(
         "https://canonical.com",
-        proxies={"https": proxy_url},
+        proxies={"https": cast(str, proxy_config.results.get("https_proxy"))},
         timeout=60,
     )
     assert "Trusted open source" in response.text
