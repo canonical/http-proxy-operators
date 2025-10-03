@@ -35,6 +35,11 @@ requires:
     interface: http_proxy
     limit: 1
 
+provides:
+  http-proxy-backend:
+    interface: http_proxy
+    limit: 1
+
 config:
   options:
     http-proxy-domains:

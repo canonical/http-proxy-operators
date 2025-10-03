@@ -4,7 +4,7 @@
 
 """Unit tests for the state module."""
 
-from unittest.mock import Mock
+from unittest.mock import MagicMock, Mock
 
 import pytest
 from ops import CharmBase
@@ -24,7 +24,8 @@ def test_state_from_charm():
         "http-proxy-auth": "none,srcip",
         "http-proxy-source-ips": "192.168.1.1,10.0.0.1",
     }
-    charm_state = state.State.from_charm(charm)
+    charm.model.get_relation = MagicMock(return_value=None)
+    charm_state = state.State.from_charm(charm, MagicMock())
 
     assert charm_state.http_proxy_domains == charm.config.get("http-proxy-domains").split(",")
     assert charm_state.http_proxy_auth == [
@@ -48,7 +49,8 @@ def test_state_from_charm_empty_source_ips():
         "http-proxy-auth": "none",
         "http-proxy-source-ips": "",
     }
-    charm_state = state.State.from_charm(charm)
+    charm.model.get_relation = MagicMock(return_value=None)
+    charm_state = state.State.from_charm(charm, MagicMock())
 
     assert not charm_state.http_proxy_source_ips
 
@@ -122,8 +124,9 @@ def test_state_from_charm_invalid_config(invalid_config):
     """
     charm = Mock(CharmBase)
     charm.config = invalid_config
+    charm.model.get_relation = MagicMock(return_value=None)
     with pytest.raises(state.InvalidCharmConfigError):
-        state.State.from_charm(charm)
+        state.State.from_charm(charm, MagicMock())
 
 
 def test_state_from_charm_ipv6_address():
@@ -138,7 +141,8 @@ def test_state_from_charm_ipv6_address():
         "http-proxy-auth": "none",
         "http-proxy-source-ips": "2001:0db8:85a3:0000:0000:8a2e:0370:7334",
     }
-    charm_state = state.State.from_charm(charm)
+    charm.model.get_relation = MagicMock(return_value=None)
+    charm_state = state.State.from_charm(charm, MagicMock())
 
     assert len(charm_state.http_proxy_source_ips) == 1
     assert str(charm_state.http_proxy_source_ips[0]) == "2001:db8:85a3::8a2e:370:7334"
@@ -156,7 +160,8 @@ def test_state_from_charm_mixed_ipv4_ipv6():
         "http-proxy-auth": "none",
         "http-proxy-source-ips": "192.168.1.1,2001:db8::1",
     }
-    charm_state = state.State.from_charm(charm)
+    charm.model.get_relation = MagicMock(return_value=None)
+    charm_state = state.State.from_charm(charm, MagicMock())
 
     assert len(charm_state.http_proxy_source_ips) == 2
 

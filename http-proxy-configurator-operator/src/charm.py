@@ -13,13 +13,16 @@ import typing
 import ops
 from charms.squid_forward_proxy.v0.http_proxy import (
     HttpProxyDynamicRequirer,
+    HttpProxyPolyProvider,
     HTTPProxyUnavailableError,
 )
 
-from state import InvalidCharmConfigError, State
+from state import BackendRequestMissingError, InvalidCharmConfigError, State
 
 logger = logging.getLogger(__name__)
 HTTP_PROXY_RELATION = "http-proxy"
+HTTP_PROXY_BACKEND_RELATION = "http-proxy-backend"
+
 CHARM_CONFIG_DELIMITER = ","
 
 
@@ -34,10 +37,22 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
         """
         super().__init__(*args)
         self._http_proxy = HttpProxyDynamicRequirer(self, HTTP_PROXY_RELATION)
+        self._http_proxy_provider = HttpProxyPolyProvider(self, HTTP_PROXY_BACKEND_RELATION)
+
         self.framework.observe(self.on.config_changed, self._reconcile)
+        self.framework.observe(self.on.update_status, self._reconcile)
         self.framework.observe(self.on[HTTP_PROXY_RELATION].relation_changed, self._reconcile)
         self.framework.observe(self.on[HTTP_PROXY_RELATION].relation_broken, self._reconcile)
         self.framework.observe(self.on[HTTP_PROXY_RELATION].relation_departed, self._reconcile)
+        self.framework.observe(
+            self.on[HTTP_PROXY_BACKEND_RELATION].relation_changed, self._reconcile
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_BACKEND_RELATION].relation_broken, self._reconcile
+        )
+        self.framework.observe(
+            self.on[HTTP_PROXY_BACKEND_RELATION].relation_departed, self._reconcile
+        )
 
         # Action handlers
         self.framework.observe(self.on.get_proxies_action, self._on_get_proxies)
@@ -45,21 +60,48 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
     def _reconcile(self, _: ops.EventBase) -> None:
         """Reconcile the charm."""
         try:
-            state = State.from_charm(self)
+            state = State.from_charm(self, self._http_proxy_provider)
             self._http_proxy.request_http_proxy(
                 state.http_proxy_domains,
                 state.http_proxy_auth,
                 [str(address) for address in state.http_proxy_source_ips],
             )
+            if (
+                state.http_proxy_backend_relation_id is not None
+                and state.http_proxy_backend_requirer_id is not None
+            ):
+                responses = self._http_proxy_provider.open_response_list(
+                    state.http_proxy_backend_relation_id
+                )
+                # Due to library limitations and the specificity of the configurator charm,
+                # we have to use the private _get_response method here.
+                reply = self._http_proxy._get_response()  # pylint: disable=protected-access
+                responses.add_or_replace(
+                    state.http_proxy_backend_requirer_id,
+                    status=reply.status,
+                    auth=reply.auth,
+                    http_proxy=reply.http_proxy,
+                    https_proxy=reply.https_proxy,
+                    user=None if reply.user is None else reply.user.dump(),
+                )
             self.unit.status = ops.ActiveStatus()
         except InvalidCharmConfigError as exc:
             logger.exception("Error validating the charm configuration.")
             self.unit.status = ops.BlockedStatus(str(exc))
             return
         except ValueError as exc:
-            logger.exception("Error sending proxy request.")
+            logger.exception("Error handling proxy request.")
             self.unit.status = ops.BlockedStatus(str(exc))
             return
+        except BackendRequestMissingError as exc:
+            logger.warning("Incomplete backend relation data.")
+            self.unit.status = ops.WaitingStatus(str(exc))
+            return
+        except HTTPProxyUnavailableError:
+            logger.exception("Error fetching proxy responses.")
+            self.unit.status = ops.WaitingStatus(
+                "Waiting for complete response from http-proxy provider."
+            )
 
     def _on_get_proxies(self, event: ops.ActionEvent) -> None:
         """Handle the get_proxied_endpoints action."""
