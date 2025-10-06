@@ -57,9 +57,6 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
         # Action handlers
         self.framework.observe(self.on.get_proxies_action, self._on_get_proxies)
 
-        # Action handlers
-        self.framework.observe(self.on.get_proxies_action, self._on_get_proxies)
-
     def _reconcile(self, _: ops.EventBase) -> None:
         """Reconcile the charm."""
         try:
@@ -105,19 +102,6 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
             self.unit.status = ops.WaitingStatus(
                 "Waiting for complete response from http-proxy provider."
             )
-
-    def _on_get_proxies(self, event: ops.ActionEvent) -> None:
-        """Handle the get_proxied_endpoints action."""
-        try:
-            proxy_config = self._http_proxy.fetch_proxies()
-            result = {
-                "http-proxy": proxy_config.http_proxy,
-                "https-proxy": proxy_config.https_proxy,
-            }
-            event.set_results(result)
-        except (ValueError, HTTPProxyUnavailableError) as exc:
-            logger.exception("Error response from http-proxy provider.")
-            event.fail(str(exc))
 
     def _on_get_proxies(self, event: ops.ActionEvent) -> None:
         """Handle the get_proxied_endpoints action."""

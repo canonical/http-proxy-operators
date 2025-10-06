@@ -12,6 +12,7 @@ import yaml
 
 JUJU_WAIT_TIMEOUT = 10 * 60  # 10 minutes
 SQUID_PROXY_APP = "squid-forward-proxy"
+REQUIRER_APP = "requirer"
 
 
 @pytest.fixture(scope="session", name="charm")
@@ -52,14 +53,14 @@ def juju_fixture(request: pytest.FixtureRequest):
 
 @pytest.fixture(scope="module", name="application")
 def application_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju, charm: str):
-    """Deploy the ingress-configurator application.
+    """Deploy the http-proxy-configurator application.
 
     Args:
         juju: Jubilant juju fixture.
         charm_file: Path to the packed charm file.
 
     Yields:
-        The ingress-configurator app name.
+        The deployed application name.
     """
     metadata = yaml.safe_load(pathlib.Path("./charmcraft.yaml").read_text(encoding="UTF-8"))
     app_name = metadata["name"]
@@ -98,3 +99,26 @@ def squid_proxy_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju):
         lambda status: jubilant.all_active(status, SQUID_PROXY_APP),
     )
     yield SQUID_PROXY_APP
+
+
+@pytest.fixture(scope="module", name="http_proxy_requirer")
+def http_proxy_requirer_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju, charm: str):
+    """Deploy the http-proxy-configurator application as a requirer for adapter mode.
+
+    Args:
+        juju: Jubilant juju fixture.
+        charm_file: Path to the packed charm file.
+
+    Yields:
+        The deployed application name.
+    """
+    if pytestconfig.getoption("--no-setup") and REQUIRER_APP in juju.status().apps:
+        yield REQUIRER_APP
+        return
+    juju.deploy(
+        charm=charm,
+        app=REQUIRER_APP,
+        base="ubuntu@24.04",
+        config={"http-proxy-domains": "ignored"},
+    )
+    yield REQUIRER_APP
