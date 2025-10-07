@@ -64,7 +64,7 @@ def application_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju, charm:
     """
     metadata = yaml.safe_load(pathlib.Path("./charmcraft.yaml").read_text(encoding="UTF-8"))
     app_name = metadata["name"]
-    if pytestconfig.getoption("--no-setup") and app_name in juju.status().apps:
+    if pytestconfig.getoption("--use-existing") and app_name in juju.status().apps:
         yield app_name
         return
     juju.deploy(
@@ -85,7 +85,7 @@ def squid_proxy_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju):
     Yields:
         The deployed application name.
     """
-    if pytestconfig.getoption("--no-setup") and SQUID_PROXY_APP in juju.status().apps:
+    if pytestconfig.getoption("--use-existing") and SQUID_PROXY_APP in juju.status().apps:
         yield SQUID_PROXY_APP
         return
     juju.deploy(
@@ -112,7 +112,7 @@ def http_proxy_requirer_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju
     Yields:
         The deployed application name.
     """
-    if pytestconfig.getoption("--no-setup") and REQUIRER_APP in juju.status().apps:
+    if pytestconfig.getoption("--use-existing") and REQUIRER_APP in juju.status().apps:
         yield REQUIRER_APP
         return
     juju.deploy(

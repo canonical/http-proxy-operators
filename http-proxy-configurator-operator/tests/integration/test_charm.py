@@ -38,7 +38,7 @@ def test_config_hostnames_and_paths(
     https_proxy = proxy_config.results.get("https-proxy")
     response = requests.get(
         "https://canonical.com",
-        proxies={"https": cast(str, proxy_config.results.get("https-proxy"))},
+        proxies={"https": cast(str, https_proxy)},
         timeout=60,
     )
     assert "Trusted open source" in response.text
