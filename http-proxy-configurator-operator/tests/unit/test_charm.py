@@ -10,7 +10,6 @@ from unittest.mock import MagicMock
 import ops.testing
 import pytest
 
-from lib.charms.squid_forward_proxy.v0.http_proxy import HTTPProxyUnavailableError
 from state import BackendRequestMissingError, InvalidCharmConfigError
 
 

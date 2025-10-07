@@ -20,6 +20,7 @@ def test_config_hostnames_and_paths(
         juju: Jubilant juju fixture
         application: Name of the ingress-configurator application.
         squid_proxy: Name of the squid_proxy application.
+        http_proxy_requirer: Name of the requirer application.
     """
     juju.integrate(f"{squid_proxy}:http-proxy", f"{application}:http-proxy")
     juju.config(
