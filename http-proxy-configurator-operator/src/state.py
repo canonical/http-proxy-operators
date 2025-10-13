@@ -61,15 +61,15 @@ class State:
         http_proxy_domains: Configured list of backend ip addresses.
         http_proxy_auth: Configured list of backend ports.
         http_proxy_source_ips: The configured protocol for the backend.
-        http_proxy_backend_relation_id: relation ID of the http-proxy-backend relation.
-        http_proxy_backend_requirer_id: ID of the backend requirer.
+        delegate_http_proxy_relation_id: relation ID of the delegate-http-proxy relation.
+        delegate_http_proxy_requirer_id: ID of the backend requirer.
     """
 
     http_proxy_domains: Annotated[list[str], Len(min_length=1)]
     http_proxy_auth: Annotated[list[ProxyAuthMethod], Len(min_length=1)]
     http_proxy_source_ips: list[IPvAnyAddress]
-    http_proxy_backend_relation_id: Optional[int]
-    http_proxy_backend_requirer_id: Optional[str]
+    delegate_http_proxy_relation_id: Optional[int]
+    delegate_http_proxy_requirer_id: Optional[str]
 
     @model_validator(mode="after")
     def validate_source_ips_set_for_srcip_auth_method(self) -> "State":
@@ -109,13 +109,13 @@ class State:
     # pylint: disable=too-many-locals
     @classmethod
     def from_charm(
-        cls, charm: ops.CharmBase, http_proxy_backend_provider: HttpProxyPolyProvider
+        cls, charm: ops.CharmBase, delegate_http_proxy_provider: HttpProxyPolyProvider
     ) -> "State":
         """Create an State class from a charm instance.
 
         Args:
             charm: the http-proxy-configurator charm.
-            http_proxy_backend_provider: http-proxy proivder class.
+            delegate_http_proxy_provider: http-proxy proivder class.
 
         Raises:
             InvalidCharmConfigError: when the integrator mode config is invalid.
@@ -124,29 +124,32 @@ class State:
         Returns:
             State: instance of the state component.
         """
-        http_proxy_backend_relation = charm.model.get_relation(
-            http_proxy_backend_provider._integration_name  # pylint: disable=protected-access
+        delegate_http_proxy_relation = charm.model.get_relation(
+            delegate_http_proxy_provider._integration_name  # pylint: disable=protected-access
         )
-        http_proxy_backend_relation_id = (
-            None if http_proxy_backend_relation is None else http_proxy_backend_relation.id
+        delegate_http_proxy_relation_id = (
+            None if delegate_http_proxy_relation is None else delegate_http_proxy_relation.id
         )
-        http_proxy_backend_requirer_id = None
+        delegate_http_proxy_requirer_id = None
         configured_domains = cast(Optional[str], charm.config.get("http-proxy-domains"))
         configured_auth = cast(Optional[str], charm.config.get("http-proxy-auth"))
         configured_source_ips = cast(Optional[str], charm.config.get("http-proxy-source-ips"))
-        if http_proxy_backend_relation is not None and configured_source_ips is not None:
+        if delegate_http_proxy_relation is not None and configured_source_ips is not None:
             logger.error("Cannot determine mode of operation.")
             raise InvalidCharmConfigError(
-                "Setting both http-proxy-source-ips and http-proxy-backend relation is not allowed"
+                (
+                    "Setting both http-proxy-source-ips "
+                    "and delegate-http-proxy relation is not allowed"
+                )
             )
         http_proxy_source_ips = [
             cast(IPvAnyAddress, config)
             for config in _parse_charm_config_values(configured_source_ips)
         ]
-        if http_proxy_backend_relation:
+        if delegate_http_proxy_relation:
             http_proxy_source_ips = []
-            proxy_requests = http_proxy_backend_provider.open_request_list(
-                http_proxy_backend_relation.id
+            proxy_requests = delegate_http_proxy_provider.open_request_list(
+                delegate_http_proxy_relation.id
             )
             requirer_ids = list(proxy_requests.get_requirer_ids())
             if not requirer_ids:
@@ -156,7 +159,7 @@ class State:
                 raise InvalidCharmConfigError(
                     f"Only one request at a time is supported (found: {len(requirer_ids)})."
                 )
-            http_proxy_backend_requirer_id = requirer_ids[0]
+            delegate_http_proxy_requirer_id = requirer_ids[0]
             # To reach this point we have ensured that requirer_ids exists and of len=1
             request = proxy_requests.get(requirer_ids[0])
             if request is None:
@@ -170,8 +173,8 @@ class State:
                     for config in _parse_charm_config_values(configured_auth)
                 ],
                 http_proxy_source_ips=http_proxy_source_ips,
-                http_proxy_backend_relation_id=http_proxy_backend_relation_id,
-                http_proxy_backend_requirer_id=http_proxy_backend_requirer_id,
+                delegate_http_proxy_relation_id=delegate_http_proxy_relation_id,
+                delegate_http_proxy_requirer_id=delegate_http_proxy_requirer_id,
             )
         except ValidationError as exc:
             logger.error(str(exc))

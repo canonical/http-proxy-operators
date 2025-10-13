@@ -36,7 +36,7 @@ requires:
     limit: 1
 
 provides:
-  http-proxy-backend:
+  delegate-http-proxy:
     interface: http_proxy
     limit: 1
 

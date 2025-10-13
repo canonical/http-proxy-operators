@@ -43,7 +43,7 @@ def test_config_hostnames_and_paths(
     )
     assert "Trusted open source" in response.text
 
-    juju.integrate(f"{application}:http-proxy-backend", f"{http_proxy_requirer}:http-proxy")
+    juju.integrate(f"{application}:delegate-http-proxy", f"{http_proxy_requirer}:http-proxy")
     juju.config(
         app=application,
         values={"http-proxy-domains": "canonical.com", "http-proxy-auth": "srcip"},

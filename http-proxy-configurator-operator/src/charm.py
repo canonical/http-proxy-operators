@@ -20,8 +20,8 @@ from charms.squid_forward_proxy.v0.http_proxy import (
 from state import BackendRequestMissingError, InvalidCharmConfigError, State
 
 logger = logging.getLogger(__name__)
+DELEGATE_HTTP_PROXY_RELATION = "delegate-http-proxy"
 HTTP_PROXY_RELATION = "http-proxy"
-HTTP_PROXY_BACKEND_RELATION = "http-proxy-backend"
 
 CHARM_CONFIG_DELIMITER = ","
 
@@ -37,21 +37,20 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
         """
         super().__init__(*args)
         self._http_proxy = HttpProxyDynamicRequirer(self, HTTP_PROXY_RELATION)
-        self._http_proxy_provider = HttpProxyPolyProvider(self, HTTP_PROXY_BACKEND_RELATION)
+        self._http_proxy_provider = HttpProxyPolyProvider(self, DELEGATE_HTTP_PROXY_RELATION)
 
         self.framework.observe(self.on.config_changed, self._reconcile)
-        self.framework.observe(self.on.update_status, self._reconcile)
         self.framework.observe(self.on[HTTP_PROXY_RELATION].relation_changed, self._reconcile)
         self.framework.observe(self.on[HTTP_PROXY_RELATION].relation_broken, self._reconcile)
         self.framework.observe(self.on[HTTP_PROXY_RELATION].relation_departed, self._reconcile)
         self.framework.observe(
-            self.on[HTTP_PROXY_BACKEND_RELATION].relation_changed, self._reconcile
+            self.on[DELEGATE_HTTP_PROXY_RELATION].relation_changed, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_BACKEND_RELATION].relation_broken, self._reconcile
+            self.on[DELEGATE_HTTP_PROXY_RELATION].relation_broken, self._reconcile
         )
         self.framework.observe(
-            self.on[HTTP_PROXY_BACKEND_RELATION].relation_departed, self._reconcile
+            self.on[DELEGATE_HTTP_PROXY_RELATION].relation_departed, self._reconcile
         )
 
         # Action handlers
@@ -67,17 +66,17 @@ class HTTPProxyConfiguratorCharm(ops.CharmBase):
                 [str(address) for address in state.http_proxy_source_ips],
             )
             if (
-                state.http_proxy_backend_relation_id is not None
-                and state.http_proxy_backend_requirer_id is not None
+                state.delegate_http_proxy_relation_id is not None
+                and state.delegate_http_proxy_requirer_id is not None
             ):
                 responses = self._http_proxy_provider.open_response_list(
-                    state.http_proxy_backend_relation_id
+                    state.delegate_http_proxy_relation_id
                 )
                 # Due to library limitations and the specificity of the configurator charm,
                 # we have to use the private _get_response method here.
                 reply = self._http_proxy._get_response()  # pylint: disable=protected-access
                 responses.add_or_replace(
-                    state.http_proxy_backend_requirer_id,
+                    state.delegate_http_proxy_requirer_id,
                     status=reply.status,
                     auth=reply.auth,
                     http_proxy=reply.http_proxy,

@@ -35,8 +35,8 @@ def test_state_from_charm():
     assert [str(ip) for ip in charm_state.http_proxy_source_ips] == charm.config.get(
         "http-proxy-source-ips"
     ).split(",")
-    assert charm_state.http_proxy_backend_relation_id is None
-    assert charm_state.http_proxy_backend_requirer_id is None
+    assert charm_state.delegate_http_proxy_relation_id is None
+    assert charm_state.delegate_http_proxy_requirer_id is None
 
 
 def test_state_from_charm_empty_source_ips():
@@ -170,7 +170,7 @@ def test_state_from_charm_mixed_ipv4_ipv6():
 
 def test_state_from_charm_with_backend_relation():
     """
-    arrange: mock a charm with http-proxy-backend relation providing source IPs
+    arrange: mock a charm with delegate-http-proxy relation providing source IPs
     act: instantiate a State
     assert: source IPs are taken from the relation and relation IDs are set
     """
@@ -185,7 +185,7 @@ def test_state_from_charm_with_backend_relation():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
     mock_request_list = MagicMock()
     mock_request_list.get_requirer_ids.return_value = ["requirer-123"]
     mock_request = MagicMock()
@@ -196,13 +196,13 @@ def test_state_from_charm_with_backend_relation():
     charm_state = state.State.from_charm(charm, mock_provider)
 
     assert [str(ip) for ip in charm_state.http_proxy_source_ips] == ["192.168.1.1", "10.0.0.1"]
-    assert charm_state.http_proxy_backend_relation_id == 42
-    assert charm_state.http_proxy_backend_requirer_id == "requirer-123"
+    assert charm_state.delegate_http_proxy_relation_id == 42
+    assert charm_state.delegate_http_proxy_requirer_id == "requirer-123"
 
 
 def test_state_from_charm_backend_relation_no_requirer_data():
     """
-    arrange: mock a charm with http-proxy-backend relation but no requirer data yet
+    arrange: mock a charm with delegate-http-proxy relation but no requirer data yet
     act: instantiate a State
     assert: a BackendRequestMissingError is raised
     """
@@ -217,7 +217,7 @@ def test_state_from_charm_backend_relation_no_requirer_data():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
     mock_request_list = MagicMock()
     mock_request_list.get_requirer_ids.return_value = []
     mock_provider.open_request_list.return_value = mock_request_list
@@ -228,7 +228,7 @@ def test_state_from_charm_backend_relation_no_requirer_data():
 
 def test_state_from_charm_backend_relation_incomplete_requirer_data():
     """
-    arrange: mock a charm with http-proxy-backend relation but incomplete requirer data
+    arrange: mock a charm with delegate-http-proxy relation but incomplete requirer data
     act: instantiate a State
     assert: a BackendRequestMissingError is raised
     """
@@ -243,7 +243,7 @@ def test_state_from_charm_backend_relation_incomplete_requirer_data():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
     mock_request_list = MagicMock()
     mock_request_list.get_requirer_ids.return_value = ["requirer-123"]
     mock_request_list.get.return_value = None
@@ -255,7 +255,7 @@ def test_state_from_charm_backend_relation_incomplete_requirer_data():
 
 def test_state_from_charm_both_backend_relation_and_source_ips_config():
     """
-    arrange: mock a charm with both http-proxy-backend relation and http-proxy-source-ips config
+    arrange: mock a charm with both delegate-http-proxy relation and http-proxy-source-ips config
     act: instantiate a State
     assert: an InvalidCharmConfigError is raised
     """
@@ -270,7 +270,7 @@ def test_state_from_charm_both_backend_relation_and_source_ips_config():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
 
     with pytest.raises(state.InvalidCharmConfigError):
         state.State.from_charm(charm, mock_provider)
@@ -278,7 +278,7 @@ def test_state_from_charm_both_backend_relation_and_source_ips_config():
 
 def test_state_from_charm_backend_relation_with_ipv6():
     """
-    arrange: mock a charm with http-proxy-backend relation providing IPv6 addresses
+    arrange: mock a charm with delegate-http-proxy relation providing IPv6 addresses
     act: instantiate a State
     assert: IPv6 addresses are correctly parsed from the relation
     """
@@ -293,7 +293,7 @@ def test_state_from_charm_backend_relation_with_ipv6():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
     mock_request_list = MagicMock()
     mock_request_list.get_requirer_ids.return_value = ["requirer-123"]
     mock_request = MagicMock()
@@ -308,7 +308,7 @@ def test_state_from_charm_backend_relation_with_ipv6():
 
 def test_state_from_charm_backend_relation_mixed_ip_versions():
     """
-    arrange: mock a charm with http-proxy-backend relation providing both IPv4 and IPv6
+    arrange: mock a charm with delegate-http-proxy relation providing both IPv4 and IPv6
     act: instantiate a State
     assert: both IP versions are correctly parsed from the relation
     """
@@ -323,7 +323,7 @@ def test_state_from_charm_backend_relation_mixed_ip_versions():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
     mock_request_list = MagicMock()
     mock_request_list.get_requirer_ids.return_value = ["requirer-123"]
     mock_request = MagicMock()
@@ -338,7 +338,7 @@ def test_state_from_charm_backend_relation_mixed_ip_versions():
 
 def test_state_from_charm_backend_relation_empty_source_ips():
     """
-    arrange: mock a charm with http-proxy-backend relation but requirer provides empty source IPs
+    arrange: mock a charm with delegate-http-proxy relation but requirer provides empty source IPs
     act: instantiate a State
     assert: source IPs list is empty
     """
@@ -353,7 +353,7 @@ def test_state_from_charm_backend_relation_empty_source_ips():
     charm.model.get_relation = MagicMock(return_value=mock_relation)
 
     mock_provider = MagicMock()
-    mock_provider._integration_name = "http-proxy-backend"
+    mock_provider._integration_name = "delegate-http-proxy"
     mock_request_list = MagicMock()
     mock_request_list.get_requirer_ids.return_value = ["requirer-123"]
     mock_request = MagicMock()
