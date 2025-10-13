@@ -1,5 +1,10 @@
 # Changelog
 
+
+## 2025-10-13
+
+* Fix documentation errors in the `http-proxy` library docstring.
+
 ## 2025-09-11
 
 ### Fixed
