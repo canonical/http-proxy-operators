@@ -12,7 +12,7 @@ To get started using the library, you just need to fetch the library using `char
 
 ```shell
 cd some-charm
-charmcraft fetch-lib charms.http_proxy.v0.http_proxy
+charmcraft fetch-lib charms.squid_forward_proxy.v0.http_proxy
 ```
 
 ### Using library as a requirer
@@ -39,7 +39,7 @@ multiple requests, they must use the `HttpProxyPolyRequirer` class.
 
 ```python
 from charms.http_proxy.v0.http_proxy import {
-    HTTPProxyNotAvailableError,
+    HTTPProxyUnavailableError,
     HttpProxyRequirer
     DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 )
@@ -75,7 +75,7 @@ class FooCharm(ops.CharmBase):
 # Later provide the requirer data through the request_http_proxy method.
 
 from charms.http_proxy.v0.http_proxy import {
-    HTTPProxyNotAvailableError,
+    HTTPProxyUnavailableError,
     HttpProxyDynamicRequirer,
     DEFAULT_HTTP_PROXY_INTEGRATION_NAME
 )

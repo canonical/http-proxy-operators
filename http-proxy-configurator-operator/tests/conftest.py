@@ -11,6 +11,7 @@ def pytest_addoption(parser):
         parser: Pytest parser.
     """
     parser.addoption("--charm-file", action="store")
+    parser.addoption("--use-existing", action="store")
 
 
 def pytest_configure(config):
