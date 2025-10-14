@@ -1,14 +1,14 @@
-# Upgrade guide
+# How to upgrade
 
-The `squid-forward-proxy` charm is stateless. Upgrading the charm is
-simply refreshes the charm to a new revision. Charm configuration and
+The `squid-forward-proxy` charm is stateless. Upgrade the charm by
+refreshing it to a new revision. The charm's configuration and
 relations are preserved by Juju.
 
 The charm may reload the Squid proxy service configuration during an
 upgrade to apply new changes, but it typically should not cause service
 interruptions.
 
-## Example of upgrading the squid-forward-proxy charm
+For example:
 
 ```bash
 juju refresh squid-forward-proxy

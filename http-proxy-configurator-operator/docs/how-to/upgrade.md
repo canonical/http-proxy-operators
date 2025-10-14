@@ -1,10 +1,10 @@
-# Upgrade guide
+# How to upgrade
 
-The `http-proxy-configurator` charm is stateless. Upgrading the charm is
-simply refreshes the charm to a new revision. Charm configuration and
+The `http-proxy-configurator` charm is stateless. Upgrade the charm by
+refreshing the charm to a new revision. The charm's configuration and
 relations are preserved by Juju.
 
-## Example of upgrading the http-proxy-configurator charm
+For example:
 
 ```bash
 juju refresh http-proxy-configurator
