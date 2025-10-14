@@ -35,6 +35,11 @@ requires:
     interface: http_proxy
     limit: 1
 
+provides:
+  delegate-http-proxy:
+    interface: http_proxy
+    limit: 1
+
 config:
   options:
     http-proxy-domains:
