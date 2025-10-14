@@ -1,6 +1,6 @@
 # How to upgrade
 
-The `http-proxy-policy` charm is stateless. Upgrading the charm simply
+The `http-proxy-policy` charm is stateless. Upgrading the charm
 involves refreshing it to a new revision. However, it is recommended to
 back up the PostgreSQL database related to `http-proxy-policy` before
 performing the upgrade due to a small chance of data loss.
