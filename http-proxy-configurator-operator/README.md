@@ -1,80 +1,59 @@
-<!--
-Avoid using this README file for information that is maintained or published elsewhere, e.g.:
+# HTTP proxy configurator operator
 
-* metadata.yaml > published on Charmhub
-* documentation > published on (or linked to from) Charmhub
-* detailed contribution guide > documentation or CONTRIBUTING.md
+[![CharmHub Badge](https://charmhub.io/http-proxy-configurator/badge.svg)](https://charmhub.io/http-proxy-configurator)
+[![Juju](https://img.shields.io/badge/Juju%20-3.0+-%23E95420)](https://juju.is/)
 
-Use links instead.
--->
-<!--
-NOTE: This template has the documentation under the `docs-template` due with issues with discourse-gatekeeper. The `docs-template` directory must be changed to `docs` after using this template to ensure discourse-gatekeeper correctly identifies the documentation changes.
--->
-# Platform engineering charm template
-<!-- Use this space for badges -->
+A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for both charmed and non-charmed workloads. Like any Juju charm, this charm supports one-line deployment, configuration, integration, and more.
 
-Describe your charm in 1-2 sentences. Include the software that the charm deploys (if applicable), and the substrate (VM/K8s).
+The HTTP proxy configurator charm acts as a bridge between applications that need HTTP proxy configuration and proxy providers. It can operate in two modes:
 
-Like any Juju charm, this charm supports one-line deployment, configuration, integration, scaling, and more. For Charmed {Name}, this includes:
-* list or summary of app-specific features
+- **Integrator mode**: For non-charmed applications that configure the charm via config options and retrieve proxy values via the `get-proxies` action.
+- **Pass-through mode**: For charmed applications that integrate via relations and can dynamically configure domains and authentication modes.
 
-For information about how to deploy, integrate, and manage this charm, see the Official [platform-engineering-charm-template Documentation](external link).
+For detailed information about how to deploy, integrate, and manage this charm, see the official [HTTP proxy configurator operator documentation](https://charmhub.io/http-proxy-configurator).
 
 ## Get started
-<!--If the charm already contains a relevant how-to guide or tutorial in its documentation,
-use this section to link the documentation. You don’t need to duplicate documentation here.
-If the tutorial is more complex than getting started, then provide brief descriptions of the
-steps needed for the simplest possible deployment. Make sure to include software and hardware
-prerequisites.
 
-This section could be structured in the following way:
-
-### Set up
-<Steps for setting up the environment (e.g. via Multipass)>
-
-### Deploy
-<Steps for deploying the charm>
-
--->
+To begin, refer to the [tutorial](https://charmhub.io/http-proxy-configurator/docs/tutorial-getting-started) for step-by-step instructions.
 
 ### Basic operations
-<!--Brief walkthrough of performing standard configurations or operations.
 
-Use this section is to emphasize features or capabilities of the charm.
-Link to any relevant how-to guides here.
+The HTTP proxy configurator charm can work in two main modes:
 
-Use this section to provide information on important actions, required configurations, or
-other operations the user should know about. You don’t need to list every action or configuration.
-Link the Charmhub documentation for actions and configurations if you write about them.
+#### Integrator mode (for non-charmed applications)
 
-You may also want to link to the `charmcraft.yaml` file here.
--->
+In integrator mode, non-charmed applications configure the charm via config options and retrieve proxy configuration via the `get-proxies` action. This mode is ideal for applications that cannot implement the `http-proxy` interface directly.
 
-## Integrations (optional)
-<!-- Information about particularly relevant interfaces, endpoints or libraries related to the
-charm. For example, peer relation endpoints required by other charms for integration.
+Example setup:
+```bash
+juju config http-proxy-configurator http-proxy-domains="example.com,api.service.com"
+juju config http-proxy-configurator http-proxy-auth="none"
+juju config http-proxy-configurator http-proxy-source-ips="192.168.1.100,192.168.1.101"
+juju run http-proxy-configurator/0 get-proxies
+```
 
-Otherwise, include a link the Charmhub documentation on integrations.
---> 
+#### Pass-through mode (for charmed applications)
+
+In pass-through mode, charmed applications integrate with the configurator via the `delegate-http-proxy` relation. The applications will receive the proxy configuration via relation data from the `http-proxy-configurator` charm, based on the domains and authentication methods configured on the charm.
+
+Example setup:
+```bash
+juju deploy my-charmed-app
+juju integrate my-charmed-app:http-proxy http-proxy-configurator:delegate-http-proxy
+juju config http-proxy-configurator http-proxy-domains="example.com,api.service.com"
+juju config http-proxy-configurator http-proxy-auth="userpass"
+```
 
 ## Learn more
-<!-- 
-Provide a list of resources, including the official documentation, developer documentation,
-an official website for the software and a troubleshooting guide. Note that this list is not
-exhaustive or always relevant for every charm. If there is no official troubleshooting guide,
-include a link to the relevant Matrix channel.
--->
 
-* [Read more]() <!--Link to the charm's official documentation-->
-* [Developer documentation]() <!--Link to any developer documentation (could be upstream)-->
-* [Official webpage]() <!--(Optional) Link to official upstream webpage/blog/marketing content--> 
-* [Troubleshooting]() <!--(Optional) Link to a page or section about troubleshooting/FAQ-->
+* [Read more](https://charmhub.io/http-proxy-configurator)
+* [Troubleshooting](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) 
 
 ## Project and community
-* [Issues]() <!--Link to GitHub issues (if applicable)-->
-* [Contributing]() <!--Link to any contribution guides, preferably for the source code--> 
-* [Matrix]() <!--Link to contact info (if applicable), e.g. Matrix channel-->
-* [Launchpad]() <!--Link to Launchpad (if applicable)-->
 
-## Licensing and trademark (optional)
+The HTTP proxy configurator is a member of the Ubuntu family. It's an open source project that warmly welcomes community projects, contributions, suggestions, fixes and constructive feedback.
 
+
+* [Issues](https://github.com/canonical/http-proxy-operators/issues) 
+* [Contributing](https://github.com/canonical/http-proxy-operators/blob/main/http-proxy-configurator-operator/CONTRIBUTING.md) 
+* [Matrix](https://matrix.to/#/#charmhub-charmdev:ubuntu.com) 
