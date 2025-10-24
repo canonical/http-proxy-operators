@@ -7,7 +7,7 @@ This document explains the processes and practices recommended for contributing 
 ## Overview
 
 - Generally, before developing enhancements to this charm, you should consider [opening an issue
-  ](link to issues page) explaining your use case.
+  ](https://github.com/canonical/http-proxy-operators/issues) explaining your use case.
 - If you would like to chat with us about your use-cases or proposed implementation, you can reach
   us at [Canonical Matrix public channel](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
   or [Discourse](https://discourse.charmhub.io/).
@@ -30,7 +30,7 @@ When contributing, you must abide by the
 ## Changelog
 
 Please ensure that any new feature, fix, or significant change is documented by
-adding an entry to the [CHANGELOG.md](link to changelog) file. Use the date of the
+adding an entry to the [CHANGELOG.md](docs/changelog.md) file. Use the date of the
 contribution as the header for new entries.
 
 To learn more about changelog best practices, visit [Keep a Changelog](https://keepachangelog.com/).
@@ -42,7 +42,7 @@ notify in advance the people involved to avoid confusion;
 also, reference the issue or bug number when you submit the changes.
 
 - [Fork](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/working-with-forks/about-forks)
-  our [GitHub repository](link to GitHub repository)
+  our [GitHub repository](https://github.com/canonical/http-proxy-operators)
   and add the changes to your fork, properly structuring your commits,
   providing detailed commit messages and signing your commits.
 - Make sure the updated project builds and runs without warnings or errors;
@@ -90,7 +90,7 @@ we use the [Canonical contributor license agreement](https://assets.ubuntu.com/v
 
 #### Canonical contributor agreement
 
-Canonical welcomes contributions to the <charm-name> charm. Please check out our
+Canonical welcomes contributions to the `http-proxy-configurator` charm. Please check out our
 [contributor agreement](https://ubuntu.com/legal/contributors) if you're interested in contributing to the solution.
 
 The CLA sign-off is simple line at the
@@ -111,7 +111,8 @@ To make contributions to this charm, you'll need a working
 The code for this charm can be downloaded as follows:
 
 ```
-git clone https://github.com/canonical/<charm-name>
+git clone https://github.com/canonical/http-proxy-operators
+cd http-proxy-operators/http-proxy-configurator-operator
 ```
 
 You can create an environment for development with `python3-venv`.
@@ -152,7 +153,7 @@ juju add-model charm-dev
 # Enable DEBUG logging
 juju model-config logging-config="<root>=INFO;unit=DEBUG"
 # Deploy the charm
-juju deploy ./<charm-name>.charm 
+juju deploy ./http-proxy-configurator_*.charm 
 ```
 
 
