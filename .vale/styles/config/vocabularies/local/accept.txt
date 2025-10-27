@@ -1,2 +1,2 @@
-placeholder
+configurator
 docstrings

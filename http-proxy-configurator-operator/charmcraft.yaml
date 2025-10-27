@@ -16,7 +16,7 @@ parts:
       craftctl default
 
 name: http-proxy-configurator
-title: http-proxy configurator charm.
+title: HTTP proxy configurator charm
 description: |
   A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators)
   that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for 
@@ -24,7 +24,7 @@ description: |
 
 summary: Configurator charm for the http-proxy interface.
 links:
-  documentation:
+  documentation: https://discourse.charmhub.io/t/http-proxy-configurator-documentation-overview/19123
   issues: https://github.com/canonical/http-proxy-operators/issues
   source: https://github.com/canonical/http-proxy-operators
   contact:
