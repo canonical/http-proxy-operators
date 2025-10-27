@@ -153,7 +153,7 @@ juju add-model charm-dev
 # Enable DEBUG logging
 juju model-config logging-config="<root>=INFO;unit=DEBUG"
 # Deploy the charm
-juju deploy ./http-proxy-configurator_*.charm 
+juju deploy ./http-proxy-configuration_$(dpkg --print-architecture).charm
 ```
 
 

@@ -7,12 +7,8 @@ This tutorial will walk you through deploying and configuring the HTTP proxy con
 Before you start, you'll need:
 
 - A machine with amd64 architecture.
-- A Juju controller (version 3.0 or higher)
-- MicroK8s / Canonical Kubernetes and LXD installed and bootstrapped to Juju.
-
-[note]
-All the requirements can be met using the [Multipass charm-dev blueprint](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up). Use the Multipass VM shell to run all commands in this tutorial.
-[/note]
+- A [Juju](https://canonical.com/juju) controller (version 3.0 or higher)
+- [MicroK8s](https://microk8s.io/docs) / [Canonical Kubernetes](https://ubuntu.com/kubernetes) and [LXD](https://canonical.com/lxd) installed and bootstrapped to Juju.
 
 For more information about how to install Juju, see [Get started with Juju](https://documentation.ubuntu.com/juju/3.6/tutorial/).
 
@@ -38,7 +34,7 @@ juju add-model proxy-tutorial-k8s
 <!-- vale Canonical.007-Headings-sentence-case = YES -->
 
 ```bash
-juju deploy hockeypuck-k8s --channel=2.2/edge --config metrics-port=9626 --config app-port=11371
+juju deploy hockeypuck-k8s --channel=2.2/stable --config metrics-port=9626 --config app-port=11371
 juju deploy postgresql-k8s --channel 14/stable --trust
 juju integrate hockeypuck-k8s postgresql-k8s
 ```
