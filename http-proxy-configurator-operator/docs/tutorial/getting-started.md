@@ -115,7 +115,7 @@ juju run http-proxy-configurator/0 get-proxies
 ### Clean up the environment
 
 Congratulations! You have successfully finished the tutorial. You can now remove the
-model environment that you’ve created using the following command.
+model environment that you’ve created using the following commands.
 
 
 ```bash
