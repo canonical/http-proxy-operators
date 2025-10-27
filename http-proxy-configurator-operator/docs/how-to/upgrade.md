@@ -1,4 +1,4 @@
-# How to upgrade the HTTP proxy configurator charm
+# How to upgrade
 
 The `http-proxy-configurator` charm is stateless, making the upgrade process straightforward and 
 safe. Upgrade the charm by refreshing it to a new revision. The charm's configuration and relations

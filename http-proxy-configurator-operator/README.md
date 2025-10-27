@@ -22,7 +22,7 @@ The HTTP proxy configurator charm can work in two main modes:
 
 #### Integrator mode (for non-charmed applications)
 
-In integrator mode, non-charmed applications configure the charm via config options and retrieve proxy configuration via the `get-proxies` action. This mode is ideal for applications that cannot implement the `http-proxy` interface directly.
+In integrator mode, non-charmed applications configure the charm via configuration options and retrieve proxy configuration via the `get-proxies` action. This mode is ideal for applications that cannot implement the `http-proxy` interface directly.
 
 Example setup:
 ```bash
