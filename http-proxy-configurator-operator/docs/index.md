@@ -51,7 +51,8 @@ Thinking about using the HTTP proxy configurator operator for your next project?
 4. [Reference](reference)
   1. [Actions](reference/actions.md)
   2. [Configurations](reference/configurations.md)
-  3. [Integrations](reference/integrations.md)
+  3. [External Access](reference/external_access.md)
+  4. [Integrations](reference/integrations.md)
 5. [Tutorial](tutorial)
   1. [Getting started](tutorial/getting-started.md)
 
