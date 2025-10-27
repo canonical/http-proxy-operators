@@ -1,6 +1,6 @@
 # HTTP proxy configurator operator
 
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for both charmed and non-charmed workloads. Like any Juju charm, this charm supports one-line deployment, configuration, integration, and more. 
+A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for both charmed and non-charmed workloads. Like any Juju charm, this charm supports one-line deployment, configuration, integration, and more. 
 
 The HTTP proxy configurator acts as a bridge between applications that need HTTP proxy configuration and proxy providers.
 It can operate in two distinct modes:
