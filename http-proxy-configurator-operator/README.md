@@ -3,7 +3,7 @@
 [![CharmHub Badge](https://charmhub.io/http-proxy-configurator/badge.svg)](https://charmhub.io/http-proxy-configurator)
 [![Juju](https://img.shields.io/badge/Juju%20-3.0+-%23E95420)](https://juju.is/)
 
-A [Juju](https://juju.is/) [charm](https://juju.is/docs/olm/charmed-operators) that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for both charmed and non-charmed workloads. Like any Juju charm, this charm supports one-line deployment, configuration, integration, and more.
+A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for both charmed and non-charmed workloads. Like any Juju charm, this charm supports one-line deployment, configuration, integration, and more.
 
 The HTTP proxy configurator charm acts as a bridge between applications that need HTTP proxy configuration and proxy providers. It can operate in two modes:
 

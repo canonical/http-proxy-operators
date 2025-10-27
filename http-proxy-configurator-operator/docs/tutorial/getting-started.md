@@ -8,7 +8,7 @@ Before you start, you'll need:
 
 - A machine with amd64 architecture.
 - A Juju controller (version 3.0 or higher)
-- Microk8s / Canonical K8s and LXD installed and bootstrapped to Juju.
+- MicroK8s / Canonical Kubernetes and LXD installed and bootstrapped to Juju.
 
 [note]
 All the requirements can be met using the [Multipass charm-dev blueprint](https://documentation.ubuntu.com/juju/3.6/howto/manage-your-deployment/manage-your-deployment-environment/#set-things-up). Use the Multipass VM shell to run all commands in this tutorial.
@@ -33,7 +33,9 @@ juju add-model proxy-tutorial-k8s
 ```
 ## Deploy the charms
 
+<!-- vale Canonical.007-Headings-sentence-case = NO -->
 ### Deploy a proxy requirer
+<!-- vale Canonical.007-Headings-sentence-case = YES -->
 
 We'll use the Hockeypuck charm. Follow the [Hockeypuck](https://charmhub.io/hockeypuck-k8s/docs/tutorial-getting-started) tutorial to deploy the Hockeypuck charm.
 
@@ -88,7 +90,7 @@ This must be the same as the values obtained from the Squid proxy charm:
 juju run http-proxy-configurator/0 get-proxies
 ```
 
-### Cleaning up the environment
+### Clean up the environment
 
 Congratulations! You have successfully finished the tutorial. You can now remove the
 model environment that you’ve created using the following command.
