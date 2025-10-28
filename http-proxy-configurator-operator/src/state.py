@@ -4,20 +4,34 @@
 """http-proxy-configurator-operator charm state."""
 
 import logging
+import os
 from enum import StrEnum
 from typing import Annotated, Optional, cast
 
 import ops
 from annotated_types import Len
-from charms.squid_forward_proxy.v0.http_proxy import (
-    HttpProxyPolyProvider,
-)
+from charms.squid_forward_proxy.v0.http_proxy import HttpProxyPolyProvider
 from pydantic import ValidationError, model_validator
 from pydantic.dataclasses import dataclass
 from pydantic.networks import IPvAnyAddress
 
 logger = logging.getLogger()
 CHARM_CONFIG_DELIMITER = ","
+
+
+class Substrate(StrEnum):
+    """Substrate of the charm.
+
+    Attributes:
+        VM: Virtual Machine substrate.
+        KUBERNETES: Kubernetes substrate.
+    """
+
+    VM = "vm"
+    KUBERNETES = "k8s"
+
+
+SUBSTRATE = Substrate.KUBERNETES if os.getenv("KUBERNETES_SERVICE_HOST") else Substrate.VM
 
 
 class InvalidCharmConfigError(Exception):
@@ -70,6 +84,37 @@ class State:
     http_proxy_source_ips: list[IPvAnyAddress]
     delegate_http_proxy_relation_id: Optional[int]
     delegate_http_proxy_requirer_id: Optional[str]
+
+    @model_validator(mode="after")
+    def validate_no_srcip_auth_with_k8s_substrate(self) -> "State":
+        # Docstring here is weird to make pflake8 happy, this method raises `ValidationError`.
+        """Validate that srcip auth modes are not used with k8s substrate.
+
+        Returns: this class instance.
+
+        Raises:
+            from_exception_data: if the validation doesn't pass.
+        """
+        if SUBSTRATE == Substrate.KUBERNETES and any(
+            auth in {ProxyAuthMethod.SRC_IP, ProxyAuthMethod.SRC_IP_AND_USERPASS}
+            for auth in self.http_proxy_auth
+        ):
+            raise ValidationError.from_exception_data(
+                "Validation error",
+                [
+                    {
+                        "type": "value_error",
+                        "input": self.http_proxy_auth,
+                        "loc": ("srcip authentication method is not supported on k8s substrate.",),
+                        "ctx": {
+                            "error": (
+                                "srcip authentication method is not supported on k8s substrate."
+                            )
+                        },
+                    }
+                ],
+            )
+        return self
 
     @model_validator(mode="after")
     def validate_source_ips_set_for_srcip_auth_method(self) -> "State":
