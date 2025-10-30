@@ -34,6 +34,11 @@ jobs:
       provider: lxd
       working-directory: ./${{ matrix.charm }}-operator
       identifier: ${{ matrix.charm }}
+  allure-report:
+    if: always() && !cancelled()
+    needs:
+      - integration-tests
+    uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main 
 
   http-proxy-policy:
     name: HTTP Proxy Policy Tests
