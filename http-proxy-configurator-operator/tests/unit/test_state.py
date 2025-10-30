@@ -131,6 +131,27 @@ def test_state_from_charm_invalid_config(invalid_config):
         state.State.from_charm(charm, MagicMock())
 
 
+@pytest.mark.parametrize("substrate", [state.Substrate.KUBERNETES])
+def test_state_srcip_auth_not_allowed_on_k8s(substrate, monkeypatch):
+    """
+    arrange: mock Kubernetes substrate and srcip auth
+    act: instantiate a State
+    assert: ValidationError is raised for srcip auth on k8s
+    """
+    monkeypatch.setattr(state, "SUBSTRATE", substrate)
+
+    charm = Mock(CharmBase)
+    charm.config = {
+        "http-proxy-domains": "example.com",
+        "http-proxy-auth": "srcip",
+        "http-proxy-source-ips": "192.168.1.1",
+    }
+    charm.model.get_relation = MagicMock(return_value=None)
+
+    with pytest.raises(state.InvalidCharmConfigError):
+        state.State.from_charm(charm, MagicMock())
+
+
 def test_state_from_charm_ipv6_address():
     """
     arrange: mock a charm with valid IPv6 address
