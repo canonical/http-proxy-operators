@@ -2,6 +2,8 @@ name: Tests
 
 on:
   pull_request:
+  schedule:
+  - cron: "0 15 * * SAT"
 
 jobs:
   unit-tests:
@@ -26,8 +28,9 @@ jobs:
     name: Charm Integration Tests
     strategy:
       matrix:
-        charm: [ squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
-    uses: canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+        charm: [squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
+    uses: 
+      canonical/operator-workflows/.github/workflows/integration_test.yaml@main
     secrets: inherit
     with:
       juju-channel: '3/stable'
@@ -35,43 +38,43 @@ jobs:
       working-directory: ./${{ matrix.charm }}-operator
       identifier: ${{ matrix.charm }}
   allure-report:
-    if: always() && !cancelled()
+    if: ${{ (success() || failure()) && github.event_name == 'schedule' }}
     needs:
-      - integration-tests
-    uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main 
+    - integration-tests
+    uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
 
   http-proxy-policy:
     name: HTTP Proxy Policy Tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5.0.0
-      - uses: actions/setup-python@v6
-        with:
-          python-version: '3.x'
-      - working-directory: ./http-proxy-policy
-        run: |
-          pip install -r requirements.txt
-          python3 ./manage.py test --settings=http_proxy_policy.test_settings
+    - uses: actions/checkout@v5.0.0
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.x'
+    - working-directory: ./http-proxy-policy
+      run: |
+        pip install -r requirements.txt
+        python3 ./manage.py test --settings=http_proxy_policy.test_settings
   build-snap:
     name: Build Snap
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+    - uses: actions/checkout@v5
 
-      - name: Change directory
-        run: |
-          TEMP_DIR=$(mktemp -d)
-          cp -rp ./http-proxy-policy/. $TEMP_DIR
-          rm -rf .* * || :
-          cp -rp $TEMP_DIR/. .
-          rm -rf $TEMP_DIR
-          ls -lah
+    - name: Change directory
+      run: |
+        TEMP_DIR=$(mktemp -d)
+        cp -rp ./http-proxy-policy/. $TEMP_DIR
+        rm -rf .* * || :
+        cp -rp $TEMP_DIR/. .
+        rm -rf $TEMP_DIR
+        ls -lah
 
-      - name: Build Snap
-        id: snapcraft-build
-        uses: snapcore/action-build@v1
+    - name: Build Snap
+      id: snapcraft-build
+      uses: snapcore/action-build@v1
 
-      - uses: actions/upload-artifact@v5
-        with:
-          name: charmed-http-proxy-policy-snap
-          path: "*.snap"
+    - uses: actions/upload-artifact@v5
+      with:
+        name: charmed-http-proxy-policy-snap
+        path: "*.snap"
