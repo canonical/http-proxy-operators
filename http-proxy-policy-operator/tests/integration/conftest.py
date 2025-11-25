@@ -34,7 +34,7 @@ async def http_proxy_policy_fixture(
         "any-charm",
         application_name="proxy-provider",
         channel="latest/edge",
-        base="ubuntu@22.04",
+        base="ubuntu@24.04",
         config={
             "src-overwrite": json.dumps(
                 {
@@ -88,7 +88,7 @@ class RequirerCharm:
             "any-charm",
             application_name=self.name,
             channel="latest/edge",
-            base="ubuntu@22.04",
+            base="ubuntu@24.04",
             config={
                 "src-overwrite": json.dumps(
                     {"any_charm.py": any_charm_py_content, "http_proxy.py": http_proxy_py_content}
