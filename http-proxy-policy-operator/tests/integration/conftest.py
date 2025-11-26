@@ -26,7 +26,7 @@ async def http_proxy_policy_fixture(
         charm_path = await ops_test.build_charm(".")
     else:
         charm_path = [
-            c for c in charms if c.endswith("http-proxy-policy_ubuntu@22.04-amd64.charm")
+            c for c in charms if c.endswith("http-proxy-policy_ubuntu@24.04-amd64.charm")
         ][0]
     assert ops_test.model
     charm = await ops_test.model.deploy(os.path.abspath(charm_path), num_units=0)
