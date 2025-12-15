@@ -44,7 +44,7 @@ jobs:
 
       - name: Publish Snap
         env:
-          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPCRAFT_STORE_CREDENTIALS }}
+          SNAPCRAFT_STORE_CREDENTIALS: ${{ secrets.SNAPSTORE_TOKEN }}
         run: |
           for snap in *.snap
           do
