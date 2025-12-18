@@ -4,6 +4,11 @@ All notable changes to the HTTP Proxy Configurator operator will be documented i
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## 2025-12-17
+
+### Updated
+- Moved charm-architecture documents from Explanation to Reference category.
+
 ## 2025-10-28
 
 ### Added
