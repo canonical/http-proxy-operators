@@ -10,20 +10,12 @@ jobs:
     name: Charm Unit Tests
     strategy:
       matrix:
-        charm: [squid-forward-proxy, http-proxy-policy]
+        charm: [squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
     uses: canonical/operator-workflows/.github/workflows/test.yaml@main
     secrets: inherit
     with:
       self-hosted-runner: false
-      working-directory: ./${{ matrix.charm }}-operator
-  http-proxy-configurator:
-    name: Charm Unit Tests
-    uses: canonical/operator-workflows/.github/workflows/test.yaml@main
-    secrets: inherit
-    with:
-      self-hosted-runner: false
-      python-version: 3.12
-      working-directory: ./http-proxy-configurator-operator
+      working-directory: ./${{ matrix.charm }}-operator/
   integration-tests:
     name: Charm Integration Tests
     strategy:
@@ -35,7 +27,7 @@ jobs:
     with:
       juju-channel: '3/stable'
       provider: lxd
-      working-directory: ./${{ matrix.charm }}-operator
+      working-directory: ./${{ matrix.charm }}-operator/
       identifier: ${{ matrix.charm }}
   allure-report:
     if: ${{ !cancelled() && github.event_name == 'schedule' }}
