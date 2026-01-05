@@ -15,6 +15,7 @@ jobs:
     secrets: inherit
     with:
       self-hosted-runner: false
+      python-version: 3.12
       working-directory: ./${{ matrix.charm }}-operator/
   integration-tests:
     name: Charm Integration Tests
