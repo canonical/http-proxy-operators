@@ -1,0 +1,112 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model            Controller           Cloud/Region         Version  SLA          Timestamp
+test-charm-90e2  github-pr-1803e-lxd  localhost/localhost  3.6.12   unsupported  15:27:51Z
+
+App                  Version  Status  Scale  Charm                Channel      Rev  Exposed  Message
+any-charm-a                   active      1  any-charm            latest/edge  124  no       
+any-charm-b                   active      1  any-charm            latest/edge  124  no       
+any-charm-c                   active      1  any-charm            latest/edge  124  no       
+any-charm-d                   active      1  any-charm            latest/edge  124  no       
+squid-forward-proxy           active      3  squid-forward-proxy                 0  no       ready: 4
+
+Unit                    Workload  Agent  Machine  Public address  Ports     Message
+any-charm-a/0*          active    idle   2        10.218.52.82              
+any-charm-b/0*          active    idle   3        10.218.52.59              
+any-charm-c/0*          active    idle   0        10.218.52.190             
+any-charm-d/0*          active    idle   1        10.218.52.191             
+squid-forward-proxy/0*  active    idle   4        10.218.52.217   3128/tcp  ready: 4
+squid-forward-proxy/1   active    idle   5        10.218.52.210   3128/tcp  ready: 4
+squid-forward-proxy/2   active    idle   6        10.218.52.154   3128/tcp  ready: 4
+
+Machine  State    Address        Inst id        Base          AZ             Message
+0        started  10.218.52.190  juju-4a5bf1-0  ubuntu@24.04  runnervmmtnos  Running
+1        started  10.218.52.191  juju-4a5bf1-1  ubuntu@24.04  runnervmmtnos  Running
+2        started  10.218.52.82   juju-4a5bf1-2  ubuntu@24.04  runnervmmtnos  Running
+3        started  10.218.52.59   juju-4a5bf1-3  ubuntu@24.04  runnervmmtnos  Running
+4        started  10.218.52.217  juju-4a5bf1-4  ubuntu@24.04  runnervmmtnos  Running
+5        started  10.218.52.210  juju-4a5bf1-5  ubuntu@24.04  runnervmmtnos  Running
+6        started  10.218.52.154  juju-4a5bf1-6  ubuntu@24.04  runnervmmtnos  Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+machine-0: 15:21:05 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 15:21:05 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 15:21:20 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 15:21:20 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 15:21:34 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 15:21:34 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 15:21:49 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 15:21:49 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 15:23:31 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 15:23:31 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-6: 15:23:43 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-6: 15:23:43 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-5: 15:23:57 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-5: 15:23:57 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-any-charm-d-0: 15:27:48 ERROR unit.any-charm-d/0.juju-log error while handling rpc action
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/urllib3/connectionpool.py", line 777, in urlopen
+    self._prepare_proxy(conn)
+  File "/usr/lib/python3/dist-packages/urllib3/connectionpool.py", line 1046, in _prepare_proxy
+    conn.connect()
+  File "/usr/lib/python3/dist-packages/urllib3/connection.py", line 625, in connect
+    self._tunnel()  # type: ignore[attr-defined]
+    ^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 989, in _tunnel
+    (version, code, message) = response._read_status()
+                               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/http/client.py", line 297, in _read_status
+    line = str(self.fp.readline(_MAXLINE + 1), "iso-8859-1")
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3.12/socket.py", line 707, in readinto
+    return self._sock.recv_into(b)
+           ^^^^^^^^^^^^^^^^^^^^^^^
+TimeoutError: timed out
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/usr/lib/python3/dist-packages/requests/adapters.py", line 486, in send
+    resp = conn.urlopen(
+           ^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/urllib3/connectionpool.py", line 845, in urlopen
+    retries = retries.increment(
+              ^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/urllib3/util/retry.py", line 472, in increment
+    raise reraise(type(error), error, _stacktrace)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/urllib3/util/util.py", line 39, in reraise
+    raise value
+  File "/usr/lib/python3/dist-packages/urllib3/connectionpool.py", line 779, in urlopen
+    self._raise_timeout(
+  File "/usr/lib/python3/dist-packages/urllib3/connectionpool.py", line 371, in _raise_timeout
+    raise ReadTimeoutError(
+urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(host='ubuntu.com', port=443): Read timed out. (read timeout=5)
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-any-charm-d-0/charm/src/any_charm_base.py", line 74, in _rpc_
+    result = getattr(self, method)(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/var/lib/juju/agents/unit-any-charm-d-0/charm/src/any_charm.py", line 63, in test_proxy
+    return requests.get(url, proxies=proxies, timeout=5).status_code
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/requests/api.py", line 73, in get
+    return request("get", url, params=params, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/requests/api.py", line 59, in request
+    return session.request(method=method, url=url, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/requests/sessions.py", line 589, in request
+    resp = self.send(prep, **send_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/requests/sessions.py", line 703, in send
+    r = adapter.send(request, **kwargs)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/lib/python3/dist-packages/requests/adapters.py", line 532, in send
+    raise ReadTimeout(e, request=request)
+requests.exceptions.ReadTimeout: HTTPSConnectionPool(host='ubuntu.com', port=443): Read timed out. (read timeout=5)
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
