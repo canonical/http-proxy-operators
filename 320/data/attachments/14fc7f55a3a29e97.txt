@@ -1,0 +1,48 @@
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model            Controller           Cloud/Region         Version  SLA          Timestamp
+test-charm-8r0s  github-pr-1803e-lxd  localhost/localhost  3.6.14   unsupported  15:29:55Z
+
+App                  Version  Status  Scale  Charm                Channel      Rev  Exposed  Message
+any-charm-a                   active      1  any-charm            latest/edge  133  no       
+any-charm-b                   active      1  any-charm            latest/edge  133  no       
+any-charm-c                   active      1  any-charm            latest/edge  133  no       
+any-charm-d                   active      1  any-charm            latest/edge  133  no       
+squid-forward-proxy           active      3  squid-forward-proxy                 0  no       ready: 4
+
+Unit                    Workload  Agent  Machine  Public address  Ports     Message
+any-charm-a/0*          active    idle   3        10.0.203.110              
+any-charm-b/0*          active    idle   0        10.0.203.200              
+any-charm-c/0*          active    idle   1        10.0.203.109              
+any-charm-d/0*          active    idle   2        10.0.203.45               
+squid-forward-proxy/0*  active    idle   4        10.0.203.231    3128/tcp  ready: 4
+squid-forward-proxy/1   active    idle   5        10.0.203.206    3128/tcp  ready: 4
+squid-forward-proxy/2   active    idle   6        10.0.203.201    3128/tcp  ready: 4
+
+Machine  State    Address       Inst id        Base          AZ             Message
+0        started  10.0.203.200  juju-ad5771-0  ubuntu@24.04  runnervmkj6or  Running
+1        started  10.0.203.109  juju-ad5771-1  ubuntu@24.04  runnervmkj6or  Running
+2        started  10.0.203.45   juju-ad5771-2  ubuntu@24.04  runnervmkj6or  Running
+3        started  10.0.203.110  juju-ad5771-3  ubuntu@24.04  runnervmkj6or  Running
+4        started  10.0.203.231  juju-ad5771-4  ubuntu@24.04  runnervmkj6or  Running
+5        started  10.0.203.206  juju-ad5771-5  ubuntu@24.04  runnervmkj6or  Running
+6        started  10.0.203.201  juju-ad5771-6  ubuntu@24.04  runnervmkj6or  Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+machine-0: 15:22:21 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 15:22:21 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 15:22:39 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 15:22:39 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 15:22:56 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 15:22:56 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 15:23:07 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 15:23:07 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 15:25:09 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 15:25:09 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-5: 15:25:24 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-5: 15:25:24 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-6: 15:25:43 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-6: 15:25:43 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...

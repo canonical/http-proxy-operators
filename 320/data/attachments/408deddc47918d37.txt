@@ -1,0 +1,77 @@
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[32mINFO    [0m pytest_operator.plugin:plugin.py:762 Adding model github-pr-1803e-lxd:test-charm-8r0s on cloud localhost
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHSession received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHTunneler received from the controller
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [allocating] waiting: waiting for machine
+  any-charm-b/0 [allocating] waiting: waiting for machine
+  any-charm-c/0 [allocating] waiting: waiting for machine
+  any-charm-d/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [allocating] waiting: waiting for machine
+  any-charm-b/0 [allocating] waiting: waiting for machine
+  any-charm-c/0 [allocating] waiting: waiting for machine
+  any-charm-d/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [allocating] waiting: waiting for machine
+  any-charm-b/0 [allocating] waiting: waiting for machine
+  any-charm-c/0 [allocating] waiting: waiting for machine
+  any-charm-d/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [allocating] waiting: waiting for machine
+  any-charm-b/0 [allocating] waiting: waiting for machine
+  any-charm-c/0 [allocating] waiting: waiting for machine
+  any-charm-d/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [allocating] waiting: waiting for machine
+  any-charm-b/0 [executing] maintenance: installing charm software
+  any-charm-c/0 [allocating] waiting: waiting for machine
+  any-charm-d/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [idle] active: 
+  any-charm-c/0 [idle] active: 
+  any-charm-d/0 [allocating] waiting: agent initialising
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying local:squid-forward-proxy-0
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-b/0 [idle] active: 
+  any-charm-c/0 [idle] active: 
+  any-charm-d/0 [idle] active: 
+  any-charm-a/0 [idle] active: 
+  squid-forward-proxy/0 [allocating] waiting: waiting for machine
+  squid-forward-proxy/1 [allocating] waiting: waiting for machine
+  squid-forward-proxy/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  squid-forward-proxy/0 [allocating] waiting: waiting for machine
+  squid-forward-proxy/1 [allocating] waiting: waiting for machine
+  squid-forward-proxy/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  squid-forward-proxy/0 [allocating] waiting: waiting for machine
+  squid-forward-proxy/1 [allocating] waiting: waiting for machine
+  squid-forward-proxy/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  squid-forward-proxy/0 [allocating] waiting: waiting for machine
+  squid-forward-proxy/1 [allocating] waiting: waiting for machine
+  squid-forward-proxy/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  squid-forward-proxy/0 [executing] active: ready: 0
+  squid-forward-proxy/1 [executing] maintenance: installing squid
+  squid-forward-proxy/2 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  squid-forward-proxy/0 [idle] active: ready: 0
+  squid-forward-proxy/1 [idle] active: ready: 0
+  squid-forward-proxy/2 [idle] active: ready: 0
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-a/0 [idle] active:
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-b/0 [idle] active: 
+  any-charm-c/0 [idle] active: 
+  any-charm-d/0 [idle] active: 
+  any-charm-a/0 [idle] active: 
+  squid-forward-proxy/0 [executing] active: ready: 0
+  squid-forward-proxy/1 [executing] active: ready: 0
+  squid-forward-proxy/2 [executing] active: ready: 0
