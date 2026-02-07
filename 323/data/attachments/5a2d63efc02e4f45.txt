@@ -1,0 +1,77 @@
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[32mINFO    [0m pytest_operator.plugin:plugin.py:762 Adding model github-pr-1803e-lxd:test-charm-41c2 on cloud localhost
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHServer received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHSession received from the controller
+[33mWARNING [0m juju.client.connection:connection.py:858 unexpected facade SSHTunneler received from the controller
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying local:http-proxy-policy-0
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/jammy/postgresql-987
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy (not enough units yet - 0/1)
+  proxy-provider/0 [allocating] waiting: waiting for machine
+  proxy-provider/1 [allocating] waiting: waiting for machine
+  proxy-provider/2 [allocating] waiting: waiting for machine
+  postgresql/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy (not enough units yet - 0/1)
+  proxy-provider/0 [allocating] waiting: waiting for machine
+  proxy-provider/1 [allocating] waiting: waiting for machine
+  proxy-provider/2 [allocating] waiting: waiting for machine
+  postgresql/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy (not enough units yet - 0/1)
+  proxy-provider/0 [allocating] waiting: waiting for machine
+  proxy-provider/1 [allocating] waiting: waiting for machine
+  proxy-provider/2 [allocating] waiting: waiting for machine
+  postgresql/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy (not enough units yet - 0/1)
+  proxy-provider/0 [allocating] waiting: waiting for machine
+  proxy-provider/1 [allocating] waiting: waiting for machine
+  proxy-provider/2 [allocating] waiting: waiting for machine
+  postgresql/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy (not enough units yet - 0/1)
+  proxy-provider/0 [allocating] waiting: waiting for machine
+  proxy-provider/1 [allocating] waiting: waiting for machine
+  proxy-provider/2 [allocating] waiting: waiting for machine
+  postgresql/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [executing] maintenance: installing charmed-http-proxy-policy
+  proxy-provider/0 [executing] maintenance: installing charm software
+  proxy-provider/1 [allocating] waiting: waiting for machine
+  proxy-provider/2 [allocating] waiting: agent initialising
+  postgresql/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [executing] active: 
+  http-proxy-policy/1 [executing] maintenance: installing charmed-http-proxy-policy
+  http-proxy-policy/2 [executing] maintenance: installing charm software
+  proxy-provider/0 [executing] active: 
+  proxy-provider/1 [executing] maintenance: installing charm software
+  proxy-provider/2 [executing] active: 
+  postgresql/0 [executing] maintenance: installing PostgreSQL
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [executing] active: 
+  http-proxy-policy/1 [executing] active: 
+  http-proxy-policy/2 [executing] active: 
+  proxy-provider/0 [executing] active: 
+  proxy-provider/1 [executing] maintenance: installing charm software
+  proxy-provider/2 [executing] active: 
+  postgresql/0 [executing] maintenance: installing PostgreSQL
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [idle] active: 
+  http-proxy-policy/1 [executing] active: 
+  http-proxy-policy/2 [executing] active: 
+  proxy-provider/1 [idle] active: 
+  proxy-provider/2 [idle] active: 
+  postgresql/0 [executing] waiting: waiting to start PostgreSQL
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [executing] active: 
+  http-proxy-policy/1 [executing] active: 
+  http-proxy-policy/2 [executing] active: 
+  postgresql/0 [executing] active: Primary
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [idle] active: 
+  http-proxy-policy/1 [idle] active: 
+  http-proxy-policy/2 [executing] active: 
+  postgresql/0 [idle] active: Primary
