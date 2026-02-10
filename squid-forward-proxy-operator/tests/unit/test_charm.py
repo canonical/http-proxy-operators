@@ -44,8 +44,7 @@ def test_squid_charm_basic(mock_squid):
         relations=[integration, ops.testing.PeerRelation(endpoint="squid-peer")],
     )
     state_out = ctx.run(ctx.on.config_changed(), state_in)
-    assert mock_squid.read_config() == textwrap.dedent(
-        """\
+    assert mock_squid.read_config() == textwrap.dedent("""\
         http_port 3128
         logfile_rotate 10000
 
@@ -71,8 +70,7 @@ def test_squid_charm_basic(mock_squid):
         http_access allow localhost manager
         http_access deny manager
         http_access deny all
-        """  # noqa: E501 (line too long)
-    )
+        """)  # noqa: E501 (line too long)
     assert len(list(state_out.secrets)) == 1
     secret = [
         secret

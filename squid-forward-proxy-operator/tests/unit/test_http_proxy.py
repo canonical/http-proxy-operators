@@ -6,6 +6,7 @@
 # pylint: disable=protected-access
 
 import json
+import secrets
 import uuid
 
 import pydantic
@@ -64,16 +65,16 @@ class PureHttpProxyResponseListReader(http_proxy._HttpProxyResponseListReader):
 
     # for test purpose only
     # pylint: disable=super-init-not-called
-    def __init__(self, data: dict | None = None, secrets: dict | None = None) -> None:
+    def __init__(self, data: dict | None = None, secrets_dict: dict | None = None) -> None:
         """Initialize the object.
 
         Args:
             data: integration data
-            secrets: juju secrets
+            secrets_dict: juju secrets
         """
         self._integration_id = 123
         self._integration_data = data or {}
-        self._test_secrets = secrets or {}
+        self._test_secrets = secrets_dict or {}
         self._responses: dict[str, dict] = {}
         self._load()
 
@@ -87,16 +88,16 @@ class PureHttpProxyResponseListReadWriter(http_proxy._HttpProxyResponseListReadW
 
     # for test purpose only
     # pylint: disable=super-init-not-called
-    def __init__(self, data: dict | None = None, secrets: dict | None = None) -> None:
+    def __init__(self, data: dict | None = None, secrets_dict: dict | None = None) -> None:
         """Initialize the object.
 
         Args:
             data: integration data
-            secrets: juju secrets
+            secrets_dict: juju secrets
         """
         self._integration_id = 123
         self._integration_data = data or {}
-        self._test_secrets = secrets or {}
+        self._test_secrets = secrets_dict or {}
         self._responses: dict[str, dict] = {}
         self._load()
 
@@ -628,7 +629,7 @@ def test_http_proxy_response_list_reader_validate_response(proxy_response):
 
 
 @pytest.mark.parametrize(
-    "proxy_response, parsed_response, secrets",
+    "proxy_response, parsed_response, secrets_dict",
     [
         pytest.param(
             {
@@ -680,19 +681,26 @@ def test_http_proxy_response_list_reader_validate_response(proxy_response):
                 http_proxy="http://squid.internal:3128",
                 user=http_proxy.HttpProxyUser(username="foo", password=pydantic.SecretStr("bar")),
             ),
-            {"secret:foobar": {"username": "foo", "password": "bar"}},
+            {
+                "secret:foobar": {
+                    "username": "foo",
+                    "password": "bar",  # nosec: hardcoded_password_string
+                }
+            },
             id="ready with user",
         ),
     ],
 )
-def test_http_proxy_response_list_reader_get_response(proxy_response, parsed_response, secrets):
+def test_http_proxy_response_list_reader_get_response(
+    proxy_response, parsed_response, secrets_dict
+):
     """
     arrange: none
     act: provide a http-proxy integration with HTTP proxy responses
     assert: the charm should get HTTP proxy responses from the integration
     """
     reader = PureHttpProxyResponseListReader(
-        data={"responses": json.dumps([proxy_response])}, secrets=secrets
+        data={"responses": json.dumps([proxy_response])}, secrets_dict=secrets_dict
     )
     assert reader.get("00000000-0000-4000-8000-000000000000") == parsed_response
 
@@ -703,6 +711,7 @@ def test_http_proxy_response_list_reader_add_delete_response():
     act: add an HTTP proxy response to the integration then delete it
     assert: data in the integration should reflect the change
     """
+    test_password = secrets.token_hex()
     writer = PureHttpProxyResponseListReadWriter()
 
     writer.add(
@@ -718,11 +727,11 @@ def test_http_proxy_response_list_reader_add_delete_response():
         auth=http_proxy.AUTH_METHOD_USERPASS,
         https_proxy="http://squid.internal:3128",
         http_proxy="http://squid.internal:3128",
-        user={"username": "foo", "password": "bar"},
+        user={"username": "foo", "password": test_password},
     )
     assert len(writer._test_secrets) == 1
     secret_id = list(writer._test_secrets)[0]
-    assert writer._test_secrets[secret_id] == {"username": "foo", "password": "bar"}
+    assert writer._test_secrets[secret_id] == {"username": "foo", "password": test_password}
     assert json.loads(writer._integration_data["responses"]) == [
         {"requirer": "00000000-0000-4000-8000-000000000000", "status": "pending"},
         {
@@ -759,6 +768,8 @@ def test_http_proxy_response_list_reader_update():
     act: update an HTTP proxy response in the integration
     assert: data in the integration should reflect the change
     """
+    test_password1 = secrets.token_hex()
+    test_password2 = secrets.token_hex()
     writer = PureHttpProxyResponseListReadWriter()
 
     writer.add(
@@ -815,11 +826,11 @@ def test_http_proxy_response_list_reader_update():
     writer.update(
         requirer_id="00000000-0000-4000-8000-000000000000",
         auth=http_proxy.AUTH_METHOD_USERPASS,
-        user={"username": "foo", "password": "bar"},
+        user={"username": "foo", "password": test_password1},
     )
     assert len(writer._test_secrets) == 1
     secret_id = list(writer._test_secrets)[0]
-    assert writer._test_secrets[secret_id] == {"username": "foo", "password": "bar"}
+    assert writer._test_secrets[secret_id] == {"username": "foo", "password": test_password1}
     assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
@@ -833,9 +844,9 @@ def test_http_proxy_response_list_reader_update():
 
     writer.update(
         requirer_id="00000000-0000-4000-8000-000000000000",
-        user={"username": "foobar", "password": "foobar"},
+        user={"username": "foobar", "password": test_password2},
     )
-    assert writer._test_secrets[secret_id] == {"username": "foobar", "password": "foobar"}
+    assert writer._test_secrets[secret_id] == {"username": "foobar", "password": test_password2}
     assert json.loads(writer._integration_data["responses"]) == [
         {
             "requirer": "00000000-0000-4000-8000-000000000000",
