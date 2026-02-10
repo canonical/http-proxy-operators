@@ -5,8 +5,6 @@
 
 """Integration test charm."""
 
-import secrets
-
 import http_proxy
 from any_charm_base import AnyCharmBase
 
