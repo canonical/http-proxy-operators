@@ -2,6 +2,7 @@
 # See LICENSE file for licensing details.
 
 """Integration test charm fixtures."""
+
 import asyncio
 import json
 import os.path

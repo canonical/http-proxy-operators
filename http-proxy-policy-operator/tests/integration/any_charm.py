@@ -5,6 +5,8 @@
 
 """Integration test charm."""
 
+import secrets
+
 import http_proxy
 from any_charm_base import AnyCharmBase
 
@@ -36,7 +38,7 @@ class AnyCharm(AnyCharmBase):  # pylint: disable=too-few-public-methods
             request = proxy_requests.get(requirer)
             auth = request.auth[0]
             if http_proxy.AUTH_METHOD_USERPASS in auth:
-                user = {"username": "test", "password": "test"}
+                user = {"username": "test", "password": secrets.token_hex()}
             else:
                 user = None
             responses.add_or_replace(

@@ -122,8 +122,7 @@ def generate_config(specs: list[HttpProxySpec], http_port: int = 3128) -> str:
         Squid configuration.
     """
     buffer = [
-        textwrap.dedent(
-            f"""\
+        textwrap.dedent(f"""\
             http_port {http_port}
             logfile_rotate 10000
 
@@ -131,8 +130,7 @@ def generate_config(specs: list[HttpProxySpec], http_port: int = 3128) -> str:
             auth_param basic credentialsttl 60 seconds
 
             cache deny all
-            """
-        ),
+            """),
         *sorted(
             [
                 _generate_http_access_snippet(
@@ -141,15 +139,13 @@ def generate_config(specs: list[HttpProxySpec], http_port: int = 3128) -> str:
                 for spec in specs
             ]
         ),
-        textwrap.dedent(
-            """\
+        textwrap.dedent("""\
             access_log /var/log/squid/access.log squid
 
             http_access allow localhost manager
             http_access deny manager
             http_access deny all
-            """
-        ),
+            """),
     ]
     return "\n".join(buffer)
 
@@ -236,8 +232,7 @@ def install() -> None:  # pragma: nocover
     apt.add_package(
         ["squid", "libcrypt1", "prometheus-squid-exporter", "logrotate"], update_cache=True
     )
-    logrotate_config = textwrap.dedent(
-        """
+    logrotate_config = textwrap.dedent("""
         /var/log/squid/*.log {
             daily
             rotate 180
@@ -251,8 +246,7 @@ def install() -> None:  # pragma: nocover
                 test ! -e /run/squid.pid || test ! -x /usr/sbin/squid || /usr/sbin/squid -k rotate
             endscript
         }
-        """
-    )
+        """)
     _SQUID_LOGROTATE_CONFIG_PATH.write_text(logrotate_config, encoding="utf-8")
 
 
@@ -354,11 +348,9 @@ def update_config_and_passwd(
         if old_passwd != new_passwd:
             write_passwd(new_passwd)
         reload()
-    exporter_config = textwrap.dedent(
-        f"""
+    exporter_config = textwrap.dedent(f"""
         ARGS="-squid-port {http_port} -listen 127.0.0.1:9301"
-        """
-    )
+        """)
     if exporter_config != read_exporter_config():
         write_exporter_config(exporter_config)
         restart_exporter()
