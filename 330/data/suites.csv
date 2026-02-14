@@ -1,0 +1,44 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"
+    arrange: deploy the http-proxy-policy charm.
+    act: connect to the http-proxy-policy on the charm machine.
+    assert: the server should respond correctly.
+    ","","test_http_proxy_policy_server","tests.integration","","unknown","","","test_charm","",""
+"
+    arrange: deploy the http-proxy-policy charm with some proxy requirer charms.
+    act: add some rules to the http-proxy-policy and integrate the requirer charms.
+    assert: the requirer charm should receive the http proxy response according to the rules.
+    ","","test_proxy_requests","tests.integration","","unknown","","","test_charm","",""
+"Test the charm configuration in integrator mode.
+
+    Args:
+        juju: Jubilant juju fixture
+        application: Name of the ingress-configurator application.
+        squid_proxy: Name of the squid_proxy application.
+        http_proxy_requirer: Name of the requirer application.
+    ","48930","test_config_hostnames_and_paths","tests.integration","2026-02-14","passed","2026-02-14","","test_charm","",""
+"
+    arrange: create the testing model and deploy the Squid proxy charm and any-charm
+    act: instruct any-charm to request an HTTP proxy from the Squid proxy charm
+    assert: the returned proxy should satisfy the request
+    ","21248","test_proxy","tests.integration","2026-02-14","passed","2026-02-14","","test_charm","",""
+"
+    arrange: deploy the Squid proxy charm
+    act: get prometheus-squid-exporter metrics endpoint
+    assert: metrics endpoint returns squid metrics
+    ","5044","test_prometheus_exporter","tests.integration","2026-02-14","passed","2026-02-14","","test_charm","",""
+"
+    arrange: create the testing model and deploy the Squid proxy charm and any charm
+    act: instruct any-charm to request an HTTP proxy with different restrictions
+    assert: the returned proxy should satisfy the request
+    ","46131","test_proxy_auth","tests.integration","2026-02-14","passed","2026-02-14","","test_charm","",""
+"
+    arrange: create the testing model and deploy the Squid proxy charm and any charm
+    act: instruct any-charm to request an HTTP proxy with proxy authentication
+    assert: the returned proxy should satisfy the request
+    ","22657","test_proxy_userpass","tests.integration","2026-02-14","broken","2026-02-14","","test_charm","",""
+"
+    arrange: create the testing model and deploy the Squid proxy charm and any charm
+    act: instruct any-charm to request an HTTP proxy with restricted src_ips
+    assert: the returned proxy should satisfy the request
+    ","25992","test_proxy_src_ips","tests.integration","2026-02-14","passed","2026-02-14","","test_charm","",""
