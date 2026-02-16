@@ -6,6 +6,7 @@
 # pylint: disable=protected-access,line-too-long
 
 import json
+import secrets
 import unittest.mock
 import uuid
 from typing import cast
@@ -121,7 +122,7 @@ def test_reply_requests(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     mock_policy.HttpProxyPolicyClient.refresh.return_value = EXAMPLE_EVALUATED_REQUESTS
@@ -192,7 +193,9 @@ def test_relay_responses(mock_policy):
         },
     )
     mock_policy.HttpProxyPolicyClient.refresh.return_value = [EXAMPLE_EVALUATED_REQUESTS[0]]
-    backend_secret = ops.testing.Secret(tracked_content={"username": "test", "password": "test"}  # nosec)
+    backend_secret = ops.testing.Secret(
+        tracked_content={"username": "test", "password": secrets.token_hex()}
+    )
     backend_relation = ops.testing.Relation(
         endpoint="http-proxy-backend",
         remote_app_data={
@@ -216,7 +219,7 @@ def test_relay_responses(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     state_in = ops.testing.State(
@@ -277,7 +280,7 @@ def test_invalid_requests(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     backend_relation = ops.testing.Relation(
@@ -363,7 +366,7 @@ def test_unsupported_requests(mock_policy):  # pylint: disable=unused-argument
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     backend_relation = ops.testing.Relation(
@@ -422,7 +425,7 @@ def test_ignore_duplicate_requests(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     backend_relation = ops.testing.Relation(
@@ -469,7 +472,9 @@ def test_cleanup_responses(mock_policy):
         },
     )
     mock_policy.HttpProxyPolicyClient.refresh.return_value = [EXAMPLE_EVALUATED_REQUESTS[0]]
-    backend_secret = ops.testing.Secret(tracked_content={"username": "test", "password": "test"}  # nosec)
+    backend_secret = ops.testing.Secret(
+        tracked_content={"username": "test", "password": secrets.token_hex()}
+    )
     backend_relation = ops.testing.Relation(
         endpoint="http-proxy-backend",
         local_app_data={
@@ -504,7 +509,7 @@ def test_cleanup_responses(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     state_in = ops.testing.State(
@@ -547,7 +552,9 @@ def test_invalid_backend_response(mock_policy):
         },
     )
     mock_policy.HttpProxyPolicyClient.refresh.return_value = [EXAMPLE_EVALUATED_REQUESTS[0]]
-    backend_secret = ops.testing.Secret(tracked_content={"username": "test", "password": "test"}  # nosec)
+    backend_secret = ops.testing.Secret(
+        tracked_content={"username": "test", "password": secrets.token_hex()}
+    )
     backend_relation = ops.testing.Relation(
         endpoint="http-proxy-backend",
         remote_app_data={
@@ -560,7 +567,7 @@ def test_invalid_backend_response(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     state_in = ops.testing.State(
@@ -611,7 +618,7 @@ def test_missing_backend_relation(mock_policy):
             "database": "http-proxy-policy",
             "endpoints": "postgresql.test:5432",
             "username": "postgres",
-            "password": "postgres",  # nosec
+            "password": secrets.token_hex(),
         },
     )
     state_in = ops.testing.State(
