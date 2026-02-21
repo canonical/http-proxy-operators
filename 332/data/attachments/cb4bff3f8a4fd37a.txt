@@ -1,0 +1,10 @@
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-b/0 [idle] active:
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  any-charm-c/0 [idle] active: 
+  any-charm-d/0 [idle] active: 
+  any-charm-a/0 [idle] active: 
+  any-charm-b/0 [executing] active: 
+  squid-forward-proxy/0 [executing] active: ready: 2
+  squid-forward-proxy/1 [executing] active: ready: 2
+  squid-forward-proxy/2 [executing] active: ready: 2
