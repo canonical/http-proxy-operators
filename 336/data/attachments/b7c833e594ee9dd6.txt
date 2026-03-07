@@ -1,0 +1,106 @@
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:2301 Deploying ch:amd64/noble/any-charm-133
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-a/0 [allocating] waiting: waiting for machine
+  proxy-requirer-b/0 [allocating] waiting: waiting for machine
+  proxy-requirer-c/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-a/0 [allocating] waiting: waiting for machine
+  proxy-requirer-b/0 [allocating] waiting: waiting for machine
+  proxy-requirer-c/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-a/0 [allocating] waiting: waiting for machine
+  proxy-requirer-b/0 [allocating] waiting: waiting for machine
+  proxy-requirer-c/0 [allocating] waiting: waiting for machine
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-a/0 [allocating] waiting: waiting for machine
+  proxy-requirer-b/0 [allocating] waiting: waiting for machine
+  proxy-requirer-c/0 [executing] maintenance: installing charm software
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-a/0 [idle] active: 
+  proxy-requirer-b/0 [idle] active: 
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-a/0 [idle] active: 
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-b/0 [idle] active: 
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  proxy-requirer-c/0 [idle] active:
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [executing] active: 
+  http-proxy-policy/1 [executing] active: 
+  http-proxy-policy/2 [executing] active: 
+  proxy-provider/0 [idle] active: 
+  proxy-provider/1 [idle] active: 
+  proxy-provider/2 [idle] active: 
+  postgresql/0 [idle] active: Primary
+  proxy-requirer-c/0 [idle] active: 
+  proxy-requirer-b/0 [idle] active: 
+  proxy-requirer-a/0 [idle] active: 
+[32mINFO    [0m juju.model:__init__.py:3254 Waiting for model:
+  http-proxy-policy/0 [idle] active: 
+  http-proxy-policy/1 [idle] active: 
+  http-proxy-policy/2 [idle] active:
+[32mINFO    [0m pytest_operator.plugin:plugin.py:951 Model status:
+
+Model            Controller           Cloud/Region         Version  SLA          Timestamp
+test-charm-78vp  github-pr-ed25f-lxd  localhost/localhost  3.6.14   unsupported  15:38:00Z
+
+App                Version  Status  Scale  Charm              Channel       Rev  Exposed  Message
+http-proxy-policy           active      3  http-proxy-policy                  0  no       accepted: 1, rejected: 1, pending: 1
+postgresql         14.20    active      1  postgresql         14/stable    1045  no       
+proxy-provider              active      3  any-charm          latest/edge   133  no       
+proxy-requirer-a            active      1  any-charm          latest/edge   133  no       
+proxy-requirer-b            active      1  any-charm          latest/edge   133  no       
+proxy-requirer-c            active      1  any-charm          latest/edge   133  no       
+
+Unit                    Workload  Agent  Machine  Public address  Ports     Message
+postgresql/0*           active    idle   3        10.185.224.130  5432/tcp  Primary
+proxy-provider/0*       active    idle   0        10.185.224.83             
+  http-proxy-policy/0*  active    idle            10.185.224.83   8080/tcp  
+proxy-provider/1        active    idle   1        10.185.224.85             
+  http-proxy-policy/2   active    idle            10.185.224.85   8080/tcp  
+proxy-provider/2        active    idle   2        10.185.224.64             
+  http-proxy-policy/1   active    idle            10.185.224.64   8080/tcp  
+proxy-requirer-a/0*     active    idle   6        10.185.224.193            
+proxy-requirer-b/0*     active    idle   5        10.185.224.105            
+proxy-requirer-c/0*     active    idle   4        10.185.224.128            
+
+Machine  State    Address         Inst id        Base          AZ             Message
+0        started  10.185.224.83   juju-da27e4-0  ubuntu@24.04  runnervm0kj6c  Running
+1        started  10.185.224.85   juju-da27e4-1  ubuntu@24.04  runnervm0kj6c  Running
+2        started  10.185.224.64   juju-da27e4-2  ubuntu@24.04  runnervm0kj6c  Running
+3        started  10.185.224.130  juju-da27e4-3  ubuntu@22.04  runnervm0kj6c  Running
+4        started  10.185.224.128  juju-da27e4-4  ubuntu@24.04  runnervm0kj6c  Running
+5        started  10.185.224.105  juju-da27e4-5  ubuntu@24.04  runnervm0kj6c  Running
+6        started  10.185.224.193  juju-da27e4-6  ubuntu@24.04  runnervm0kj6c  Running
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:957 Juju error logs:
+
+machine-0: 15:29:55 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-0: 15:29:55 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 15:30:05 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-2: 15:30:05 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 15:30:29 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-1: 15:30:29 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 15:31:08 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-3: 15:31:08 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+unit-postgresql-0: 15:32:05 ERROR unit.postgresql/0.juju-log Unable to get the state of the cluster
+Traceback (most recent call last):
+  File "/var/lib/juju/agents/unit-postgresql-0/charm/src/cluster.py", line 569, in are_replicas_up
+    members = self.cluster_status()
+  File "/var/lib/juju/agents/unit-postgresql-0/charm/lib/charms/tempo_coordinator_k8s/v0/charm_tracing.py", line 946, in wrapped_function
+    return callable(*args, **kwargs)  # type: ignore
+  File "/var/lib/juju/agents/unit-postgresql-0/charm/src/cluster.py", line 369, in cluster_status
+    raise RetryError(
+tenacity.RetryError: RetryError[<Future at 0x7f60d42c4250 state=finished raised Exception>]
+unit-postgresql-0: 15:32:14 ERROR unit.postgresql/0.juju-log Failed to list PostgreSQL database users: could not translate host name "None" to address: Temporary failure in name resolution
+
+machine-4: 15:34:54 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-4: 15:34:54 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-5: 15:35:11 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-5: 15:35:11 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-6: 15:35:21 ERROR juju.worker.dependency "kvm-container-provisioner" manifold worker returned unexpected error: container types not yet available
+machine-6: 15:35:21 ERROR juju.worker.dependency "lxd-container-provisioner" manifold worker returned unexpected error: container types not yet available
+
+[32mINFO    [0m pytest_operator.plugin:plugin.py:1039 Forgetting model main...
