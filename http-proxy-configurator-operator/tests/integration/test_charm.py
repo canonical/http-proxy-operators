@@ -28,6 +28,7 @@ def test_config_hostnames_and_paths(
         values={
             "http-proxy-domains": "canonical.com",
         },
+        log=False,
     )
     juju.wait(
         lambda status: jubilant.all_active(status, squid_proxy, application),
@@ -47,6 +48,7 @@ def test_config_hostnames_and_paths(
     juju.config(
         app=application,
         values={"http-proxy-domains": "canonical.com", "http-proxy-auth": "srcip"},
+        log=False,
     )
     juju.wait(
         lambda status: jubilant.all_active(status, squid_proxy, application, http_proxy_requirer),

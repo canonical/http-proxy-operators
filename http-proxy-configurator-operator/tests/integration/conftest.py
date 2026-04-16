@@ -67,11 +67,7 @@ def application_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju, charm:
     if pytestconfig.getoption("--use-existing") and app_name in juju.status().apps:
         yield app_name
         return
-    juju.deploy(
-        charm=charm,
-        app=app_name,
-        base="ubuntu@24.04",
-    )
+    juju.deploy(charm=charm, app=app_name, base="ubuntu@24.04", log=False)
     yield app_name
 
 
@@ -94,6 +90,7 @@ def squid_proxy_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju):
         channel="latest/edge",
         revision=22,
         base="ubuntu@24.04",
+        log=False,
     )
     juju.wait(
         lambda status: jubilant.all_active(status, SQUID_PROXY_APP),
@@ -120,5 +117,6 @@ def http_proxy_requirer_fixture(pytestconfig: pytest.Config, juju: jubilant.Juju
         app=REQUIRER_APP,
         base="ubuntu@24.04",
         config={"http-proxy-domains": "ignored"},
+        log=False,
     )
     yield REQUIRER_APP
