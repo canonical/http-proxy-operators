@@ -12,6 +12,9 @@ jobs:
       matrix:
         charm: [squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
     uses: canonical/operator-workflows/.github/workflows/test.yaml@main
+    permissions:
+      contents: read
+      pull-requests: write
     secrets: inherit
     with:
       self-hosted-runner: false
@@ -24,6 +27,10 @@ jobs:
         charm: [squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
     uses: 
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
     secrets: inherit
     with:
       juju-channel: '3/stable'
@@ -34,6 +41,8 @@ jobs:
     if: ${{ !cancelled() && github.event_name == 'schedule' }}
     needs:
     - integration-tests
+    permissions:
+      contents: write
     uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
 
   http-proxy-policy:
