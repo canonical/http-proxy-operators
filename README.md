@@ -16,6 +16,15 @@ The repository also contains the snapped workload of some charms:
 1. [`charmed-http-proxy-policy`](./http-proxy-policy): A snapped Django
    application specifically made for the `http-proxy-policy` charm.
 
+## Charmhub and Snapcraft
+
+| Name | Listing |
+|------|---------|
+| `http-proxy-configurator` | https://charmhub.io/http-proxy-configurator |
+| `http-proxy-policy` | https://charmhub.io/http-proxy-policy |
+| `squid-forward-proxy` | https://charmhub.io/squid-forward-proxy |
+| `charmed-http-proxy-policy` | https://snapcraft.io/charmed-http-proxy-policy |
+
 ## Project and community
 
 The HTTP proxy operators project is a member of the Ubuntu family. It is an
