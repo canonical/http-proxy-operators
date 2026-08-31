@@ -15,6 +15,9 @@ jobs:
       matrix:
         charm: [squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
     uses: canonical/operator-workflows/.github/workflows/test.yaml@main
+    permissions:
+      contents: read
+      pull-requests: write
     secrets: inherit
     with:
       self-hosted-runner: false
@@ -30,6 +33,10 @@ jobs:
         charm: [squid-forward-proxy, http-proxy-policy, http-proxy-configurator]
     uses: 
       canonical/operator-workflows/.github/workflows/integration_test.yaml@main
+    permissions:
+      contents: read
+      packages: write
+      pull-requests: write
     secrets: inherit
     with:
       juju-channel: '3/stable'
@@ -42,13 +49,15 @@ jobs:
       contents: write
     needs:
     - integration-tests
+    permissions:
+      contents: write
     uses: canonical/operator-workflows/.github/workflows/allure_report.yaml@main
 
   http-proxy-policy:
     name: HTTP Proxy Policy Tests
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v6.0.1
+    - uses: actions/checkout@v6.0.2
     - uses: actions/setup-python@v6
       with:
         python-version: '3.x'
@@ -75,7 +84,7 @@ jobs:
       id: snapcraft-build
       uses: snapcore/action-build@v1
 
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       with:
         name: charmed-http-proxy-policy-snap
         path: "*.snap"
