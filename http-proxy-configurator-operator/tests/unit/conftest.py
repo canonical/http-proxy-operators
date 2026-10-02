@@ -1,0 +1,19 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+# pylint: disable=duplicate-code,missing-function-docstring
+"""Unit tests."""
+
+import pytest
+from ops.testing import Context
+
+from charm import HTTPProxyConfiguratorCharm
+
+
+@pytest.fixture(name="context")
+def context_fixture():
+    """Context fixture.
+
+    Yield: The charm context.
+    """
+    yield Context(charm_type=HTTPProxyConfiguratorCharm)

@@ -1,0 +1,64 @@
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+name: charmed-http-proxy-policy
+base: core24
+version: '0.1'
+license: Apache-2.0
+summary: HTTP proxy policy app
+description: |
+  This snap bundles the HTTP proxy policy django application to be included in the http-proxy-policy-operator.
+confinement: strict
+platforms:
+  amd64:
+    build-on: [ amd64 ]
+    build-for: [ amd64 ]
+
+system-usernames:
+  _daemon_: shared
+
+parts:
+  service-files:
+    plugin: dump
+    source: ./snap/service
+    override-prime: |
+      craftctl default
+      chmod -R +rx $CRAFT_PRIME/bin
+  app:
+    plugin: nil
+    source: .
+    build-packages:
+      - python3-venv
+    override-build: |
+      python3 -m venv venv
+      ./venv/bin/pip install -r requirements.txt
+      DJANGO_SECRET_KEY=collectstatic ./venv/bin/python3 manage.py collectstatic --noinput
+      cp -r . $SNAPCRAFT_PART_INSTALL/app
+      chown -R 584792:584792 $SNAPCRAFT_PART_INSTALL/app
+  dependencies:
+    plugin: nil
+    source: .
+    stage-packages:
+      - gunicorn
+      - nginx-core
+      - util-linux  # contains the setpriv utility
+      - python3
+    stage:
+      # Remove scripts that we'll be replacing with our own
+      - -etc/nginx/nginx.conf
+  config:
+    plugin: dump
+    source: ./snap/config
+apps:
+  gunicorn:
+    command: bin/gunicorn-start
+    daemon: simple
+    plugs: [ network, network-bind, home ]
+  nginx:
+    daemon: simple
+    command: bin/nginx-start
+    plugs: [ network, network-bind, home ]
+    reload-command: bin/nginx-reload
+  manage:
+    command: bin/manage
+    plugs: [ network, network-bind, home ]

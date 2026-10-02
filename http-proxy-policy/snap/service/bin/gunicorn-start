@@ -1,0 +1,23 @@
+#!/bin/sh
+
+# Copyright 2025 Canonical Ltd.
+# See LICENSE file for licensing details.
+
+set -xe
+
+export DJANGO_SECRET_KEY="$(snapctl get secret-key)"
+export DJANGO_ALLOWED_HOSTS="$(snapctl get allowed-hosts)"
+export DJANGO_LOG_LEVEL="$(snapctl get log-level)"
+export DJANGO_DATABASE_PASSWORD="$(snapctl get database-password)"
+export DJANGO_DATABASE_HOST="$(snapctl get database-host)"
+export DJANGO_DATABASE_PORT="$(snapctl get database-port)"
+export DJANGO_DATABASE_USER="$(snapctl get database-user)"
+export DJANGO_DATABASE_NAME="$(snapctl get database-name)"
+
+LOG_LEVEL="info"
+
+export PYTHONPATH=$SNAP/usr/lib/python3/dist-packages:$(realpath $SNAP/app/venv/lib/python*/site-packages)
+
+$SNAP/bin/manage migrate --check || $SNAP/bin/manage migrate
+
+exec "$SNAP/usr/bin/gunicorn" --chdir "$SNAP/app" --bind unix:/tmp/gunicorn.sock http_proxy_policy.wsgi --capture-output --log-level="$LOG_LEVEL"
