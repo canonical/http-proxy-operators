@@ -4,7 +4,8 @@ This repository provides a collection of operators related to HTTP proxies,
 including offering HTTP proxy services and managing HTTP proxy integration with
 our charms.
 
-For detailed information about how to deploy, integrate, and manage the HTTP proxy configurator charm, see the official [HTTP proxy configurator operator documentation](https://charmhub.io/http-proxy-configurator).
+For detailed information about how to deploy, integrate, and manage the HTTP proxy configurator charm,
+see the official [HTTP proxy configurator operator documentation](https://charmhub.io/http-proxy-configurator).
 
 ## Repository layout
 
@@ -30,6 +31,7 @@ squid-forward-proxy-operator/     # Juju charm: Squid proxy instance as a forwar
   src/                            # Squid forward proxy charm source code
   tests/                          # Squid forward proxy charm tests
 ```
+
 ## Components
 
 This repository contains three Juju charms and one snapped workload:
@@ -59,10 +61,12 @@ Start with the component that matches the architecture you are working on:
 * To provide http-proxy for both charmed and non-charmed workloads, see the tutorial at [`http-proxy-configurator-operator/docs/tutorial/getting-started.md`](./http-proxy-configurator-operator/docs/tutorial/getting-started.md).
 * To build or run the workload of the `http-proxy-policy` charm, see [`http-proxy-policy/README.md`](./http-proxy-policy/README.md).
 
-
 ## Integrations
 
-For endpoint details, see the in-repository files [`http-proxy-policy-operator/README.md`](./http-proxy-policy-operator/README.md), [`squid-forward-proxy-operator/README.md`](./squid-forward-proxy-operator/README.md), and [`http-proxy-configurator-operator/docs/reference/integrations.md`](./http-proxy-configurator-operator/docs/reference/integrations.md).
+For endpoint details, see the in-repository files
+[`http-proxy-policy-operator/README.md`](./http-proxy-policy-operator/README.md),
+[`squid-forward-proxy-operator/README.md`](./squid-forward-proxy-operator/README.md),
+and [`http-proxy-configurator-operator/docs/reference/integrations.md`](./http-proxy-configurator-operator/docs/reference/integrations.md).
 
 ## Documentation
 
