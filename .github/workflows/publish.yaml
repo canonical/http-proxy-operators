@@ -40,10 +40,10 @@ jobs:
       id: snapcraft-build
       uses: snapcore/action-build@v1
 
-    - uses: actions/upload-artifact@v5
-      with:
-        name: charmed-http-proxy-policy-snap
-        path: "*.snap"
+      - uses: actions/upload-artifact@v6
+        with:
+          name: charmed-http-proxy-policy-snap
+          path: "*.snap"
 
     - name: Publish Snap
       env:
