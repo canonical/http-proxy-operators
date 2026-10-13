@@ -58,7 +58,7 @@ Start with the component that matches the architecture you are working on:
 
 * To deploy the Squid forward proxy charm and use it as an HTTP proxy server, see [`squid-forward-proxy-operator/README.md`](./squid-forward-proxy-operator/README.md).
 * To deploy the HTTP proxy policy charm and explore its web interface, see [`http-proxy-policy-operator/README.md`](./http-proxy-policy-operator/README.md).
-* To provide http-proxy for both charmed and non-charmed workloads, see the tutorial at [`http-proxy-configurator-operator/docs/tutorial/getting-started.md`](./http-proxy-configurator-operator/docs/tutorial/getting-started.md).
+* To provide http-proxy for both charmed and non-charmed workloads, see the tutorial at [`docs/tutorial/getting-started.md`](docs/tutorial/getting-started.md).
 * To build or run the workload of the `http-proxy-policy` charm, see [`http-proxy-policy/README.md`](./http-proxy-policy/README.md).
 
 ## Integrations
@@ -66,7 +66,7 @@ Start with the component that matches the architecture you are working on:
 For endpoint details, see the in-repository files
 [`http-proxy-policy-operator/README.md`](./http-proxy-policy-operator/README.md),
 [`squid-forward-proxy-operator/README.md`](./squid-forward-proxy-operator/README.md),
-and [`http-proxy-configurator-operator/docs/reference/integrations.md`](./http-proxy-configurator-operator/docs/reference/integrations.md).
+and [`docs/reference/integrations.md`](docs/reference/integrations.md).
 
 ## Documentation
 
