@@ -44,18 +44,17 @@ Thinking about using the HTTP proxy configurator operator for your next project?
 # Contents
 
 1. [Changelog](../http-proxy-configurator-operator/changelog.md)
-2. [Explanation](../http-proxy-configurator-operator/docs/explanation)
+2. [Explanation](explanation)
   1. [Modes](explanation/modes.md)
   1. [Security](explanation/security.md)
-3. [How To](../http-proxy-configurator-operator/docs/how-to)
-  1. [Upgrade](../../docs/how-to/upgrade.md)
-4. [Reference](../http-proxy-configurator-operator/docs/reference)
+3. [How To](how-to)
+  1. [Upgrade](how-to/upgrade.md)
+4. [Reference](reference)
   1. [Actions](reference/actions.md)
   1. [Charm architecture](explanation/charm-architecture.md)
   2. [Configurations](reference/configurations.md)
   3. [External Access](reference/external_access.md)
   4. [Integrations](reference/integrations.md)
   5. [Security](reference/security.md)
-5. [Tutorial](../http-proxy-configurator-operator/docs/tutorial)
+5. [Tutorial](tutorial)
   1. [Getting started](tutorial/getting-started.md)
-
