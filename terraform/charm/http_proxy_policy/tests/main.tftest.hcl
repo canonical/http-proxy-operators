@@ -22,13 +22,13 @@ run "basic_deploy" {
   }
 
   assert {
-    condition     = output.provides.value.endpoint == "http-proxy"
-    error_message = "http-proxy-policy module should provide 'provides.value' output"
+    condition     = output.provides.http_proxy.endpoint == "http-proxy"
+    error_message = "http-proxy-policy module should provide 'provides.http_proxy' output"
   }
 
   assert {
-    condition     = output.requires.value.endpoint == "http-proxy-backend"
-    error_message = "http-proxy-policy module should provide 'requires.value' output"
+    condition     = output.requires.http_proxy_backend.endpoint == "http-proxy-backend"
+    error_message = "http-proxy-policy module should provide 'requires.http_proxy_backend' output"
   }
 
   assert {

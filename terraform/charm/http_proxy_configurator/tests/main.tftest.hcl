@@ -22,12 +22,12 @@ run "basic_deploy" {
   }
 
   assert {
-    condition     = output.provides.value.endpoint == "delegate-http-proxy"
-    error_message = "http-proxy-configurator module should provide 'provides.value' output"
+    condition     = output.provides.delegate_http_proxy.endpoint == "delegate-http-proxy"
+    error_message = "http-proxy-configurator module should provide 'provides.delegate_http_proxy' output"
   }
 
   assert {
-    condition     = output.requires.value.endpoint == "http-proxy"
-    error_message = "http-proxy-configurator module should provide 'requires.value' output"
+    condition     = output.requires.http_proxy.endpoint == "http-proxy"
+    error_message = "http-proxy-configurator module should provide 'requires.http_proxy' output"
   }
 }
