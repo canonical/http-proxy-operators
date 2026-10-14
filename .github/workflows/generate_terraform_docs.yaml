@@ -8,14 +8,14 @@ name: Update Terraform documentation
 on:
   pull_request:
     paths:
-      - '**/terraform/**'
-      - '.github/workflows/generate_terraform_docs.yaml'
+      - "terraform/**"
+      - ".github/workflows/generate_terraform_docs.yaml"
   push:
     branches:
       - main
     paths:
-      - '**/terraform/**'
-      - '.github/workflows/generate_terraform_docs.yaml'
+      - "terraform/**"
+      - ".github/workflows/generate_terraform_docs.yaml"
 
 permissions:
   contents: write
