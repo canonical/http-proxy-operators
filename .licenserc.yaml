@@ -27,4 +27,5 @@ header:
     - 'squid-forward-proxy-operator/lib/**'
     - 'http-proxy-policy/policy/migrations/**'
     - 'http-proxy-policy/templates/**'
+    - '**/MAJOR_VERSION'
   comment: on-failure
