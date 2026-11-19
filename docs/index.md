@@ -22,7 +22,7 @@ services and application access through Juju.
 | --- | --- |
 | **Get started** | [Deploy the HTTP proxy configurator with a Squid proxy](tutorial/getting-started.md) |
 | **Maintenance** | [Upgrade the configurator, policy, and Squid charms](how-to/upgrade.md) |
-| **Configuration and integrations** | HTTP proxy configurator: [Configuration options](reference/configurations.md) · [Actions](reference/actions.md) · [Relation endpoints](reference/integrations.md) |
+| **Configuration and relations** | HTTP proxy configurator: [Configuration options](reference/configurations.md) · [Actions](reference/actions.md) · [Relation endpoints](reference/integrations.md) |
 | **Concepts** | HTTP proxy configurator: [Integrator and pass-through modes](explanation/modes.md) · [Charm architecture](reference/charm-architecture.md) |
 | **Security** | HTTP proxy configurator: [Security best practices](explanation/security.md) · [External access requirements](reference/external_access.md) |
 
