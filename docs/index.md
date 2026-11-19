@@ -7,8 +7,8 @@ providing proxy configuration to applications.
 The collection includes three operators:
 
 - **Squid forward proxy** runs the proxy server and manages access through Juju relations.
-- **HTTP proxy policy** filters proxy requests using administrator-defined rules
-  and provides a web interface for approving or rejecting requests.
+- **HTTP proxy policy** filters proxy access requests using administrator-defined rules
+  and provides a web interface for approving or rejecting access requests.
 - **HTTP proxy configurator** connects applications to proxy providers. It
   supports both charmed applications and non-charmed applications that retrieve
   proxy configuration through a Juju action.
