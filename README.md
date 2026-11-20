@@ -11,23 +11,19 @@ see the official [HTTP proxy configurator operator documentation](https://charmh
 
 ```
 http-proxy-configurator-operator/ # Juju charm: configurator for the http-proxy interface
-  docs/                           # Documentation
   src/                            # Configurator charm source code
   tests/                          # Configurator charm tests
 
 http-proxy-policy-operator/       # Juju subordinate charm: policy layer in front of the HTTP proxy charms
-  docs/                           # Documentation
   src/                            # Policy charm source code
   tests/                          # Policy charm tests
 
 http-proxy-policy/                # Snap workload: Django application made for the http-proxy-policy charm
-  docs/                           # Documentation
   http_proxy_policy/              # Django project package
   policy/                         # Policy application code
   snap/                           # Snapcraft packaging
 
 squid-forward-proxy-operator/     # Juju charm: Squid proxy instance as a forward proxy server
-  docs/                           # Documentation
   src/                            # Squid forward proxy charm source code
   tests/                          # Squid forward proxy charm tests
 ```
