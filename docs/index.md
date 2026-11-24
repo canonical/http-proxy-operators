@@ -1,58 +1,81 @@
-# HTTP proxy configurator operator
+# HTTP proxy operators
 
-A [Juju](https://juju.is/) [charm](https://documentation.ubuntu.com/juju/3.6/reference/charm/) that serves as a configurator for the http-proxy interface. It can be used to provide http-proxy for both charmed and non-charmed workloads. Like any Juju charm, this charm supports one-line deployment, configuration, integration, and more. 
+The HTTP proxy operators are a collection of [Juju](https://canonical.com/juju)
+charms for deploying an HTTP forward proxy, controlling access to it, and
+providing proxy configuration to applications.
 
-The HTTP proxy configurator acts as a bridge between applications that need HTTP proxy configuration and proxy providers.
-It can operate in two distinct modes:
-- **Integrator mode**: For non-charmed applications that configure the charm via config options and retrieve proxy values via the `get-proxies` action.
-- **Pass-through mode**: For charmed applications that integrate via relations and can dynamically configure domains and authentication modes.
+The collection includes three operators:
 
-For DevOps and SRE teams, this charm will make operating HTTP proxy configuration simple and straightforward through Juju's clean interface.
+- **Squid forward proxy** runs the proxy server and manages access through Juju relations.
+- **HTTP proxy policy** filters proxy access requests using administrator-defined rules
+  and provides a web interface for approving or rejecting access requests.
+- **HTTP proxy configurator** connects applications to proxy providers. It
+  supports both charmed applications and non-charmed applications that retrieve
+  proxy configuration through a Juju action.
+
+These operators help system administrators and SRE teams manage HTTP proxy
+services and application access through Juju.
 
 ## In this documentation
 
 | | |
-|--|--|
-|  [Tutorials](https://charmhub.io/http-proxy-configurator/docs/tutorial-getting-started)</br>  Get started - a hands-on introduction to using the charm for new users </br> |  [How-to guides](https://charmhub.io/http-proxy-configurator/docs/how-to-contribute) </br> Step-by-step guides covering key operations and common tasks |
-| [Reference](https://charmhub.io/http-proxy-configurator/docs/reference-actions) </br> Technical information - specifications, APIs, architecture | [Explanation](https://charmhub.io/http-proxy-configurator/docs/explanation-charm-architecture) </br> Concepts - discussion and clarification of key topics  |
+| --- | --- |
+| **Get started** | [Deploy the HTTP proxy configurator with a Squid proxy](tutorial/getting-started.md) |
+| **Maintenance** | [Upgrade the configurator, policy, and Squid charms](how-to/upgrade.md) |
+| **Configuration and relations** | HTTP proxy configurator: [Configuration options](reference/configurations.md) · [Actions](reference/actions.md) · [Relation endpoints](reference/integrations.md) |
+| **Design** | HTTP proxy configurator: [Integrator and pass-through modes](explanation/modes.md) · [Charm architecture](reference/charm-architecture.md) |
+| **Security** | HTTP proxy configurator: [Best practices](explanation/security.md) · [External access requirements](reference/external_access.md) |
+
+## How this documentation is organized
+
+This documentation follows the [Diátaxis framework](https://diataxis.fr/).
+Most pages cover the HTTP proxy configurator; the upgrade guide covers all three
+charms.
+
+- The [tutorial](tutorial/getting-started.md) takes you through deploying the
+  HTTP proxy configurator and connecting an application to a Squid forward proxy.
+- The [how-to guide](how-to/upgrade.md) provides upgrade instructions for the
+  configurator, policy, and Squid charms.
+- Reference pages provide technical details about the configurator's
+  [configuration options](reference/configurations.md),
+  [actions](reference/actions.md), and [integrations](reference/integrations.md).
+- Explanation pages describe the configurator's
+  [operating modes](explanation/modes.md) and
+  [security considerations](explanation/security.md).
 
 ## Contributing to this documentation
 
-Documentation is an important part of this project, and we take the same open-source approach to the documentation as 
-the code. As such, we welcome community contributions, suggestions and constructive feedback on our documentation. 
-Our documentation is hosted on the [Charmhub forum](https://discourse.charmhub.io/) 
-to enable easy collaboration. Please use the "Help us improve this documentation" links on each documentation page to 
-either directly change something you see that's wrong, ask a question or make a suggestion about a potential change via 
-the comments section.
-
-If there's a particular area of documentation that you'd like to see that's missing, please 
-[file a bug](https://github.com/canonical/http-proxy-operators/issues).
+We welcome contributions, suggestions, and constructive feedback on the
+documentation. You can propose changes through a pull request in the
+[HTTP proxy operators repository](https://github.com/canonical/http-proxy-operators)
+or [file an issue](https://github.com/canonical/http-proxy-operators/issues)
+to report a problem or suggest missing documentation.
 
 ## Project and community
 
-The HTTP proxy configurator operator is a member of the Ubuntu family. It's an open-source project that warmly welcomes community 
-projects, contributions, suggestions, fixes, and constructive feedback.
+The HTTP proxy operators project is a member of the Ubuntu family. It's an
+open-source project that welcomes contributions, suggestions, fixes, and
+constructive feedback.
 
-- [Code of conduct](https://ubuntu.com/community/code-of-conduct)
+- [Code of conduct](https://ubuntu.com/community/docs/ethos/code-of-conduct)
 - [Get support](https://discourse.charmhub.io/)
 - [Join our online chat](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)
-- [Contribute](https://github.com/canonical/http-proxy-operators/blob/main/http-proxy-configurator-operator/CONTRIBUTING.md)
 
-Thinking about using the HTTP proxy configurator operator for your next project? 
+Thinking about using the HTTP proxy operators for your next project?
 [Get in touch](https://matrix.to/#/#charmhub-charmdev:ubuntu.com)!
 
-# Contents
+## Contents
 
-1. [Changelog](../http-proxy-configurator-operator/changelog.md)
-2. [Explanation](explanation)
-  1. [Modes](explanation/modes.md)
-  2. [Security](explanation/security.md)
-3. [How To](how-to)
-  1. [Upgrade](how-to/upgrade.md)
-4. [Reference](reference)
-  1. [Actions](reference/actions.md)
-  2. [Configurations](reference/configurations.md)
-  3. [External Access](reference/external_access.md)
-  4. [Integrations](reference/integrations.md)
-5. [Tutorial](tutorial)
-  1. [Getting started](tutorial/getting-started.md)
+1. Explanation
+   1. [Modes](explanation/modes.md)
+   2. [Security](explanation/security.md)
+2. How-to guides
+   1. [Upgrade](how-to/upgrade.md)
+3. Reference
+   1. [Actions](reference/actions.md)
+   2. [Charm architecture](reference/charm-architecture.md)
+   3. [Configurations](reference/configurations.md)
+   4. [External access](reference/external_access.md)
+   5. [Integrations](reference/integrations.md)
+4. Tutorial
+   1. [Getting started](tutorial/getting-started.md)
